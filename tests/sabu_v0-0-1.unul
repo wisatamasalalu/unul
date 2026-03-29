@@ -1,0 +1,14 @@
+^^ Program .sabu Pertama: Sistem Identifikasi
+ketik("=== SISTEM LOGIN LINUXDNC ===")
+
+ciptakan fungsi sapa_penguasa(nama) maka
+    ketik("Selamat datang kembali, Penguasa Tertinggi:")
+    ketik(nama)
+putus
+
+ketik("Siapa namamu?")
+takdir.soft bos = dengar()
+
+^^ Panggil fungsi yang baru diciptakan
+sapa_penguasa(bos)
+ketik("=== PROSES SELESAI ===")

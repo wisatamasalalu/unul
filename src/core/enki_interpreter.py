@@ -43,83 +43,67 @@ class EnkiInterpreter:
             
         return nilai_mentah
 
+    def eksekusi_node(self, node):
+        if node['tipe'] == 'DEKLARASI_TAKDIR':
+            nama = node['nama']
+            isi_final = self.evaluasi_nilai(node['isi'])
+            self.memory[nama] = {
+                'isi': isi_final,
+                'sifat': node['sifat'],
+                'ukuran': node.get('ukuran')
+            }
+            
+        elif node['tipe'] == 'PERINTAH_KETIK':
+            target = node['target']
+            if node['is_variable']:
+                if target in self.memory:
+                    print(self.memory[target]['isi'])
+                else:
+                    print(f"🚨 Bencana! Takdir '{target}' tidak ditemukan!")
+            else:
+                print(self.evaluasi_nilai(target))
+                
+        elif node['tipe'] == 'DEKLARASI_FUNGSI':
+            # Simpan fungsi ke dalam gudang memori fungsi
+            self.functions[node['nama']] = node
+            
+        elif node['tipe'] == 'PANGGILAN_FUNGSI':
+            nama_fungsi = node['nama']
+            if nama_fungsi not in self.functions:
+                print(f"🚨 KERNEL PANIC! Fungsi '{nama_fungsi}' belum diciptakan!")
+                import sys; sys.exit(1)
+                
+            fungsi_node = self.functions[nama_fungsi]
+            params = fungsi_node['parameter']
+            args = node['argumen']
+            
+            # Hitung semua argumen yang dikirim
+            args_evaluated = [self.evaluasi_nilai(arg) for arg in args]
+            
+            # -- MANAJEMEN MEMORI LOKAL --
+            # Pinjamkan variabel ke dalam memori, jalankan fungsi, lalu kembalikan seperti semula
+            backup = {}
+            for i, param in enumerate(params):
+                if param in self.memory:
+                    backup[param] = self.memory[param]
+                self.memory[param] = {'isi': args_evaluated[i], 'sifat': 'FLEKSIBEL'}
+                
+            # Eksekusi isi fungsi secara berurutan
+            for aksi_node in fungsi_node['aksi']:
+                self.eksekusi_node(aksi_node)
+                
+            # Bersihkan memori lokal (Garbage Collection Sederhana)
+            for param in params:
+                if param in backup:
+                    self.memory[param] = backup[param]
+                else:
+                    del self.memory[param]
+
+    # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:
-            if node['tipe'] == 'DEKLARASI_TAKDIR':
-                nama = node['nama']
-                sifat = node['sifat']
-                ukuran = node.get('ukuran') # Ambil ukuran jika ada
-                
-                isi_final = self.evaluasi_nilai(node['isi'])
-                
-                # --- HUKUM KETAT (KERNEL MODE) UNTUK ARRAY STATIS ---
-                if ukuran is not None:
-                    ukuran_int = int(ukuran)
-                    import sys
-                    if not isinstance(isi_final, list):
-                        print(f"🚨 BENCANA KERNEL! Takdir '{nama}' dipesan sebagai blok array, tapi diisi data tunggal!")
-                        sys.exit(1)
-                    if len(isi_final) > ukuran_int:
-                        print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan! Dipesan {ukuran_int} kavling, tapi diisi {len(isi_final)} data!")
-                        sys.exit(1)
-                # ----------------------------------------------------
-                
-                self.memory[nama] = {
-                    'isi': isi_final,
-                    'sifat': sifat,
-                    'ukuran': ukuran
-                }
-                
-            elif node['tipe'] == 'PERINTAH_KETIK':
-                target = node['target']
-                if node['is_variable']:
-                    if target in self.memory:
-                        print(self.memory[target]['isi'])
-                    else:
-                        print(f"🚨 Bencana! Takdir '{target}' belum pernah diciptakan!")
-                else:
-                    target_bersih = self.evaluasi_nilai(target)
-                    print(target_bersih)
-
-            elif node['tipe'] == 'HUKUM_KARMA':
-                kiri = self.evaluasi_nilai(node['kiri'])
-                kanan = self.evaluasi_nilai(node['kanan'])
-                pembanding = node['pembanding']
-                
-                # Ubah ke angka untuk ditimbang
-                kiri_int = int(kiri)
-                kanan_int = int(kanan)
-                
-                # Keputusan Hakim
-                sah = False
-                if pembanding == '>': sah = kiri_int > kanan_int
-                elif pembanding == '<': sah = kiri_int < kanan_int
-                elif pembanding == '==': sah = kiri_int == kanan_int
-                
-                if sah:
-                    # Eksekusi aksinya
-                    for aksi_node in node['aksi']:
-                        if aksi_node['tipe'] == 'PERINTAH_KETIK':
-                            target = aksi_node['target']
-                            if aksi_node['is_variable']:
-                                print(self.memory[target]['isi'])
-                            else:
-                                print(self.evaluasi_nilai(target))
-
-            elif node['tipe'] == 'HUKUM_SIKLUS':
-                jumlah_mentah = self.evaluasi_nilai(node['jumlah'])
-                jumlah_int = int(jumlah_mentah)
-                
-                # Mesin mengerahkan tenaganya (Looping)
-                for _ in range(jumlah_int):
-                    for aksi_node in node['aksi']:
-                        if aksi_node['tipe'] == 'PERINTAH_KETIK':
-                            target = aksi_node['target']
-                            if aksi_node['is_variable']:
-                                print(self.memory[target]['isi'])
-                            else:
-                                print(self.evaluasi_nilai(target)) 
-
+            self.eksekusi_node(node)
+            
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":
     import sys

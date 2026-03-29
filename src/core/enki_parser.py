@@ -41,6 +41,13 @@ class EnkiParser:
             elif token[0] == 'SIKLUS' and token[1] == 'effort':
                 self.ast.append(self.parse_siklus())
             
+            # 5. Fungsi untuk membuat fungsi sendiri
+            elif token[0] == 'PENCIPTAAN' and token[1] == 'ciptakan':
+                self.ast.append(self.parse_ciptaan())
+
+            elif token[0] == 'IDENTITAS': # Jika ada kata bebas, asumsikan itu panggilan fungsi
+                self.ast.append(self.parse_panggilan_fungsi())
+            
             else:
                 self.pos += 1 # Abaikan yang tidak dikenal untuk sementara
         return self.ast
@@ -209,6 +216,68 @@ class EnkiParser:
             'jumlah': jumlah,
             'aksi': aksi
         }
+
+    def parse_ciptaan(self):
+        self.makan_token('PENCIPTAAN') # makan 'ciptakan'
+        self.makan_token('PENCIPTAAN') # makan 'fungsi'
+        nama_fungsi = self.makan_token('IDENTITAS')[1]
+        
+        self.makan_token('KURUNG_B')
+        parameter = []
+        token_cek = self.panggil_token()
+        if token_cek and token_cek[0] == 'IDENTITAS':
+            while True:
+                param_nama = self.makan_token('IDENTITAS')[1]
+                parameter.append(param_nama)
+                if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
+                    self.makan_token('KOMA')
+                else:
+                    break
+        self.makan_token('KURUNG_T')
+        self.makan_token('KARMA') # makan 'maka'
+        
+        aksi = []
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
+                break
+                
+            if token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik':
+                aksi.append(self.parse_ketik())
+            elif token_cek[0] == 'IDENTITAS':
+                aksi.append(self.parse_panggilan_fungsi())
+            else:
+                self.pos += 1 # Abaikan token asing/komentar
+                
+        self.makan_token('KARMA') # makan 'putus'
+        
+        return {
+            'tipe': 'DEKLARASI_FUNGSI',
+            'nama': nama_fungsi,
+            'parameter': parameter,
+            'aksi': aksi
+        }
+
+    def parse_panggilan_fungsi(self):
+        nama_fungsi = self.makan_token('IDENTITAS')[1]
+        self.makan_token('KURUNG_B')
+        
+        argumen = []
+        token_cek = self.panggil_token()
+        if token_cek and token_cek[0] != 'KURUNG_T':
+            while True:
+                argumen.append(self.parse_ekspresi())
+                if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
+                    self.makan_token('KOMA')
+                else:
+                    break
+        self.makan_token('KURUNG_T')
+        
+        return {
+            'tipe': 'PANGGILAN_FUNGSI',
+            'nama': nama_fungsi,
+            'argumen': argumen
+        }    
 
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":
