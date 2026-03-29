@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!python
 # Baris sakti di atas (Shebang) memberi tahu Arch Linux untuk mengeksekusi file ini dengan Python
 
 import sys
 import os
 
 # Menambahkan folder src/core ke radar Python agar bisa membaca mesin Enki
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(BASE_DIR, 'src', 'core'))
 
 from enki_lexer import enki_lexer
