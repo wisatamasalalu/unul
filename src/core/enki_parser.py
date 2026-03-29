@@ -48,6 +48,16 @@ class EnkiParser:
     def parse_takdir(self):
         jenis_takdir = self.makan_token('TAKDIR')[1] 
         nama_var = self.makan_token('IDENTITAS')[1]
+        
+        # --- OMNIDISCIPLINARY: CEK ARRAY STATIS ---
+        ukuran_array = None
+        token_cek = self.panggil_token()
+        if token_cek and token_cek[0] == 'KURUNG_S_B':
+            self.makan_token('KURUNG_S_B')
+            ukuran_array = self.makan_token('ANGKA')[1]
+            self.makan_token('KURUNG_S_T')
+        # ------------------------------------------
+        
         self.makan_token('ASSIGN')
         
         # Delegasikan pembacaan nilai ke parse_ekspresi
@@ -57,14 +67,38 @@ class EnkiParser:
             'tipe': 'DEKLARASI_TAKDIR',
             'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
             'nama': nama_var,
+            'ukuran': ukuran_array, # Simpan ukuran kavling RAM (jika ada)
             'isi': nilai
         }
 
     def parse_ekspresi(self):
         token_kiri = self.panggil_token()
         
+        # --- CEK APAKAH INI ARRAY (KOTAK DATA) ---
+        if token_kiri and token_kiri[0] == 'KURUNG_S_B':
+            self.makan_token('KURUNG_S_B')
+            elemen_array = []
+            
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] != 'KURUNG_S_T':
+                while True:
+                    elemen = self.parse_ekspresi() # Rekursif canggih
+                    elemen_array.append(elemen)
+                    
+                    token_koma = self.panggil_token()
+                    if token_koma and token_koma[0] == 'KOMA':
+                        self.makan_token('KOMA')
+                    else:
+                        break # Berhenti jika tidak ada koma
+            
+            self.makan_token('KURUNG_S_T')
+            kiri = {
+                'tipe': 'STRUKTUR_ARRAY',
+                'isi': elemen_array
+            }
+        # -----------------------------------------
         # Cek apakah ini Fungsi Dengar
-        if token_kiri and token_kiri[0] == 'FUNGSI' and token_kiri[1] == 'dengar':
+        elif token_kiri and token_kiri[0] == 'FUNGSI' and token_kiri[1] == 'dengar':
             self.makan_token('FUNGSI')
             self.makan_token('KURUNG_B')
             self.makan_token('KURUNG_T')
@@ -75,7 +109,7 @@ class EnkiParser:
         else:
             raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
 
-        # Looping terus selama masih ada rentetan operator matematika (+ - * /)
+        # Looping untuk matematika berderet
         while self.pos < len(self.tokens):
             token_cek = self.panggil_token()
             if token_cek and token_cek[0] == 'OPERATOR':
@@ -85,7 +119,6 @@ class EnkiParser:
                 if token_kanan and token_kanan[0] in ['ANGKA', 'IDENTITAS']:
                     kanan = self.makan_token(token_kanan[0])[1]
                     
-                    # Gabungkan menjadi satu node kiri yang baru (Left-associative)
                     kiri = {
                         'tipe': 'OPERASI_MATEMATIKA',
                         'kiri': kiri,
@@ -97,7 +130,7 @@ class EnkiParser:
             else:
                 break # Keluar dari loop jika bukan operator
                 
-        return kiri    
+        return kiri  
         
     def parse_ketik(self):
         self.makan_token('FUNGSI')

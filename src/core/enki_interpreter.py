@@ -33,6 +33,13 @@ class EnkiInterpreter:
         # Jika teks literal, bersihkan kutip
         if isinstance(nilai_mentah, str) and ((nilai_mentah.startswith('"') and nilai_mentah.endswith('"')) or (nilai_mentah.startswith("'") and nilai_mentah.endswith("'"))):
             return nilai_mentah[1:-1]
+
+        # TAMBAHAN BARU: STRUKTUR ARRAY
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'STRUKTUR_ARRAY':
+            hasil_array = []
+            for elemen in nilai_mentah['isi']:
+                hasil_array.append(self.evaluasi_nilai(elemen))
+            return hasil_array
             
         return nilai_mentah
 
@@ -41,13 +48,26 @@ class EnkiInterpreter:
             if node['tipe'] == 'DEKLARASI_TAKDIR':
                 nama = node['nama']
                 sifat = node['sifat']
+                ukuran = node.get('ukuran') # Ambil ukuran jika ada
                 
-                # Hitung dulu hasil akhirnya sebelum disimpan
                 isi_final = self.evaluasi_nilai(node['isi'])
+                
+                # --- HUKUM KETAT (KERNEL MODE) UNTUK ARRAY STATIS ---
+                if ukuran is not None:
+                    ukuran_int = int(ukuran)
+                    import sys
+                    if not isinstance(isi_final, list):
+                        print(f"🚨 BENCANA KERNEL! Takdir '{nama}' dipesan sebagai blok array, tapi diisi data tunggal!")
+                        sys.exit(1)
+                    if len(isi_final) > ukuran_int:
+                        print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan! Dipesan {ukuran_int} kavling, tapi diisi {len(isi_final)} data!")
+                        sys.exit(1)
+                # ----------------------------------------------------
                 
                 self.memory[nama] = {
                     'isi': isi_final,
-                    'sifat': sifat
+                    'sifat': sifat,
+                    'ukuran': ukuran
                 }
                 
             elif node['tipe'] == 'PERINTAH_KETIK':

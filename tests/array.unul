@@ -1,0 +1,13 @@
+ketik("=== MENGUJI ARRAY DINAMIS (WEB MODE) ===")
+takdir.soft pengguna = ["Nabhan", "Enki", "UNUL"]
+ketik(pengguna)
+
+ketik("=== MENGUJI ARRAY STATIS (KERNEL MODE) ===")
+^^ Kita pesan 3 kavling memori saja!
+takdir.hard pin_hardware[3] = [12, 14, 27]
+ketik(pin_hardware)
+
+ketik("=== MENGUJI KERNEL PANIC ===")
+^^ Kita coba menipu mesin! Pesan 2 kavling, tapi isi 3!
+takdir.hard sektor_disk[2] = [100, 101, 102]
+ketik("Ini tidak akan pernah tercetak!")

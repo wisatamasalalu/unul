@@ -16,6 +16,9 @@ def enki_lexer(source_code):
         ('ASSIGN',    r'='),                   # Sama dengan
         ('KURUNG_B',  r'\('),
         ('KURUNG_T',  r'\)'),
+        ('KURUNG_S_B',r'\['),                  # Kurung Siku Buka
+        ('KURUNG_S_T',r'\]'),                  # Kurung Siku Tutup
+        ('KOMA',      r','),
         ('ANGKA',     r'\d+'),                 # Angka
         ('SPASI',     r'[ \t\n]+'),            # Abaikan spasi
         ('MISMATCH',  r'.'),                   # Ilegal
