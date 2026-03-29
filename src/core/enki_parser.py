@@ -25,38 +25,26 @@ class EnkiParser:
         while self.pos < len(self.tokens):
             token = self.panggil_token()
             
-            # 1. Logika Deklarasi Takdir
             if token[0] == 'TAKDIR':
                 self.ast.append(self.parse_takdir())
-            
-            # 2. Logika Perintah Ketik
-            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
-                aksi.append(self.parse_waktu())
-
-            elif token_cek[0] == 'KONTROL':
-                aksi.append(self.parse_kontrol())
-
-            # 3. Logika Hukum Karma (If)
+            elif token[0] == 'FUNGSI' and token[1] == 'ketik':
+                self.ast.append(self.parse_ketik())
+            elif token[0] == 'FUNGSI' and token[1] in ['tunggu', 'jeda']:
+                self.ast.append(self.parse_waktu())
+            elif token[0] == 'KONTROL':
+                self.ast.append(self.parse_kontrol())
             elif token[0] == 'KARMA' and token[1] == 'jika':
                 self.ast.append(self.parse_karma())
-            
-            # 4. Logika Hukum Siklus (Looping / Effort)
             elif token[0] == 'SIKLUS' and token[1] == 'effort':
                 self.ast.append(self.parse_siklus())
-            
-            # 5. Fungsi untuk membuat fungsi sendiri
             elif token[0] == 'PENCIPTAAN' and token[1] == 'ciptakan':
                 self.ast.append(self.parse_ciptaan())
-
-            elif token[0] == 'IDENTITAS': # Jika ada kata bebas, asumsikan itu panggilan fungsi
+            elif token[0] == 'IDENTITAS':
                 self.ast.append(self.parse_panggilan_fungsi())
-
-            # SOWAN : Memecah kode ribuan baris
             elif token[0] == 'SOWAN':
                 self.ast.append(self.parse_sowan())
-            
             else:
-                self.pos += 1 # Abaikan yang tidak dikenal untuk sementara
+                self.pos += 1 
         return self.ast
 
     def parse_takdir(self):
@@ -170,32 +158,25 @@ class EnkiParser:
         self.makan_token('KARMA') # maka
         
         aksi = []
-        # Baca semua perintah sampai ketemu 'putus'
         while self.pos < len(self.tokens):
             token_cek = self.panggil_token()
             if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
-                break # Rantai karma diputus
-                
-            token_aksi = self.panggil_token()
-            if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
-                aksi.append(self.parse_ketik())
+                break 
 
-            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
-                aksi.append(self.parse_waktu())
-            elif token_cek[0] == 'KONTROL':
-                aksi.append(self.parse_kontrol())
-
-            else:
-                raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Karma: {token_aksi}")
+            # HAKIM ENLIL SEKARANG BISA MEMBACA SEMUA PERINTAH DI DALAM BLOK JIKA
+            if token_cek[0] == 'TAKDIR': aksi.append(self.parse_takdir())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': aksi.append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: aksi.append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
+            elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
+            elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            else: self.pos += 1
                 
         self.makan_token('KARMA') # Makan kata 'putus'
         
         return {
-            'tipe': 'HUKUM_KARMA',
-            'kiri': kiri,
-            'pembanding': pembanding,
-            'kanan': kanan,
-            'aksi': aksi
+            'tipe': 'HUKUM_KARMA', 'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan, 'aksi': aksi
         }
 
     def parse_siklus(self):
@@ -210,30 +191,25 @@ class EnkiParser:
         self.makan_token('KARMA')  # maka
         
         aksi = []
-        # Baca semua perintah sampai ketemu 'putus'
         while self.pos < len(self.tokens):
             token_cek = self.panggil_token()
             if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
-                break # Siklus diputus
-                
-            token_aksi = self.panggil_token()
-            if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
-                aksi.append(self.parse_ketik())
+                break 
 
-            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
-                aksi.append(self.parse_waktu())
-            elif token_cek[0] == 'KONTROL':
-                aksi.append(self.parse_kontrol())
-
-            else:
-                raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Siklus: {token_aksi}")
+            # HAKIM ENLIL SEKARANG BISA MEMBACA SEMUA PERINTAH DI DALAM BLOK EFFORT
+            if token_cek[0] == 'TAKDIR': aksi.append(self.parse_takdir())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': aksi.append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: aksi.append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
+            elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
+            elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            else: self.pos += 1
                 
         self.makan_token('KARMA') # Makan kata 'putus'
         
         return {
-            'tipe': 'HUKUM_SIKLUS',
-            'jumlah': jumlah,
-            'aksi': aksi
+            'tipe': 'HUKUM_SIKLUS', 'jumlah': jumlah, 'aksi': aksi
         }
 
     def parse_ciptaan(self):
@@ -265,22 +241,22 @@ class EnkiParser:
             if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
                 break
                 
-            if token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik':
-                aksi.append(self.parse_ketik())
-            elif token_cek[0] == 'IDENTITAS':
-                aksi.append(self.parse_panggilan_fungsi())
-            else:
-                self.pos += 1 # Abaikan token asing/komentar
+            # HAKIM ENLIL SEKARANG BISA MEMBACA SEMUA PERINTAH DI DALAM FUNGSI KUSTOM
+            if token_cek[0] == 'TAKDIR': aksi.append(self.parse_takdir())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': aksi.append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: aksi.append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
+            elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
+            elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            else: self.pos += 1 
                 
         self.makan_token('KARMA') # makan 'putus'
         
         return {
-            'tipe': 'DEKLARASI_FUNGSI',
-            'nama': nama_fungsi,
-            'parameter': parameter,
-            'aksi': aksi
+            'tipe': 'DEKLARASI_FUNGSI', 'nama': nama_fungsi, 'parameter': parameter, 'aksi': aksi
         }
-
+        
     def parse_panggilan_fungsi(self):
         nama_fungsi = self.makan_token('IDENTITAS')[1]
         self.makan_token('KURUNG_B')

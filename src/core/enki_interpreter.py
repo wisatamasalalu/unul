@@ -48,7 +48,21 @@ class EnkiInterpreter:
         if node['tipe'] == 'DEKLARASI_TAKDIR':
             nama = node['nama']
             isi_final = self.evaluasi_nilai(node['isi'])
-            self.memory[nama] = {'isi': isi_final, 'sifat': node['sifat'], 'ukuran': node.get('ukuran')}
+            ukuran_kavling = node.get('ukuran')
+
+            # --- KEMBALIKAN FITUR: KERNEL PANIC ARRAY STATIS ---
+            if ukuran_kavling is not None and isinstance(isi_final, list):
+                if len(isi_final) > int(ukuran_kavling):
+                    print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan ! Dipesan {ukuran_kavling} kavling, tapi diisi {len(isi_final)} data!")
+                    import sys; sys.exit(1)
+
+            # --- MESIN WAKTU: SIMPAN RIWAYAT JIKA TAKDIR DIUBAH ---
+            if nama in self.memory:
+                if 'riwayat' not in self.memory[nama]: self.memory[nama]['riwayat'] = []
+                self.memory[nama]['riwayat'].append(self.memory[nama]['isi'])
+                self.memory[nama]['isi'] = isi_final
+            else:
+                self.memory[nama] = {'isi': isi_final, 'sifat': node['sifat'], 'ukuran': ukuran_kavling, 'riwayat': []}
             
         elif node['tipe'] == 'PERINTAH_KETIK':
             target = node['target']
@@ -111,20 +125,30 @@ class EnkiInterpreter:
         # RESTORE: HUKUM KARMA & SIKLUS YANG HILANG
         # ==========================================
         elif node['tipe'] == 'HUKUM_KARMA':
-            kiri_int = int(self.evaluasi_nilai(node['kiri']))
-            kanan_int = int(self.evaluasi_nilai(node['kanan']))
+            kiri_val = self.evaluasi_nilai(node['kiri'])
+            kanan_val = self.evaluasi_nilai(node['kanan'])
             pembanding = node['pembanding']
             
+            # Konversi otomatis ke angka jika bentuknya angka, agar matematika akurat!
+            try:
+                kiri_val = int(kiri_val)
+                kanan_val = int(kanan_val)
+            except ValueError:
+                pass # Biarkan berupa teks jika bukan angka (berguna untuk ngecek nama == "Nabhan")
+
             sah = False
-            if pembanding == '>': sah = kiri_int > kanan_int
-            elif pembanding == '<': sah = kiri_int < kanan_int
-            elif pembanding == '==': sah = kiri_int == kanan_int
+            if pembanding == '>': sah = kiri_val > kanan_val
+            elif pembanding == '<': sah = kiri_val < kanan_val
+            elif pembanding == '==': sah = kiri_val == kanan_val
+            elif pembanding == '!=': sah = kiri_val != kanan_val
+            elif pembanding == '>=': sah = kiri_val >= kanan_val
+            elif pembanding == '<=': sah = kiri_val <= kanan_val
             
             if sah:
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
                     if hasil == "HENTI": return "HENTI" # Teruskan sinyal dobrak ke siklus
-
+                    
         elif node['tipe'] == 'HUKUM_SIKLUS':
             jumlah_int = int(self.evaluasi_nilai(node['jumlah']))
             for _ in range(jumlah_int):
@@ -135,7 +159,7 @@ class EnkiInterpreter:
                         berhenti = True # Sinyal diterima, siklus didobrak!
                         break
                 if berhenti: break
-                
+
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:
