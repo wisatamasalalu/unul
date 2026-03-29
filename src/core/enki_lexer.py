@@ -11,6 +11,7 @@ def enki_lexer(source_code):
         ('KARMA',     r'\b(jika|maka|putus)\b'), # Kata kunci takdir
         ('SIKLUS',    r'\b(effort|kali)\b'), # Program pengulangan
         ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), # Ciptakan fungsi baru
+        ('SOWAN',     r'\bsowan\b'), # Untuk memecah ribuan baris kode di satu file
         ('PEMBANDING',r'==|!=|>=|<=|>|<'),         # Timbangan keadilan
         ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)
         ('OPERATOR',  r'[+\-*/]'),             # Operator aritmatika

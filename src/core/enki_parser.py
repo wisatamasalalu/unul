@@ -47,6 +47,10 @@ class EnkiParser:
 
             elif token[0] == 'IDENTITAS': # Jika ada kata bebas, asumsikan itu panggilan fungsi
                 self.ast.append(self.parse_panggilan_fungsi())
+
+            # SOWAN : Memecah kode ribuan baris
+            elif token[0] == 'SOWAN':
+                self.ast.append(self.parse_sowan())
             
             else:
                 self.pos += 1 # Abaikan yang tidak dikenal untuk sementara
@@ -277,6 +281,17 @@ class EnkiParser:
             'tipe': 'PANGGILAN_FUNGSI',
             'nama': nama_fungsi,
             'argumen': argumen
+        }
+
+    def parse_sowan(self):
+        self.makan_token('SOWAN') # Makan kata 'sowan'
+        
+        # Target file biasanya berupa TEKS (contoh: "modul.unul")
+        target_file = self.makan_token('TEKS')[1]
+        
+        return {
+            'tipe': 'PERINTAH_SOWAN',
+            'target': target_file
         }    
 
 # --- BLOK PENGUJIAN PARSER ---

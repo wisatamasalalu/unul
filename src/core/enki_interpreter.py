@@ -100,6 +100,27 @@ class EnkiInterpreter:
                 else:
                     del self.memory[param]
 
+        # Perintah untuk baca file lain
+        elif node['tipe'] == 'PERINTAH_SOWAN':
+            # Bersihkan tanda kutip dari nama file
+            target_file = node['target'].strip('"\'')
+            
+            try:
+                with open(target_file, "r") as f:
+                    kode_sowan = f.read()
+            except FileNotFoundError:
+                print(f"🚨 Bencana Sowan! Kitab '{target_file}' tidak ditemukan untuk disowan.")
+                import sys; sys.exit(1)
+            
+            # Panggil alat bedah Lexer & Parser (Karena di-import di atas, kita bisa langsung pakai)
+            tokens_sowan = enki_lexer(kode_sowan)
+            parser_sowan = EnkiParser(tokens_sowan)
+            ast_sowan = parser_sowan.parse()
+            
+            # Eksekusi isi file sowan agar ilmunya (fungsi & takdir) masuk ke memori kita saat ini!
+            for node_sowan in ast_sowan:
+                self.eksekusi_node(node_sowan)
+
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:

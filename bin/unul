@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+^^ Baris sakti di atas (Shebang) memberi tahu Arch Linux untuk mengeksekusi file ini dengan Python
+
+import sys
+import os
+
+# Menambahkan folder src/core ke radar Python agar bisa membaca mesin Enki
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(BASE_DIR, 'src', 'core'))
+
+from enki_lexer import enki_lexer
+from enki_parser import EnkiParser
+from enki_interpreter import EnkiInterpreter
+
+def main():
+    if len(sys.argv) < 2:
+        print("=== UNUL CLI - Galeri Langkah Bahagia ===")
+        print("Cara pakai : unul ayo <nama_file.sabu>")
+        sys.exit(1)
+
+    perintah = sys.argv[1]
+
+    # Eksekusi perintah "ayo"
+    if perintah == "ayo" or perintah == "bangkit" or perintah == "wujud":
+        if len(sys.argv) < 3:
+            print(f"🚨 Peringatan: Kamu lupa memasukkan kitab takdir (.sabu / .unul)!")
+            sys.exit(1)
+
+        file_path = sys.argv[2]
+        try:
+            with open(file_path, "r") as f:
+                kode_user = f.read()
+        except FileNotFoundError:
+            print(f"🚨 Bencana! Kitab '{file_path}' tidak ditemukan di alam semesta.")
+            sys.exit(1)
+
+        # Bangkitkan Trinitas Enki
+        tokens = enki_lexer(kode_user)
+        parser = EnkiParser(tokens)
+        try:
+            pohon_logika = parser.parse()
+            interpreter = EnkiInterpreter(pohon_logika)
+            interpreter.jalankan()
+        except Exception as e:
+            print(f"\n🔥 GAGAL EKSEKUSI: {e}")
+            sys.exit(1)
+            
+    else:
+        print(f"🚨 Perintah '{perintah}' belum dikenal oleh ekosistem UNUL.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

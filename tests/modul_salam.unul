@@ -1,0 +1,6 @@
+^^ Ini adalah modul eksternal
+ciptakan fungsi salam_rahasia(nama) maka
+    ketik("=== PROTOKOL RAHASIA LINUXDNC ===")
+    ketik("Akses diberikan kepada:")
+    ketik(nama)
+putus
