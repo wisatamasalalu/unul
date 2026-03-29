@@ -1,0 +1,19 @@
+^^ Matematika Berderet & Multi-baris
+ketik("=== MESIN TINGKAT TINGGI ===")
+
+^^ Ingat: Mesin ini menghitung murni dari kiri ke kanan!
+takdir.soft modal = 10 + 5 * 2 
+
+ketik("Total Kekayaan:")
+ketik(modal)
+
+jika modal > 20 maka
+    ketik("Wah, kamu kaya raya!")
+    ketik("Uangnya bisa buat beli server baru!")
+    ketik("Mantap!")
+putus
+
+effort 2 kali maka
+    ketik("Sedang mentransfer dana...")
+    ketik("Dana berhasil ditransfer.")
+putus

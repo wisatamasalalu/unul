@@ -50,75 +50,54 @@ class EnkiParser:
         nama_var = self.makan_token('IDENTITAS')[1]
         self.makan_token('ASSIGN')
         
-        # 1. Ambil nilai kiri (bisa angka, teks, atau variabel lain)
+        # Delegasikan pembacaan nilai ke parse_ekspresi
+        nilai = self.parse_ekspresi()
+        
+        return {
+            'tipe': 'DEKLARASI_TAKDIR',
+            'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
+            'nama': nama_var,
+            'isi': nilai
+        }
+
+    def parse_ekspresi(self):
         token_kiri = self.panggil_token()
+        
+        # Cek apakah ini Fungsi Dengar
         if token_kiri and token_kiri[0] == 'FUNGSI' and token_kiri[1] == 'dengar':
             self.makan_token('FUNGSI')
             self.makan_token('KURUNG_B')
             self.makan_token('KURUNG_T')
             kiri = {'tipe': 'FUNGSI_DENGAR'}
-            nilai = kiri # Dengar tidak butuh operator matematika
-        # -------------------------
+        # Jika bukan, berarti Teks/Angka/Variabel
         elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA', 'IDENTITAS']:
             kiri = self.makan_token(token_kiri[0])[1]
-            
-            # (Pindahkan logika pengecekan operator matematika ke dalam blok elif ini)
-            # 2. Cek apakah ada operator matematika setelahnya
-            token_selanjutnya = self.panggil_token()
-            if token_selanjutnya and token_selanjutnya[0] == 'OPERATOR':
+        else:
+            raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
+
+        # Looping terus selama masih ada rentetan operator matematika (+ - * /)
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] == 'OPERATOR':
                 operator = self.makan_token('OPERATOR')[1]
                 
                 token_kanan = self.panggil_token()
                 if token_kanan and token_kanan[0] in ['ANGKA', 'IDENTITAS']:
                     kanan = self.makan_token(token_kanan[0])[1]
+                    
+                    # Gabungkan menjadi satu node kiri yang baru (Left-associative)
+                    kiri = {
+                        'tipe': 'OPERASI_MATEMATIKA',
+                        'kiri': kiri,
+                        'operator': operator,
+                        'kanan': kanan
+                    }
                 else:
-                    raise SyntaxError("Hukum Enlil Dilanggar! Angka/Variabel kedua tidak ditemukan.")
+                    raise SyntaxError("Hukum Enlil Dilanggar! Angka/Variabel selanjutnya hilang.")
+            else:
+                break # Keluar dari loop jika bukan operator
                 
-                nilai = {
-                    'tipe': 'OPERASI_MATEMATIKA',
-                    'kiri': kiri,
-                    'operator': operator,
-                    'kanan': kanan
-                }
-            else:
-                nilai = kiri # Jika tidak ada operator
-        else:
-            raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
-            
-        return {
-            'tipe': 'DEKLARASI_TAKDIR',
-            'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
-            'nama': nama_var,
-            'isi': nilai
-        }
-        
-        # 2. Cek apakah ada operator matematika setelahnya
-        token_selanjutnya = self.panggil_token()
-        if token_selanjutnya and token_selanjutnya[0] == 'OPERATOR':
-            operator = self.makan_token('OPERATOR')[1]
-            
-            token_kanan = self.panggil_token()
-            if token_kanan and token_kanan[0] in ['ANGKA', 'IDENTITAS']:
-                kanan = self.makan_token(token_kanan[0])[1]
-            else:
-                raise SyntaxError("Hukum Enlil Dilanggar! Angka/Variabel kedua tidak ditemukan.")
-            
-            # Kemas menjadi struktur operasi matematika
-            nilai = {
-                'tipe': 'OPERASI_MATEMATIKA',
-                'kiri': kiri,
-                'operator': operator,
-                'kanan': kanan
-            }
-        else:
-            nilai = kiri # Jika tidak ada operator, berarti nilai tunggal biasa
-        
-        return {
-            'tipe': 'DEKLARASI_TAKDIR',
-            'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
-            'nama': nama_var,
-            'isi': nilai
-        }
+        return kiri    
         
     def parse_ketik(self):
         self.makan_token('FUNGSI')
@@ -136,24 +115,27 @@ class EnkiParser:
         }
     
     def parse_karma(self):
-        self.makan_token('KARMA') # Makan kata 'jika'
-        
-        # Siapa yang ditimbang? (Kiri, Pembanding, Kanan)
+        self.makan_token('KARMA') # jika
         kiri = self.makan_token('IDENTITAS')[1]
         pembanding = self.makan_token('PEMBANDING')[1]
-        
         token_kanan = self.panggil_token()
         kanan = self.makan_token(token_kanan[0])[1]
+        self.makan_token('KARMA') # maka
         
-        self.makan_token('KARMA') # Makan kata 'maka'
-        
-        # Apa aksinya jika syarat terpenuhi? (Sementara kita dukung 1 fungsi ketik dulu)
         aksi = []
-        token_aksi = self.panggil_token()
-        if token_aksi and token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
-            aksi.append(self.parse_ketik())
-            
-        self.makan_token('KARMA') # Makan kata 'selesai'
+        # Baca semua perintah sampai ketemu 'putus'
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
+                break # Rantai karma diputus
+                
+            token_aksi = self.panggil_token()
+            if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
+                aksi.append(self.parse_ketik())
+            else:
+                raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Karma: {token_aksi}")
+                
+        self.makan_token('KARMA') # Makan kata 'putus'
         
         return {
             'tipe': 'HUKUM_KARMA',
@@ -164,33 +146,36 @@ class EnkiParser:
         }
 
     def parse_siklus(self):
-        self.makan_token('SIKLUS') # Makan kata 'effort'
-        
-        # Berapa effort yang harus dikeluarkan? (Bisa angka langsung atau dari takdir/variabel)
+        self.makan_token('SIKLUS') # effort
         token_jumlah = self.panggil_token()
         if token_jumlah and token_jumlah[0] in ['ANGKA', 'IDENTITAS']:
             jumlah = self.makan_token(token_jumlah[0])[1]
         else:
-            raise SyntaxError("Hukum Enlil Dilanggar! Butuh angka atau nama takdir untuk jumlah effort.")
+            raise SyntaxError("Hukum Enlil Dilanggar! Butuh angka/takdir untuk effort.")
             
-        self.makan_token('SIKLUS') # Makan kata 'kali'
-        self.makan_token('KARMA')  # Makan kata 'maka'
+        self.makan_token('SIKLUS') # kali
+        self.makan_token('KARMA')  # maka
         
-        # Apa aksinya? (Sementara fungsi ketik)
         aksi = []
-        token_aksi = self.panggil_token()
-        if token_aksi and token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
-            aksi.append(self.parse_ketik())
-            
-        self.makan_token('KARMA') # Makan kata 'selesai'
+        # Baca semua perintah sampai ketemu 'putus'
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
+                break # Siklus diputus
+                
+            token_aksi = self.panggil_token()
+            if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
+                aksi.append(self.parse_ketik())
+            else:
+                raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Siklus: {token_aksi}")
+                
+        self.makan_token('KARMA') # Makan kata 'putus'
         
         return {
             'tipe': 'HUKUM_SIKLUS',
             'jumlah': jumlah,
             'aksi': aksi
         }
-
-
 
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":
