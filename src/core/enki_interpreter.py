@@ -45,18 +45,33 @@ class EnkiInterpreter:
 
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":
+    import sys
     import os
-    file_path = os.path.join(os.path.dirname(__file__), '../../tests/aplikasi.unul')
     
-    with open(file_path, "r") as f:
-        kode_user = f.read()
+    # Cek apakah user memasukkan nama file di terminal
+    if len(sys.argv) < 2:
+        print("🚨 Peringatan: Kamu lupa memasukkan kitab takdir!")
+        print("Cara pakai : python src/core/enki_interpreter.py <nama_file.unul>")
+        sys.exit(1)
+        
+    file_path = sys.argv[1]
+    
+    try:
+        with open(file_path, "r") as f:
+            kode_user = f.read()
+    except FileNotFoundError:
+        print(f"🚨 Bencana! Kitab '{file_path}' tidak ditemukan di alam semesta.")
+        sys.exit(1)
         
     # Proses Trinitas Enki
     tokens = enki_lexer(kode_user)
     parser = EnkiParser(tokens)
-    pohon_logika = parser.parse()
     
-    print("=== EKSEKUSI PROGRAM UNUL (LIVE) ===")
-    interpreter = EnkiInterpreter(pohon_logika)
-    interpreter.jalankan()
-    print("====================================")
+    try:
+        pohon_logika = parser.parse()
+        print(f"=== EKSEKUSI PROGRAM UNUL: {os.path.basename(file_path)} ===")
+        interpreter = EnkiInterpreter(pohon_logika)
+        interpreter.jalankan()
+        print("====================================")
+    except Exception as e:
+        print(f"\n🔥 GAGAL EKSEKUSI: {e}")

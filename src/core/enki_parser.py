@@ -44,8 +44,14 @@ class EnkiParser:
         
         # Ambil nilainya (bisa angka atau teks)
         token_nilai = self.panggil_token()
-        if token_nilai[0] in ['TEKS', 'ANGKA']:
+        
+        # --- PERBAIKAN BUG DI SINI ---
+        if token_nilai and token_nilai[0] in ['TEKS', 'ANGKA']:
             nilai = self.makan_token(token_nilai[0])[1]
+        else:
+            # Jika isinya bukan TEKS atau ANGKA, Hakim Enlil langsung murka!
+            raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai takdir untuk '{nama_var}' tidak valid atau belum didukung. Yang diberikan: {token_nilai}")
+        # -----------------------------
         
         # Simpan ke Pohon AST dengan metadata 'mutabilitas'
         return {
@@ -54,7 +60,7 @@ class EnkiParser:
             'nama': nama_var,
             'isi': nilai
         }
-
+        
     def parse_ketik(self):
         self.makan_token('FUNGSI')
         self.makan_token('KURUNG_B')
