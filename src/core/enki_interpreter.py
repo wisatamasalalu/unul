@@ -63,18 +63,50 @@ class EnkiInterpreter:
                 import sys; sys.exit(1)
         # -------------------------------------------------
 
-        # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM (MENDAPATKAN NILAI PULANG) ---
+        # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'PANGGILAN_FUNGSI':
             nama = nilai_mentah['nama']
             args_evaluated = [self.evaluasi_nilai(a) for a in nilai_mentah['argumen']]
-            
+
+            # 1. Cek Fungsi Kustom (Ciptaan User)
             if hasattr(self, 'functions') and nama in self.functions:
                 return self.eksekusi_fungsi_kustom(nama, args_evaluated)
-            else:
-                print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak ditemukan di memori!")
-                import sys; sys.exit(1)
-        # ------------------------------------------------------------------------
 
+            # 2. Pustaka Waktu
+            elif nama == 'waktu_sekarang':
+                import time
+                return str(int(time.time()))
+
+            # 3. Pustaka Matematika
+            elif nama == 'acak':
+                import random
+                return str(random.randint(int(args_evaluated[0]), int(args_evaluated[1])))
+
+            # 4. Pustaka Teks
+            elif nama == 'panjang_teks':
+                return str(len(str(args_evaluated[0])))
+            elif nama == 'huruf_besar':
+                return str(args_evaluated[0]).upper()
+            elif nama == 'huruf_kecil':
+                return str(args_evaluated[0]).lower()
+
+            # 5. Protokol Utusan (Internet via GET)
+            elif nama == 'ambil':
+                import urllib.request
+                url = str(args_evaluated[0]).strip('"\'')
+                try:
+                    # Menggunakan urllib bawaan agar tidak perlu install library eksternal
+                    req = urllib.request.Request(url, headers={'User-Agent': 'LinuxDNC-UNUL/1.0'})
+                    with urllib.request.urlopen(req) as respon:
+                        return respon.read().decode('utf-8')
+                except Exception as e:
+                    return f"🚨 Gagal Ambil Data dari Awan: {e}"
+
+            # Jika tidak ada di mana-mana
+            else:
+                print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak dikenal oleh alam semesta!")
+                import sys; sys.exit(1)
+        # ----------------------------------------------------------------------------
         return nilai_mentah
 
     def eksekusi_fungsi_kustom(self, nama_fungsi, args_evaluated):
@@ -163,7 +195,7 @@ class EnkiInterpreter:
                 self.memory[target]['isi'] = nilai_masa_lalu
             else:
                 print(f"🚨 Peringatan: Takdir '{target}' tidak memiliki masa lalu untuk dibalikkan!")
-                
+
         # ==========================================
         # 3 FITUR BARU: JEDA, PERGI, HENTI
         # ==========================================

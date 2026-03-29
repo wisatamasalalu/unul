@@ -1,0 +1,23 @@
+ketik("=== MENGUJI TABLET OF DESTINIES ===")
+
+^^ 1. Pustaka Teks & Waktu
+takdir.hard os = "LinuxDNC"
+ketik("Nama Sistem Kapital:")
+ketik(huruf_besar(os))
+
+takdir.soft jam_komputer = waktu_sekarang()
+ketik("Waktu UNIX saat ini:")
+ketik(jam_komputer)
+
+^^ 2. Pustaka Matematika
+takdir.soft gacha = acak(1, 100)
+ketik("Angka keberuntunganmu hari ini (1-100):")
+ketik(gacha)
+
+^^ 3. Protokol Utusan (Internet)
+ketik("Menghubungi server internet...")
+takdir.hard alamat = "https://api.kanye.rest"
+takdir.soft kutipan = ambil(alamat)
+
+ketik("Pesan dari internet:")
+ketik(kutipan)
