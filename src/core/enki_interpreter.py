@@ -102,6 +102,30 @@ class EnkiInterpreter:
                 except Exception as e:
                     return f"🚨 Gagal Ambil Data dari Awan: {e}"
 
+            elif nama == 'setor':
+                import urllib.request
+                import json
+                
+                url = str(args_evaluated[0]).strip('"\'')
+                data_mentah = args_evaluated[1]
+                
+                try:
+                    # Otomatis ubah Array UNUL jadi JSON
+                    if isinstance(data_mentah, list) or isinstance(data_mentah, dict):
+                        data_string = json.dumps(data_mentah)
+                        headers = {'Content-Type': 'application/json', 'User-Agent': 'LinuxDNC-UNUL/1.0'}
+                    else:
+                        data_string = str(data_mentah)
+                        headers = {'Content-Type': 'text/plain', 'User-Agent': 'LinuxDNC-UNUL/1.0'}
+                        
+                    data_bytes = data_string.encode('utf-8')
+                    req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
+                    
+                    with urllib.request.urlopen(req) as respon:
+                        return respon.read().decode('utf-8')
+                except Exception as e:
+                    return f"🚨 Gagal Setor Data ke Awan: {e}"
+
             # Jika tidak ada di mana-mana
             else:
                 print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak dikenal oleh alam semesta!")

@@ -1,0 +1,12 @@
+ketik("=== MENGUJI PROTOKOL SETOR (POST) ===")
+
+takdir.soft alamat_post = "https://reqres.in/api/users"
+
+^^ Kita siapkan data dalam bentuk Array!
+takdir.soft data_user = ["Nabhan", "Arsitek LinuxDNC"]
+
+ketik("Mengirim data ke server...")
+takdir.soft hasil_post = setor(alamat_post, data_user)
+
+ketik("Balasan dari server:")
+ketik(hasil_post)
