@@ -1,12 +1,16 @@
-^^ Uji Coba Kekuatan Matematika UNUL
+^^ Uji Coba Matematika & Karma
 takdir.hard tahun_lahir = 2004
 takdir.soft tahun_sekarang = 2026
-
-^^ Operasi pengurangan antar variabel
 takdir.soft umur_asli = tahun_sekarang - tahun_lahir
 
-ketik("=== MESIN WAKTU ===")
-ketik("Tahun Kelahiran:")
-ketik(tahun_lahir)
-ketik("Umur di tahun 2026:")
+ketik("Umur kamu adalah:")
 ketik(umur_asli)
+
+^^ Hakim Karma Bekerja
+jika umur_asli > 17 maka
+    ketik("Status: Kamu sudah dewasa, silakan masuk ke sistem!")
+selesai
+
+jika umur_asli < 17 maka
+    ketik("Status: Akses ditolak, kamu masih di bawah umur!")
+selesai

@@ -56,6 +56,31 @@ class EnkiInterpreter:
                 else:
                     target_bersih = self.evaluasi_nilai(target)
                     print(target_bersih)
+                    
+            elif node['tipe'] == 'HUKUM_KARMA':
+                kiri = self.evaluasi_nilai(node['kiri'])
+                kanan = self.evaluasi_nilai(node['kanan'])
+                pembanding = node['pembanding']
+                
+                # Ubah ke angka untuk ditimbang
+                kiri_int = int(kiri)
+                kanan_int = int(kanan)
+                
+                # Keputusan Hakim
+                sah = False
+                if pembanding == '>': sah = kiri_int > kanan_int
+                elif pembanding == '<': sah = kiri_int < kanan_int
+                elif pembanding == '==': sah = kiri_int == kanan_int
+                
+                if sah:
+                    # Eksekusi aksinya
+                    for aksi_node in node['aksi']:
+                        if aksi_node['tipe'] == 'PERINTAH_KETIK':
+                            target = aksi_node['target']
+                            if aksi_node['is_variable']:
+                                print(self.memory[target]['isi'])
+                            else:
+                                print(self.evaluasi_nilai(target))
 
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":

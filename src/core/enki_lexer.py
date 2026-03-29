@@ -10,6 +10,8 @@ def enki_lexer(source_code):
         ('TEKS',      r"('[^']*'|\"[^\"]*\")"), # Mengenali kutip ' atau "
         ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)
         ('OPERATOR',  r'[+\-*/]'),             # Operator aritmatika
+        ('KARMA',     r'\b(jika|maka|selesai)\b'), # Kata kunci takdir
+        ('PEMBANDING',r'==|!=|>=|<=|>|<'),         # Timbangan keadilan
         ('ASSIGN',    r'='),                   # Sama dengan
         ('KURUNG_B',  r'\('),
         ('KURUNG_T',  r'\)'),
