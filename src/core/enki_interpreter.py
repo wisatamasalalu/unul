@@ -4,44 +4,58 @@ from enki_parser import EnkiParser
 class EnkiInterpreter:
     def __init__(self, ast):
         self.ast = ast
-        # Ini adalah "Akhasic Record" - Tempat menyimpan takdir/variabel di memori
         self.memory = {}
+
+    def evaluasi_nilai(self, nilai_mentah):
+        # Jika ini adalah operasi matematika
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'OPERASI_MATEMATIKA':
+            kiri = self.evaluasi_nilai(nilai_mentah['kiri'])
+            kanan = self.evaluasi_nilai(nilai_mentah['kanan'])
+            op = nilai_mentah['operator']
+            
+            # Ubah ke integer murni untuk dihitung komputer
+            kiri_int = int(kiri)
+            kanan_int = int(kanan)
+            
+            if op == '+': return str(kiri_int + kanan_int)
+            if op == '-': return str(kiri_int - kanan_int)
+            if op == '*': return str(kiri_int * kanan_int)
+            if op == '/': return str(kiri_int // kanan_int) # Pembagian bulat
+
+        # Jika ini adalah variabel (IDENTITAS), ambil isinya dari memori
+        if isinstance(nilai_mentah, str) and nilai_mentah in self.memory:
+            return self.memory[nilai_mentah]['isi']
+        
+        # Jika teks literal, bersihkan kutip
+        if isinstance(nilai_mentah, str) and ((nilai_mentah.startswith('"') and nilai_mentah.endswith('"')) or (nilai_mentah.startswith("'") and nilai_mentah.endswith("'"))):
+            return nilai_mentah[1:-1]
+            
+        return nilai_mentah
 
     def jalankan(self):
         for node in self.ast:
-            # 1. Jika menemukan hukum penciptaan takdir
             if node['tipe'] == 'DEKLARASI_TAKDIR':
                 nama = node['nama']
-                isi = node['isi']
                 sifat = node['sifat']
                 
-                # Bersihkan tanda kutip jika isinya adalah teks literal
-                if (isi.startswith('"') and isi.endswith('"')) or (isi.startswith("'") and isi.endswith("'")):
-                    isi = isi[1:-1]
+                # Hitung dulu hasil akhirnya sebelum disimpan
+                isi_final = self.evaluasi_nilai(node['isi'])
                 
-                # Simpan ke alam memori
                 self.memory[nama] = {
-                    'isi': isi,
+                    'isi': isi_final,
                     'sifat': sifat
                 }
                 
-            # 2. Jika menemukan perintah eksekusi ketik
             elif node['tipe'] == 'PERINTAH_KETIK':
                 target = node['target']
-                is_var = node['is_variable']
-                
-                if is_var:
-                    # Cek apakah takdirnya sudah diciptakan di memori
+                if node['is_variable']:
                     if target in self.memory:
                         print(self.memory[target]['isi'])
                     else:
-                        print(f"🚨 Bencana! Takdir '{target}' belum pernah diciptakan oleh Enki!")
+                        print(f"🚨 Bencana! Takdir '{target}' belum pernah diciptakan!")
                 else:
-                    # Langsung cetak teks literal (bersihkan kutip)
-                    if (target.startswith('"') and target.endswith('"')) or (target.startswith("'") and target.endswith("'")):
-                        print(target[1:-1])
-                    else:
-                        print(target)
+                    target_bersih = self.evaluasi_nilai(target)
+                    print(target_bersih)
 
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":

@@ -9,6 +9,7 @@ def enki_lexer(source_code):
         ('FUNGSI',    r'ketik'),               # Perintah ketik (lowercase)
         ('TEKS',      r"('[^']*'|\"[^\"]*\")"), # Mengenali kutip ' atau "
         ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)
+        ('OPERATOR',  r'[+\-*/]'),             # Operator aritmatika
         ('ASSIGN',    r'='),                   # Sama dengan
         ('KURUNG_B',  r'\('),
         ('KURUNG_T',  r'\)'),
