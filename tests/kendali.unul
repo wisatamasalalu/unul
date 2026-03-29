@@ -1,0 +1,22 @@
+ketik("=== MENGUJI KONTROL WAKTU & SIKLUS ===")
+takdir.soft hitung = 5
+
+effort 5 kali maka
+    ketik("Menunggu...")
+    jeda(1) 
+    
+    ketik(hitung)
+    
+    jika hitung == 3 maka
+        ketik("Angka 3 terdeteksi! Mendobrak siklus sekarang!")
+        henti
+    putus
+    
+    ^^ Kurangi angka hitung
+    takdir.soft hitung = hitung - 1
+putus
+
+ketik("Siklus berhasil dihentikan. Mematikan program secara paksa...")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

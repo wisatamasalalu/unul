@@ -6,11 +6,12 @@ def enki_lexer(source_code):
     token_specification = [
         ('KOMENTAR',  r'\^\^.*'),              # Simbol ^^ untuk komentar
         ('TAKDIR',    r'takdir\.(hard|soft)'), # Mengenali takdir.hard atau takdir.soft
-        ('FUNGSI',    r'\b(ketik|dengar)\b'),               # Perintah ketik (lowercase)
+        ('FUNGSI',    r'\b(ketik|dengar|tunggu|jeda)\b'),               # Perintah ketik (lowercase)
         ('TEKS',      r"('[^']*'|\"[^\"]*\")"), # Mengenali kutip ' atau "
         ('KARMA',     r'\b(jika|maka|putus)\b'), # Kata kunci takdir
         ('SIKLUS',    r'\b(effort|kali)\b'), # Program pengulangan
         ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), # Ciptakan fungsi baru
+        ('KONTROL',   r'\b(henti|pergi)\b'),
         ('SOWAN',     r'\bsowan\b'), # Untuk memecah ribuan baris kode di satu file
         ('PEMBANDING',r'==|!=|>=|<=|>|<'),         # Timbangan keadilan
         ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)

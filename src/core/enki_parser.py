@@ -30,8 +30,11 @@ class EnkiParser:
                 self.ast.append(self.parse_takdir())
             
             # 2. Logika Perintah Ketik
-            elif token[0] == 'FUNGSI' and token[1] == 'ketik':
-                self.ast.append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
+                aksi.append(self.parse_waktu())
+
+            elif token_cek[0] == 'KONTROL':
+                aksi.append(self.parse_kontrol())
 
             # 3. Logika Hukum Karma (If)
             elif token[0] == 'KARMA' and token[1] == 'jika':
@@ -176,6 +179,12 @@ class EnkiParser:
             token_aksi = self.panggil_token()
             if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
                 aksi.append(self.parse_ketik())
+
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
+                aksi.append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL':
+                aksi.append(self.parse_kontrol())
+
             else:
                 raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Karma: {token_aksi}")
                 
@@ -210,6 +219,12 @@ class EnkiParser:
             token_aksi = self.panggil_token()
             if token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
                 aksi.append(self.parse_ketik())
+
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
+                aksi.append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL':
+                aksi.append(self.parse_kontrol())
+
             else:
                 raise SyntaxError(f"Hakim Enlil bingung dengan aksi ini di dalam Siklus: {token_aksi}")
                 
@@ -235,6 +250,10 @@ class EnkiParser:
                 parameter.append(param_nama)
                 if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
                     self.makan_token('KOMA')
+                elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']:
+                    aksi.append(self.parse_waktu())
+                elif token_cek[0] == 'KONTROL':
+                    aksi.append(self.parse_kontrol())
                 else:
                     break
         self.makan_token('KURUNG_T')
@@ -292,7 +311,24 @@ class EnkiParser:
         return {
             'tipe': 'PERINTAH_SOWAN',
             'target': target_file
-        }    
+        }
+
+    def parse_waktu(self):
+        self.makan_token('FUNGSI') # makan tunggu/jeda
+        self.makan_token('KURUNG_B')
+        target_token = self.panggil_token()
+        jumlah = self.makan_token(target_token[0])[1]
+        self.makan_token('KURUNG_T')
+        return {
+            'tipe': 'PERINTAH_WAKTU',
+            'jumlah': jumlah,
+            'is_variable': target_token[0] == 'IDENTITAS'
+        }
+
+    def parse_kontrol(self):
+        jenis = self.makan_token('KONTROL')[1]
+        if jenis == 'henti': return {'tipe': 'PERINTAH_HENTI'}
+        elif jenis == 'pergi': return {'tipe': 'PERINTAH_PERGI'}        
 
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":

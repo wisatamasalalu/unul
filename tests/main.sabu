@@ -1,8 +1,0 @@
-^^ Memanggil (import) modul lain
-sowan "tests/modul_salam.unul"
-
-ketik("Sistem Utama Menyala.")
-ketik("Menjalankan protokol dari file lain...")
-
-^^ Panggil fungsi yang ada di dalam modul_salam.unul
-salam_rahasia("Developer Kece")

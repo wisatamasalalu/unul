@@ -48,79 +48,94 @@ class EnkiInterpreter:
         if node['tipe'] == 'DEKLARASI_TAKDIR':
             nama = node['nama']
             isi_final = self.evaluasi_nilai(node['isi'])
-            self.memory[nama] = {
-                'isi': isi_final,
-                'sifat': node['sifat'],
-                'ukuran': node.get('ukuran')
-            }
+            self.memory[nama] = {'isi': isi_final, 'sifat': node['sifat'], 'ukuran': node.get('ukuran')}
             
         elif node['tipe'] == 'PERINTAH_KETIK':
             target = node['target']
             if node['is_variable']:
-                if target in self.memory:
-                    print(self.memory[target]['isi'])
-                else:
-                    print(f"🚨 Bencana! Takdir '{target}' tidak ditemukan!")
+                if target in self.memory: print(self.memory[target]['isi'])
+                else: print(f"🚨 Bencana! Takdir '{target}' tidak ditemukan!")
             else:
                 print(self.evaluasi_nilai(target))
                 
+        elif node['tipe'] == 'PERINTAH_SOWAN':
+            target_file = node['target'].strip('"\'')
+            try:
+                with open(target_file, "r") as f: kode_sowan = f.read()
+            except FileNotFoundError:
+                print(f"🚨 Bencana Sowan! Kitab '{target_file}' tidak ditemukan."); import sys; sys.exit(1)
+            tokens_sowan = enki_lexer(kode_sowan)
+            parser_sowan = EnkiParser(tokens_sowan)
+            ast_sowan = parser_sowan.parse()
+            for node_sowan in ast_sowan: self.eksekusi_node(node_sowan)
+                
         elif node['tipe'] == 'DEKLARASI_FUNGSI':
-            # Simpan fungsi ke dalam gudang memori fungsi
             self.functions[node['nama']] = node
             
         elif node['tipe'] == 'PANGGILAN_FUNGSI':
             nama_fungsi = node['nama']
-            if nama_fungsi not in self.functions:
-                print(f"🚨 KERNEL PANIC! Fungsi '{nama_fungsi}' belum diciptakan!")
-                import sys; sys.exit(1)
-                
             fungsi_node = self.functions[nama_fungsi]
             params = fungsi_node['parameter']
             args = node['argumen']
-            
-            # Hitung semua argumen yang dikirim
             args_evaluated = [self.evaluasi_nilai(arg) for arg in args]
             
-            # -- MANAJEMEN MEMORI LOKAL --
-            # Pinjamkan variabel ke dalam memori, jalankan fungsi, lalu kembalikan seperti semula
             backup = {}
             for i, param in enumerate(params):
-                if param in self.memory:
-                    backup[param] = self.memory[param]
+                if param in self.memory: backup[param] = self.memory[param]
                 self.memory[param] = {'isi': args_evaluated[i], 'sifat': 'FLEKSIBEL'}
                 
-            # Eksekusi isi fungsi secara berurutan
             for aksi_node in fungsi_node['aksi']:
-                self.eksekusi_node(aksi_node)
+                hasil = self.eksekusi_node(aksi_node)
+                if hasil == "HENTI": break # Jika ada 'henti' di dalam fungsi
                 
-            # Bersihkan memori lokal (Garbage Collection Sederhana)
             for param in params:
-                if param in backup:
-                    self.memory[param] = backup[param]
-                else:
-                    del self.memory[param]
+                if param in backup: self.memory[param] = backup[param]
+                else: del self.memory[param]
 
-        # Perintah untuk baca file lain
-        elif node['tipe'] == 'PERINTAH_SOWAN':
-            # Bersihkan tanda kutip dari nama file
-            target_file = node['target'].strip('"\'')
-            
-            try:
-                with open(target_file, "r") as f:
-                    kode_sowan = f.read()
-            except FileNotFoundError:
-                print(f"🚨 Bencana Sowan! Kitab '{target_file}' tidak ditemukan untuk disowan.")
-                import sys; sys.exit(1)
-            
-            # Panggil alat bedah Lexer & Parser (Karena di-import di atas, kita bisa langsung pakai)
-            tokens_sowan = enki_lexer(kode_sowan)
-            parser_sowan = EnkiParser(tokens_sowan)
-            ast_sowan = parser_sowan.parse()
-            
-            # Eksekusi isi file sowan agar ilmunya (fungsi & takdir) masuk ke memori kita saat ini!
-            for node_sowan in ast_sowan:
-                self.eksekusi_node(node_sowan)
+        # ==========================================
+        # 3 FITUR BARU: JEDA, PERGI, HENTI
+        # ==========================================
+        elif node['tipe'] == 'PERINTAH_WAKTU':
+            jumlah = self.memory[node['jumlah']]['isi'] if node['is_variable'] else self.evaluasi_nilai(node['jumlah'])
+            import time
+            time.sleep(int(jumlah))
 
+        elif node['tipe'] == 'PERINTAH_PERGI':
+            import sys
+            sys.exit(0) # Program ditutup dengan damai
+
+        elif node['tipe'] == 'PERINTAH_HENTI':
+            return "HENTI" # Kirim sinyal ke atas untuk mendobrak siklus
+
+        # ==========================================
+        # RESTORE: HUKUM KARMA & SIKLUS YANG HILANG
+        # ==========================================
+        elif node['tipe'] == 'HUKUM_KARMA':
+            kiri_int = int(self.evaluasi_nilai(node['kiri']))
+            kanan_int = int(self.evaluasi_nilai(node['kanan']))
+            pembanding = node['pembanding']
+            
+            sah = False
+            if pembanding == '>': sah = kiri_int > kanan_int
+            elif pembanding == '<': sah = kiri_int < kanan_int
+            elif pembanding == '==': sah = kiri_int == kanan_int
+            
+            if sah:
+                for aksi_node in node['aksi']:
+                    hasil = self.eksekusi_node(aksi_node)
+                    if hasil == "HENTI": return "HENTI" # Teruskan sinyal dobrak ke siklus
+
+        elif node['tipe'] == 'HUKUM_SIKLUS':
+            jumlah_int = int(self.evaluasi_nilai(node['jumlah']))
+            for _ in range(jumlah_int):
+                berhenti = False
+                for aksi_node in node['aksi']:
+                    hasil = self.eksekusi_node(aksi_node)
+                    if hasil == "HENTI":
+                        berhenti = True # Sinyal diterima, siklus didobrak!
+                        break
+                if berhenti: break
+                
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:
