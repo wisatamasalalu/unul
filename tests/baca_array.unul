@@ -1,0 +1,16 @@
+ketik("=== MENGUJI PEMBACAAN INDEKS ARRAY ===")
+
+takdir.soft pengguna = ["Netizen", "Enki", "UNUL"]
+ketik("Seluruh data:")
+ketik(pengguna)
+
+ketik("Mengambil data ke-0 (Pertama):")
+ketik(pengguna[0])
+
+ketik("Mengambil data ke-2 (Ketiga):")
+takdir.soft target = pengguna[2]
+ketik(target)
+
+ketik("=== MENGUJI KERNEL PANIC INDEXING ===")
+^^ Sengaja mengambil data ke-10 yang tidak ada!
+ketik(pengguna[10])

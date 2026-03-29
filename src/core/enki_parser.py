@@ -105,9 +105,42 @@ class EnkiParser:
             self.makan_token('KURUNG_B')
             self.makan_token('KURUNG_T')
             kiri = {'tipe': 'FUNGSI_DENGAR'}
-        # Jika bukan, berarti Teks/Angka/Variabel
-        elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA', 'IDENTITAS']:
+        # Jika bukan DENGAR, cek apakah Teks atau Angka literal
+        elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA']:
             kiri = self.makan_token(token_kiri[0])[1]
+            
+        # --- KEAJAIBAN BARU: CEK IDENTITAS (Variabel, Fungsi, atau Index Array) ---
+        elif token_kiri and token_kiri[0] == 'IDENTITAS':
+            nama_id = self.makan_token('IDENTITAS')[1]
+            token_cek = self.panggil_token()
+            
+            # 1. Cek apakah ini Panggilan Fungsi ( ada tanda '(' )
+            if token_cek and token_cek[0] == 'KURUNG_B':
+                self.makan_token('KURUNG_B')
+                argumen = []
+                token_dalam = self.panggil_token()
+                if token_dalam and token_dalam[0] != 'KURUNG_T':
+                    while True:
+                        argumen.append(self.parse_ekspresi())
+                        if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
+                            self.makan_token('KOMA')
+                        else:
+                            break
+                self.makan_token('KURUNG_T')
+                kiri = {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id, 'argumen': argumen}
+                
+            # 2. Cek apakah ini Baca Index Array ( ada tanda '[' )
+            elif token_cek and token_cek[0] == 'KURUNG_S_B':
+                self.makan_token('KURUNG_S_B') # Makan '['
+                index_ekspresi = self.parse_ekspresi() # Baca angka indeksnya
+                self.makan_token('KURUNG_S_T') # Makan ']'
+                kiri = {'tipe': 'BACA_ARRAY', 'nama': nama_id, 'index': index_ekspresi}
+                
+            # 3. Jika tidak ada kurung apa-apa, berarti ini Variabel biasa
+            else:
+                kiri = nama_id
+        # --------------------------------------------------------------------------
+
         else:
             raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
 
@@ -138,15 +171,13 @@ class EnkiParser:
         self.makan_token('FUNGSI')
         self.makan_token('KURUNG_B')
         
-        # Apa yang mau diketik? (Variabel atau Teks langsung)
-        target_token = self.panggil_token()
-        target = self.makan_token(target_token[0])[1]
+        # --- PERBAIKAN: Gunakan parse_ekspresi agar ketik() bisa membaca Array / Fungsi ---
+        target_ekspresi = self.parse_ekspresi()
         
         self.makan_token('KURUNG_T')
         return {
             'tipe': 'PERINTAH_KETIK',
-            'target': target,
-            'is_variable': target_token[0] == 'IDENTITAS'
+            'target': target_ekspresi
         }
     
     def parse_karma(self):
@@ -256,7 +287,7 @@ class EnkiParser:
         return {
             'tipe': 'DEKLARASI_FUNGSI', 'nama': nama_fungsi, 'parameter': parameter, 'aksi': aksi
         }
-        
+
     def parse_panggilan_fungsi(self):
         nama_fungsi = self.makan_token('IDENTITAS')[1]
         self.makan_token('KURUNG_B')

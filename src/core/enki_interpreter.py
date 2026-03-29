@@ -41,6 +41,27 @@ class EnkiInterpreter:
             for elemen in nilai_mentah['isi']:
                 hasil_array.append(self.evaluasi_nilai(elemen))
             return hasil_array
+        
+        # --- TAMBAHAN BARU: BACA INDEKS ARRAY SPESIFIK ---
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'BACA_ARRAY':
+            nama_array = nilai_mentah['nama']
+            indeks = int(self.evaluasi_nilai(nilai_mentah['index']))
+            
+            if nama_array in self.memory:
+                array_asli = self.memory[nama_array]['isi']
+                if isinstance(array_asli, list):
+                    if 0 <= indeks < len(array_asli):
+                        return str(array_asli[indeks])
+                    else:
+                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{nama_array}'!")
+                        import sys; sys.exit(1)
+                else:
+                    print(f"🚨 KERNEL PANIC! Takdir '{nama_array}' bukan sebuah array!")
+                    import sys; sys.exit(1)
+            else:
+                print(f"🚨 KERNEL PANIC! Takdir '{nama_array}' tidak ditemukan!")
+                import sys; sys.exit(1)
+        # -------------------------------------------------
             
         return nilai_mentah
 
@@ -65,12 +86,9 @@ class EnkiInterpreter:
                 self.memory[nama] = {'isi': isi_final, 'sifat': node['sifat'], 'ukuran': ukuran_kavling, 'riwayat': []}
             
         elif node['tipe'] == 'PERINTAH_KETIK':
-            target = node['target']
-            if node['is_variable']:
-                if target in self.memory: print(self.memory[target]['isi'])
-                else: print(f"🚨 Bencana! Takdir '{target}' tidak ditemukan!")
-            else:
-                print(self.evaluasi_nilai(target))
+            # --- PERBAIKAN: Langsung serahkan apapun isinya ke evaluasi_nilai ---
+            hasil_ketik = self.evaluasi_nilai(node['target'])
+            print(hasil_ketik)
                 
         elif node['tipe'] == 'PERINTAH_SOWAN':
             target_file = node['target'].strip('"\'')
@@ -148,7 +166,7 @@ class EnkiInterpreter:
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
                     if hasil == "HENTI": return "HENTI" # Teruskan sinyal dobrak ke siklus
-                    
+
         elif node['tipe'] == 'HUKUM_SIKLUS':
             jumlah_int = int(self.evaluasi_nilai(node['jumlah']))
             for _ in range(jumlah_int):
