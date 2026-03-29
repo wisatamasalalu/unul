@@ -1,0 +1,8 @@
+^^ Uji Coba Fungsi Dengar
+ketik("=== SISTEM IDENTIFIKASI LINUXDNC ===")
+ketik("Siapa nama anda?")
+
+takdir.soft nama_user = dengar()
+
+ketik("Selamat datang, Penguasa:")
+ketik(nama_user)

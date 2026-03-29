@@ -52,10 +52,45 @@ class EnkiParser:
         
         # 1. Ambil nilai kiri (bisa angka, teks, atau variabel lain)
         token_kiri = self.panggil_token()
-        if token_kiri and token_kiri[0] in ['TEKS', 'ANGKA', 'IDENTITAS']:
+        if token_kiri and token_kiri[0] == 'FUNGSI' and token_kiri[1] == 'dengar':
+            self.makan_token('FUNGSI')
+            self.makan_token('KURUNG_B')
+            self.makan_token('KURUNG_T')
+            kiri = {'tipe': 'FUNGSI_DENGAR'}
+            nilai = kiri # Dengar tidak butuh operator matematika
+        # -------------------------
+        elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA', 'IDENTITAS']:
             kiri = self.makan_token(token_kiri[0])[1]
+            
+            # (Pindahkan logika pengecekan operator matematika ke dalam blok elif ini)
+            # 2. Cek apakah ada operator matematika setelahnya
+            token_selanjutnya = self.panggil_token()
+            if token_selanjutnya and token_selanjutnya[0] == 'OPERATOR':
+                operator = self.makan_token('OPERATOR')[1]
+                
+                token_kanan = self.panggil_token()
+                if token_kanan and token_kanan[0] in ['ANGKA', 'IDENTITAS']:
+                    kanan = self.makan_token(token_kanan[0])[1]
+                else:
+                    raise SyntaxError("Hukum Enlil Dilanggar! Angka/Variabel kedua tidak ditemukan.")
+                
+                nilai = {
+                    'tipe': 'OPERASI_MATEMATIKA',
+                    'kiri': kiri,
+                    'operator': operator,
+                    'kanan': kanan
+                }
+            else:
+                nilai = kiri # Jika tidak ada operator
         else:
             raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
+            
+        return {
+            'tipe': 'DEKLARASI_TAKDIR',
+            'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
+            'nama': nama_var,
+            'isi': nilai
+        }
         
         # 2. Cek apakah ada operator matematika setelahnya
         token_selanjutnya = self.panggil_token()

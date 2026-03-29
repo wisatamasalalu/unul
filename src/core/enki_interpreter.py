@@ -7,6 +7,10 @@ class EnkiInterpreter:
         self.memory = {}
 
     def evaluasi_nilai(self, nilai_mentah):
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'FUNGSI_DENGAR':
+            # Gunakan fungsi input() bawaan Python untuk mendengarkan user
+            jawaban = input("> ") 
+            return jawaban
         # Jika ini adalah operasi matematika
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'OPERASI_MATEMATIKA':
             kiri = self.evaluasi_nilai(nilai_mentah['kiri'])
