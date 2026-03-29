@@ -5,6 +5,7 @@ class EnkiInterpreter:
     def __init__(self, ast):
         self.ast = ast
         self.memory = {}
+        self.functions = {}
 
     def evaluasi_nilai(self, nilai_mentah):
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'FUNGSI_DENGAR':
@@ -103,7 +104,7 @@ class EnkiInterpreter:
     def jalankan(self):
         for node in self.ast:
             self.eksekusi_node(node)
-            
+
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":
     import sys
