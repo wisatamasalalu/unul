@@ -5,6 +5,6 @@ ketik("=== MEMULAI PEKERJAAN DI EDIN ===")
 
 effort target_tambang kali maka
     ketik("Menambang 1 bongkah emas murni...")
-selesai
+putus
 
 ketik("Pekerjaan selesai, kembali ke markas!")

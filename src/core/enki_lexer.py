@@ -8,7 +8,7 @@ def enki_lexer(source_code):
         ('TAKDIR',    r'takdir\.(hard|soft)'), # Mengenali takdir.hard atau takdir.soft
         ('FUNGSI',    r'\b(ketik|dengar)\b'),               # Perintah ketik (lowercase)
         ('TEKS',      r"('[^']*'|\"[^\"]*\")"), # Mengenali kutip ' atau "
-        ('KARMA',     r'\b(jika|maka|selesai)\b'), # Kata kunci takdir
+        ('KARMA',     r'\b(jika|maka|putus)\b'), # Kata kunci takdir
         ('SIKLUS',    r'\b(effort|kali)\b'),
         ('PEMBANDING',r'==|!=|>=|<=|>|<'),         # Timbangan keadilan
         ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)

@@ -9,8 +9,8 @@ ketik(umur_asli)
 ^^ Hakim Karma Bekerja
 jika umur_asli > 17 maka
     ketik("Status: Kamu sudah dewasa, silakan masuk ke sistem!")
-selesai
+putus
 
 jika umur_asli < 17 maka
     ketik("Status: Akses ditolak, kamu masih di bawah umur!")
-selesai
+putus
