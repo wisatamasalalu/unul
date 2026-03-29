@@ -1,0 +1,10 @@
+^^ Uji Coba Kekuatan Effort (Looping)
+takdir.hard target_tambang = 3
+
+ketik("=== MEMULAI PEKERJAAN DI EDIN ===")
+
+effort target_tambang kali maka
+    ketik("Menambang 1 bongkah emas murni...")
+selesai
+
+ketik("Pekerjaan selesai, kembali ke markas!")

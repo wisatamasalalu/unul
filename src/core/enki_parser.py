@@ -37,6 +37,10 @@ class EnkiParser:
             elif token[0] == 'KARMA' and token[1] == 'jika':
                 self.ast.append(self.parse_karma())
             
+            # 4. Logika Hukum Siklus (Looping / Effort)
+            elif token[0] == 'SIKLUS' and token[1] == 'effort':
+                self.ast.append(self.parse_siklus())
+            
             else:
                 self.pos += 1 # Abaikan yang tidak dikenal untuk sementara
         return self.ast
@@ -121,6 +125,33 @@ class EnkiParser:
             'kiri': kiri,
             'pembanding': pembanding,
             'kanan': kanan,
+            'aksi': aksi
+        }
+
+    def parse_siklus(self):
+        self.makan_token('SIKLUS') # Makan kata 'effort'
+        
+        # Berapa effort yang harus dikeluarkan? (Bisa angka langsung atau dari takdir/variabel)
+        token_jumlah = self.panggil_token()
+        if token_jumlah and token_jumlah[0] in ['ANGKA', 'IDENTITAS']:
+            jumlah = self.makan_token(token_jumlah[0])[1]
+        else:
+            raise SyntaxError("Hukum Enlil Dilanggar! Butuh angka atau nama takdir untuk jumlah effort.")
+            
+        self.makan_token('SIKLUS') # Makan kata 'kali'
+        self.makan_token('KARMA')  # Makan kata 'maka'
+        
+        # Apa aksinya? (Sementara fungsi ketik)
+        aksi = []
+        token_aksi = self.panggil_token()
+        if token_aksi and token_aksi[0] == 'FUNGSI' and token_aksi[1] == 'ketik':
+            aksi.append(self.parse_ketik())
+            
+        self.makan_token('KARMA') # Makan kata 'selesai'
+        
+        return {
+            'tipe': 'HUKUM_SIKLUS',
+            'jumlah': jumlah,
             'aksi': aksi
         }
 
