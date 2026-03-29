@@ -62,8 +62,45 @@ class EnkiInterpreter:
                 print(f"🚨 KERNEL PANIC! Takdir '{nama_array}' tidak ditemukan!")
                 import sys; sys.exit(1)
         # -------------------------------------------------
+
+        # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM (MENDAPATKAN NILAI PULANG) ---
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'PANGGILAN_FUNGSI':
+            nama = nilai_mentah['nama']
+            args_evaluated = [self.evaluasi_nilai(a) for a in nilai_mentah['argumen']]
             
+            if hasattr(self, 'functions') and nama in self.functions:
+                return self.eksekusi_fungsi_kustom(nama, args_evaluated)
+            else:
+                print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak ditemukan di memori!")
+                import sys; sys.exit(1)
+        # ------------------------------------------------------------------------
+
         return nilai_mentah
+
+    def eksekusi_fungsi_kustom(self, nama_fungsi, args_evaluated):
+        fungsi_node = self.functions[nama_fungsi]
+        params = fungsi_node['parameter']
+        backup = {}
+        
+        for i, param in enumerate(params):
+            if param in self.memory: backup[param] = self.memory[param]
+            # Parameter diberi riwayat kosong agar siap dipakai
+            self.memory[param] = {'isi': args_evaluated[i], 'sifat': 'FLEKSIBEL', 'riwayat': []}
+            
+        nilai_pulang = None
+        for aksi_node in fungsi_node['aksi']:
+            hasil = self.eksekusi_node(aksi_node)
+            # Jika menangkap sinyal PULANG, ambil nilainya dan hentikan blok fungsi
+            if isinstance(hasil, dict) and hasil.get('aksi') == 'PULANG':
+                nilai_pulang = hasil['nilai']
+                break
+            if hasil == "HENTI": break
+            
+        for param in params:
+            if param in backup: self.memory[param] = backup[param]
+            else: del self.memory[param]
+            
+        return nilai_pulang
 
     def eksekusi_node(self, node):
         if node['tipe'] == 'DEKLARASI_TAKDIR':
@@ -106,24 +143,27 @@ class EnkiInterpreter:
             
         elif node['tipe'] == 'PANGGILAN_FUNGSI':
             nama_fungsi = node['nama']
-            fungsi_node = self.functions[nama_fungsi]
-            params = fungsi_node['parameter']
-            args = node['argumen']
-            args_evaluated = [self.evaluasi_nilai(arg) for arg in args]
-            
-            backup = {}
-            for i, param in enumerate(params):
-                if param in self.memory: backup[param] = self.memory[param]
-                self.memory[param] = {'isi': args_evaluated[i], 'sifat': 'FLEKSIBEL'}
-                
-            for aksi_node in fungsi_node['aksi']:
-                hasil = self.eksekusi_node(aksi_node)
-                if hasil == "HENTI": break # Jika ada 'henti' di dalam fungsi
-                
-            for param in params:
-                if param in backup: self.memory[param] = backup[param]
-                else: del self.memory[param]
+            args_evaluated = [self.evaluasi_nilai(arg) for arg in node['argumen']]
+            if nama_fungsi in self.functions:
+                self.eksekusi_fungsi_kustom(nama_fungsi, args_evaluated)
 
+        # ==========================================
+        # FITUR BARU: PULANG & BALIKAN (MESIN WAKTU)
+        # ==========================================
+        elif node['tipe'] == 'PERINTAH_PULANG':
+            nilai_final = self.evaluasi_nilai(node['nilai'])
+            # Kirim sinyal berwujud Dictionary ke pemanggilnya
+            return {'aksi': 'PULANG', 'nilai': nilai_final}
+            
+        elif node['tipe'] == 'PERINTAH_BALIKAN':
+            target = node['target']
+            if target in self.memory and len(self.memory[target].get('riwayat', [])) > 0:
+                # Ambil ingatan masa lalu (pop), dan jadikan masa kini
+                nilai_masa_lalu = self.memory[target]['riwayat'].pop()
+                self.memory[target]['isi'] = nilai_masa_lalu
+            else:
+                print(f"🚨 Peringatan: Takdir '{target}' tidak memiliki masa lalu untuk dibalikkan!")
+                
         # ==========================================
         # 3 FITUR BARU: JEDA, PERGI, HENTI
         # ==========================================

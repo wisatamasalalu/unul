@@ -334,9 +334,18 @@ class EnkiParser:
 
     def parse_kontrol(self):
         jenis = self.makan_token('KONTROL')[1]
-        if jenis == 'henti': return {'tipe': 'PERINTAH_HENTI'}
-        elif jenis == 'pergi': return {'tipe': 'PERINTAH_PERGI'}        
-
+        
+        if jenis == 'henti': 
+            return {'tipe': 'PERINTAH_HENTI'}
+        elif jenis == 'pergi': 
+            return {'tipe': 'PERINTAH_PERGI'}
+        elif jenis == 'pulang':
+            nilai = self.parse_ekspresi() # Baca nilai/ekspresi yang mau dipulangkan
+            return {'tipe': 'PERINTAH_PULANG', 'nilai': nilai}
+        elif jenis == 'balikan':
+            target = self.makan_token('IDENTITAS')[1] # Baca variabel yang mau di-undo
+            return {'tipe': 'PERINTAH_BALIKAN', 'target': target}
+            
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":
     file_path = os.path.join(os.path.dirname(__file__), '../../tests/aplikasi.unul')

@@ -1,0 +1,24 @@
+ketik("=== MENGUJI NILAI PULANG ===")
+ciptakan fungsi hitung_pajak(harga) maka
+    takdir.soft total = harga + 10
+    pulang total
+putus
+
+takdir.soft bayar = hitung_pajak(100)
+ketik("Harga setelah pajak:")
+ketik(bayar)
+
+ketik("=== MENGUJI MESIN WAKTU (BALIKAN) ===")
+takdir.soft poin = 50
+ketik("Poin Awal:")
+ketik(poin)
+
+^^ Kita ubah takdirnya!
+takdir.soft poin = 999
+ketik("Poin Diubah Jadi:")
+ketik(poin)
+
+^^ Ah, ternyata tidak valid, mari kita kembalikan ke masa lalu!
+balikan poin
+ketik("Poin Dibatalkan (Kembali ke masa lalu):")
+ketik(poin)
