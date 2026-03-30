@@ -25,7 +25,15 @@ class EnkiParser:
         while self.pos < len(self.tokens):
             token = self.panggil_token()
             
-            if token[0] == 'TAKDIR':
+            if token[0] == 'HEADER':
+                self.makan_token('HEADER')
+                self.ast.append({'tipe': 'DEKLARASI_DATANG'})
+            elif token[0] == 'PRAGMA':
+                nilai_pragma = self.makan_token('PRAGMA')[1]
+                # Ekstrak kata 'dinamis' atau 'statis' dari kalimat
+                mode = 'dinamis' if 'dinamis' in nilai_pragma else 'statis'
+                self.ast.append({'tipe': 'PRAGMA_KOMPILASI', 'mode': mode})
+            elif token[0] == 'TAKDIR':
                 self.ast.append(self.parse_takdir())
             elif token[0] == 'FUNGSI' and token[1] == 'ketik':
                 self.ast.append(self.parse_ketik())
@@ -287,7 +295,7 @@ class EnkiParser:
             'aksi': aksi,
             'aksi_lain': aksi_lain
         }
-        
+
     def parse_siklus(self):
         self.makan_token('SIKLUS') # effort
         token_jumlah = self.panggil_token()

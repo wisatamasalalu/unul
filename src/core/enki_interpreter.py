@@ -6,6 +6,7 @@ class EnkiInterpreter:
         self.ast = ast
         self.memory = {}
         self.functions = {}
+        self.mode_kompilasi = 'dinamis' # Default (Garbage Collected / .ko)
 
     def evaluasi_nilai(self, nilai_mentah):
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'FUNGSI_DENGAR':
@@ -254,11 +255,21 @@ class EnkiInterpreter:
         return nilai_pulang
 
     def eksekusi_node(self, node):
-        if node['tipe'] == 'DEKLARASI_TAKDIR':
+        # --- KEAJAIBAN BARU: EKSEKUSI HEADER & PRAGMA ---
+        if node['tipe'] == 'DEKLARASI_DATANG':
+            # Ini adalah penanda pintu masuk. Kita bisa diam saja atau mencetak log tersembunyi.
+            pass 
+            
+        elif node['tipe'] == 'PRAGMA_KOMPILASI':
+            self.mode_kompilasi = node['mode']
+            # Secara opsional, berikan info visual untuk debugging Arsitek
+            # print(f"[SISTEM] Mode Alokasi Memori: {self.mode_kompilasi.upper()}")
+
+        elif node['tipe'] == 'DEKLARASI_TAKDIR':
             nama = node['nama']
             isi_final = self.evaluasi_nilai(node['isi'])
             ukuran_kavling = node.get('ukuran')
-
+            
             # --- KEMBALIKAN FITUR: KERNEL PANIC ARRAY STATIS ---
             if ukuran_kavling is not None and isinstance(isi_final, list):
                 if len(isi_final) > int(ukuran_kavling):

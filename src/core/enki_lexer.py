@@ -14,6 +14,8 @@ def enki_lexer(source_code):
         ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), 
         ('KONTROL',   r'\b(henti|pergi|pulang|balikan)\b'),
         ('SOWAN',     r'\bsowan\b'), 
+        ('HEADER',    r'\bdatang\b'),
+        ('PRAGMA',    r'\buntuk\s+array\.(dinamis|statis)\b'),
         ('PEMBANDING',r'==|!=|>=|<=|>|<'),         
         
         # --- KEAJAIBAN BARU (OMNI-SYMBOLS) ---

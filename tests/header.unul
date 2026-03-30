@@ -1,0 +1,11 @@
+datang
+untuk array.statis
+
+ketik("=== MENGUJI KODE NATIVE UNUL ===")
+ketik("Pintu masuk 'datang' berhasil dilewati.")
+
+takdir.hard pin_hardware[3] = [12, 14, 27]
+ketik("Konfigurasi pin selesai.")
+
+pergi
+ketik("Ini tidak akan tercetak karena sudah pergi.")
