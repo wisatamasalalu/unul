@@ -244,12 +244,30 @@ class EnkiParser:
         }
     
     def parse_karma(self):
-        self.makan_token('KARMA') # jika
+        self.makan_token('KARMA') # makan 'jika'
+        
+        # --- Syarat Pertama ---
         kiri = self.makan_token('IDENTITAS')[1]
         pembanding = self.makan_token('PEMBANDING')[1]
         token_kanan = self.panggil_token()
         kanan = self.makan_token(token_kanan[0])[1]
-        self.makan_token('KARMA') # maka
+        
+        # --- KEAJAIBAN BARU: Cek Gerbang Logika (Syarat Kedua) ---
+        logika = None
+        kiri2 = None
+        pembanding2 = None
+        kanan2 = None
+        
+        token_cek = self.panggil_token()
+        if token_cek and token_cek[0] == 'LOGIKA':
+            logika = self.makan_token('LOGIKA')[1] # Makan 'dan' / 'atau'
+            kiri2 = self.makan_token('IDENTITAS')[1]
+            pembanding2 = self.makan_token('PEMBANDING')[1]
+            t_kanan2 = self.panggil_token()
+            kanan2 = self.makan_token(t_kanan2[0])[1]
+        # ---------------------------------------------------------
+
+        self.makan_token('KARMA') # makan 'maka'
         
         aksi = []
         while self.pos < len(self.tokens):
@@ -270,7 +288,10 @@ class EnkiParser:
         self.makan_token('KARMA') # Makan kata 'putus'
         
         return {
-            'tipe': 'HUKUM_KARMA', 'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan, 'aksi': aksi
+            'tipe': 'HUKUM_KARMA', 
+            'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan,
+            'logika': logika, 'kiri2': kiri2, 'pembanding2': pembanding2, 'kanan2': kanan2,
+            'aksi': aksi
         }
 
     def parse_siklus(self):

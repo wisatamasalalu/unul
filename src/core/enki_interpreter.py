@@ -39,7 +39,7 @@ class EnkiInterpreter:
                     print(f"🚨 KERNEL PANIC! Tidak bisa menggunakan operator '{op}' pada teks/huruf!")
                     import sys; sys.exit(1)
         # ------------------------------------------------------------------
-        
+
         # Jika ini adalah variabel (IDENTITAS), ambil isinya dari memori
         if isinstance(nilai_mentah, str) and nilai_mentah in self.memory:
             return self.memory[nilai_mentah]['isi']
@@ -276,26 +276,36 @@ class EnkiInterpreter:
         # RESTORE: HUKUM KARMA & SIKLUS YANG HILANG
         # ==========================================
         elif node['tipe'] == 'HUKUM_KARMA':
-            kiri_val = self.evaluasi_nilai(node['kiri'])
-            kanan_val = self.evaluasi_nilai(node['kanan'])
-            pembanding = node['pembanding']
-            
-            # Konversi otomatis ke angka jika bentuknya angka, agar matematika akurat!
-            try:
-                kiri_val = int(kiri_val)
-                kanan_val = int(kanan_val)
-            except ValueError:
-                pass # Biarkan berupa teks jika bukan angka (berguna untuk ngecek nama == "Nabhan")
+            # --- FUNGSI BANTUAN UNTUK MENGEVALUASI 1 SYARAT ---
+            def evaluasi_syarat(k_mentah, pemb, kan_mentah):
+                k_val = self.evaluasi_nilai(k_mentah)
+                kan_val = self.evaluasi_nilai(kan_mentah)
+                try:
+                    k_val, kan_val = int(k_val), int(kan_val)
+                except ValueError:
+                    k_val, kan_val = str(k_val).strip('"\''), str(kan_val).strip('"\'')
+                
+                if pemb == '>': return k_val > kan_val
+                elif pemb == '<': return k_val < kan_val
+                elif pemb == '==': return k_val == kan_val
+                elif pemb == '!=': return k_val != kan_val
+                elif pemb == '>=': return k_val >= kan_val
+                elif pemb == '<=': return k_val <= kan_val
+                return False
 
-            sah = False
-            if pembanding == '>': sah = kiri_val > kanan_val
-            elif pembanding == '<': sah = kiri_val < kanan_val
-            elif pembanding == '==': sah = kiri_val == kanan_val
-            elif pembanding == '!=': sah = kiri_val != kanan_val
-            elif pembanding == '>=': sah = kiri_val >= kanan_val
-            elif pembanding == '<=': sah = kiri_val <= kanan_val
+            # 1. Timbang Syarat Pertama
+            sah1 = evaluasi_syarat(node['kiri'], node['pembanding'], node['kanan'])
             
-            if sah:
+            # 2. Timbang Syarat Kedua (Jika Ada Gerbang Logika)
+            sah_final = sah1
+            if node.get('logika'):
+                sah2 = evaluasi_syarat(node['kiri2'], node['pembanding2'], node['kanan2'])
+                logika = node['logika']
+                if logika in ['dan', '&&']: sah_final = sah1 and sah2
+                elif logika in ['atau', '||']: sah_final = sah1 or sah2
+                
+            # 3. Eksekusi jika Sah!
+            if sah_final:
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
                     if hasil == "HENTI": return "HENTI" # Teruskan sinyal dobrak ke siklus

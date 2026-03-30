@@ -1,0 +1,23 @@
+ketik("=== MENGUJI GERBANG LOGIKA ===")
+
+takdir.soft umur = 18
+takdir.hard lisensi = "aktif"
+
+ketik("Status Umur: 18, Lisensi: aktif")
+
+^^ Uji coba logika AND (dan)
+jika umur >= 17 dan lisensi == "aktif" maka
+    ketik("[SUKSES] Kamu boleh mengendarai Supra X!")
+putus
+
+^^ Uji coba logika OR (atau)
+takdir.soft saldo = 0
+takdir.soft tiket = "punya"
+
+ketik("Status Saldo: 0, Tiket: punya")
+
+jika saldo > 50000 atau tiket == "punya" maka
+    ketik("[SUKSES] Kamu boleh masuk ke stasiun LinuxDNC!")
+putus
+
+ketik("=== SELESAI ===")
