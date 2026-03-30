@@ -1,0 +1,26 @@
+ketik("=== MENGUJI ANGKA DESIMAL (FLOAT) ===")
+
+takdir.soft pi = 3.14
+takdir.soft jari_jari = 10.5
+
+takdir.soft luas = pi * (jari_jari ^ 2)
+
+ketik("Luas lingkaran dengan jari-jari 10.5 adalah:")
+ketik(luas)
+
+ketik("=== MENGUJI PEMBAGIAN PRESISI ===")
+takdir.soft bagi = 10 / 4
+ketik("10 dibagi 4 adalah:")
+ketik(bagi)
+
+^^ Menguji Hakim Karma dengan desimal
+jika bagi == 2.5 maka
+    ketik("Hakim Karma: Ya, 10 / 4 tepat 2.5!")
+lain
+    ketik("Hakim Karma: Perhitungan salah!")
+putus
+
+ketik("=== SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")    

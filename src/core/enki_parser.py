@@ -150,6 +150,13 @@ class EnkiParser:
         elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA']:
             return self.makan_token(token_kiri[0])[1]
 
+        # --- KEAJAIBAN BARU: Ekspresi Matematika Dalam Kurung ---
+        elif token_kiri and token_kiri[0] == 'KURUNG_B':
+            self.makan_token('KURUNG_B')                 # Makan kurung buka '('
+            nilai_dalam_kurung = self.parse_ekspresi()   # Hitung semua yang ada di dalamnya
+            self.makan_token('KURUNG_T')                 # Makan kurung tutup ')'
+            return nilai_dalam_kurung                    # Kembalikan hasilnya!
+
         # 5. Identitas (Variabel, Fungsi, Index Array)
         elif token_kiri and token_kiri[0] == 'IDENTITAS':
             nama_id = self.makan_token('IDENTITAS')[1]

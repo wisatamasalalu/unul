@@ -36,7 +36,7 @@ def enki_lexer(source_code):
         # -----------------------------------------
 
         ('KOMA',      r','),
-        ('ANGKA',     r'\d+'),                 
+        ('ANGKA',     r'\d+(\.\d+)?'),         # Mendukung angka bulat dan desimal (float)
         ('SPASI',     r'[ \t\n]+'),            
         ('MISMATCH',  r'.'),                   
     ]

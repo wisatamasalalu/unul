@@ -20,16 +20,23 @@ class EnkiInterpreter:
             op = nilai_mentah['operator']
             
             try:
-                # Coba jadikan angka dan hitung secara matematika
-                kiri_int = int(kiri)
-                kanan_int = int(kanan)
+                # Cerdas mendeteksi angka bulat atau desimal
+                def jadikan_angka(n):
+                    num = float(n)
+                    return int(num) if num.is_integer() else num
                 
-                if op == '+': return str(kiri_int + kanan_int)
-                if op == '-': return str(kiri_int - kanan_int)
-                if op == '*': return str(kiri_int * kanan_int)
-                if op == '/': return str(kiri_int // kanan_int) # Pembagian bulat
-                if op == '%': return str(kiri_int % kanan_int)  # Sisa bagi (Modulo)
-                if op == '^': return str(kiri_int ** kanan_int) # Pangkat
+                kiri_num = jadikan_angka(kiri)
+                kanan_num = jadikan_angka(kanan)
+                
+                if op == '+': hasil_math = kiri_num + kanan_num
+                elif op == '-': hasil_math = kiri_num - kanan_num
+                elif op == '*': hasil_math = kiri_num * kanan_num
+                elif op == '/': hasil_math = kiri_num / kanan_num # Pembagian kini bisa menghasilkan desimal!
+                elif op == '%': hasil_math = kiri_num % kanan_num  
+                elif op == '^': hasil_math = kiri_num ** kanan_num 
+                
+                # Kembalikan sebagai teks, buang .0 jika ternyata hasilnya bulat
+                return str(int(hasil_math)) if isinstance(hasil_math, float) and hasil_math.is_integer() else str(hasil_math)
                 
             except ValueError:
                 # Jika gagal diubah jadi angka, berarti salah satunya adalah TEKS!
@@ -302,7 +309,8 @@ class EnkiInterpreter:
                 k_val = self.evaluasi_nilai(k_mentah)
                 kan_val = self.evaluasi_nilai(kan_mentah)
                 try:
-                    k_val, kan_val = int(k_val), int(kan_val)
+                    # Ubah ke float agar bisa membandingkan 3.14 > 3
+                    k_val, kan_val = float(k_val), float(kan_val)
                 except ValueError:
                     k_val, kan_val = str(k_val).strip('"\''), str(kan_val).strip('"\'')
                 
@@ -336,7 +344,7 @@ class EnkiInterpreter:
                 for aksi_node in node['aksi_lain']:
                     hasil = self.eksekusi_node(aksi_node)
                     if hasil == "HENTI": return "HENTI"
-                    
+
         elif node['tipe'] == 'HUKUM_SIKLUS':
             jumlah_int = int(self.evaluasi_nilai(node['jumlah']))
             for _ in range(jumlah_int):
