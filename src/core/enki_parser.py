@@ -215,12 +215,15 @@ class EnkiParser:
         self.makan_token('KARMA') # makan 'maka'
         
         aksi = []
+        aksi_lain = [] # Siapkan wadah untuk takdir alternatif
+        
+        # 1. Baca blok utama (maka)
         while self.pos < len(self.tokens):
             token_cek = self.panggil_token()
-            if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
+            # Berhenti jika ketemu 'putus' ATAU 'lain'
+            if token_cek and token_cek[0] == 'KARMA' and token_cek[1] in ['putus', 'lain']:
                 break 
 
-            # HAKIM ENLIL SEKARANG BISA MEMBACA SEMUA PERINTAH DI DALAM BLOK JIKA
             if token_cek[0] == 'TAKDIR': aksi.append(self.parse_takdir())
             elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': aksi.append(self.parse_ketik())
             elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: aksi.append(self.parse_waktu())
@@ -230,13 +233,32 @@ class EnkiParser:
             elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
             else: self.pos += 1
                 
-        self.makan_token('KARMA') # Makan kata 'putus'
+        token_penutup = self.makan_token('KARMA') # Makan 'putus' atau 'lain'
         
+        # 2. Jika penutupnya adalah 'lain', baca blok alternatifnya
+        if token_penutup[1] == 'lain':
+            while self.pos < len(self.tokens):
+                token_cek = self.panggil_token()
+                if token_cek and token_cek[0] == 'KARMA' and token_cek[1] == 'putus':
+                    break 
+                
+                if token_cek[0] == 'TAKDIR': aksi_lain.append(self.parse_takdir())
+                elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': aksi_lain.append(self.parse_ketik())
+                elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: aksi_lain.append(self.parse_waktu())
+                elif token_cek[0] == 'KONTROL': aksi_lain.append(self.parse_kontrol())
+                elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi_lain.append(self.parse_karma())
+                elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi_lain.append(self.parse_siklus())
+                elif token_cek[0] == 'IDENTITAS': aksi_lain.append(self.parse_panggilan_fungsi())
+                else: self.pos += 1
+            
+            self.makan_token('KARMA') # Makan kata 'putus' yang sesungguhnya
+
         return {
             'tipe': 'HUKUM_KARMA', 
             'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan,
             'logika': logika, 'kiri2': kiri2, 'pembanding2': pembanding2, 'kanan2': kanan2,
-            'aksi': aksi
+            'aksi': aksi,
+            'aksi_lain': aksi_lain # Simpan blok alternatif ke AST
         }
 
     def parse_siklus(self):

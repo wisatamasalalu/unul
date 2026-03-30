@@ -1,0 +1,14 @@
+ketik("=== MENGUJI HUKUM KARMA & LAIN ===")
+
+takdir.soft umur = 15
+
+jika umur >= 17 maka
+    ketik("Status: Dewasa. Akses diberikan.")
+lain
+    ketik("Status: Masih di bawah umur. Akses ditolak.")
+putus
+
+ketik("=== SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")    

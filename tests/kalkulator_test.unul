@@ -1,0 +1,6 @@
+^^ Kitab Ujian Aritmatika In-Line
+^^ Coba masukkan: 5 * 10 + 2 (hasil benar: 52)
+^^ Coba masukkan: 5 + 10 * 2 (hasil benar: 25)
+
+takdir.soft hasil = evaluasi(dengar())
+ketik(hasil)

@@ -325,12 +325,18 @@ class EnkiInterpreter:
                 if logika in ['dan', '&&']: sah_final = sah1 and sah2
                 elif logika in ['atau', '||']: sah_final = sah1 or sah2
                 
-            # 3. Eksekusi jika Sah!
+            # 3. Eksekusi sesuai hasil timbangan
             if sah_final:
+                # Jika syarat terpenuhi, jalankan blok 'maka'
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
-                    if hasil == "HENTI": return "HENTI" # Teruskan sinyal dobrak ke siklus
-
+                    if hasil == "HENTI": return "HENTI"
+            elif len(node.get('aksi_lain', [])) > 0:
+                # Jika syarat GAGAL dan ada blok 'lain', jalankan alternatifnya!
+                for aksi_node in node['aksi_lain']:
+                    hasil = self.eksekusi_node(aksi_node)
+                    if hasil == "HENTI": return "HENTI"
+                    
         elif node['tipe'] == 'HUKUM_SIKLUS':
             jumlah_int = int(self.evaluasi_nilai(node['jumlah']))
             for _ in range(jumlah_int):
