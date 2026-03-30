@@ -1,0 +1,31 @@
+datang
+untuk array.dinamis
+
+ketik("=== MENGUJI DOMAIN BERTINGKAT (SIHIR ARSITEK) ===")
+
+^^ 1. Bikin domain Parent-nya dulu (Wajib Define)
+takdir.soft kucing = {}
+
+^^ 2. Sekarang 'kucing' bebas beranak pinak tanpa takdir!
+kucing.lucu.imut = "Sangat Imut"
+kucing.lucu.banget = "Super Sekali"
+kucing.empuk.bulunya = "Terasa seperti sutra"
+kucing.empuk.halus = 100
+kucing.garong.nakal = "Suka nyolong ikan"
+kucing.garong.status = "Buronan Komplek"
+
+^^ 3. Modifikasi langsung (Timpa nilai)
+kucing.garong.status = "Sudah Ditangkap"
+
+ketik("Laporan Sifat Kucing:")
+ketik(kucing.lucu.imut)
+ketik(kucing.empuk.bulunya)
+
+ketik("Status Kucing Garong saat ini:")
+ketik(kucing.garong.status)
+
+ketik("=== SELURUH STRUKTUR DOMAIN KUCING ===")
+^^ Cetak wujud aslinya, mesin akan merakitnya jadi JSON sempurna!
+ketik(kucing)
+
+pergi

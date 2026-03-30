@@ -50,7 +50,7 @@ class EnkiParser:
             elif token[0] == 'PENCIPTAAN' and token[1] == 'ciptakan':
                 self.ast.append(self.parse_ciptaan())
             elif token[0] == 'IDENTITAS':
-                self.ast.append(self.parse_panggilan_fungsi())
+                self.ast.append(self.parse_identitas_aksi())
             elif token[0] == 'SOWAN':
                 self.ast.append(self.parse_sowan())
             else:
@@ -59,7 +59,9 @@ class EnkiParser:
 
     def parse_takdir(self):
         jenis_takdir = self.makan_token('TAKDIR')[1] 
-        nama_var = self.makan_token('IDENTITAS')[1]
+        
+        # KEAJAIBAN BARU: Baca rantai nama (bisa tunggal, bisa bersarang dengan titik)
+        rantai_nama = self.parse_identitas_berantai()
         
         # --- OMNIDISCIPLINARY: CEK ARRAY STATIS ---
         ukuran_array = None
@@ -78,7 +80,7 @@ class EnkiParser:
         return {
             'tipe': 'DEKLARASI_TAKDIR',
             'sifat': 'TETAP' if 'hard' in jenis_takdir else 'FLEKSIBEL',
-            'nama': nama_var,
+            'nama': rantai_nama,
             'ukuran': ukuran_array, # Simpan ukuran kavling RAM (jika ada)
             'isi': nilai
         }
@@ -176,9 +178,10 @@ class EnkiParser:
             self.makan_token('KURUNG_T')                 # Makan kurung tutup ')'
             return nilai_dalam_kurung                    # Kembalikan hasilnya!
 
-        # 5. Identitas (Variabel, Fungsi, Index Array)
+        # 5. Identitas (Variabel, Fungsi, Index Array, atau Properti Objek)
         elif token_kiri and token_kiri[0] == 'IDENTITAS':
-            nama_id = self.makan_token('IDENTITAS')[1]
+            # KEAJAIBAN BARU: Baca rantai
+            rantai_id = self.parse_identitas_berantai()
             token_cek = self.panggil_token()
             
             if token_cek and token_cek[0] == 'KURUNG_B': # Panggilan Fungsi
@@ -190,16 +193,22 @@ class EnkiParser:
                         if self.panggil_token() and self.panggil_token()[0] == 'KOMA': self.makan_token('KOMA')
                         else: break
                 self.makan_token('KURUNG_T')
-                return {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id, 'argumen': argumen}
+                return {'tipe': 'PANGGILAN_FUNGSI', 'nama': rantai_id[0], 'argumen': argumen}
+                
             elif token_cek and token_cek[0] == 'KURUNG_S_B': # Baca Index Array
                 self.makan_token('KURUNG_S_B')
                 index_ekspresi = self.parse_ekspresi()
                 self.makan_token('KURUNG_S_T')
-                return {'tipe': 'BACA_ARRAY', 'nama': nama_id, 'index': index_ekspresi}
+                return {'tipe': 'BACA_ARRAY', 'nama': rantai_id, 'index': index_ekspresi}
+                
             else:
-                return nama_id
+                # Jika hanya 1 kata, anggap variabel biasa. Jika rantai (pakai titik), anggap properti!
+                if len(rantai_id) == 1:
+                    return rantai_id[0]
+                else:
+                    return {'tipe': 'BACA_PROPERTI', 'rantai': rantai_id}
 
-        raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")  
+        raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
         
     def parse_ketik(self):
         self.makan_token('FUNGSI')
@@ -408,6 +417,39 @@ class EnkiParser:
             'target': target_file
         }
 
+    def parse_identitas_aksi(self):
+        # 1. Baca rantai kata (bisa tunggal "kucing", bisa bertingkat "kucing.lucu.imut")
+        rantai = self.parse_identitas_berantai()
+        
+        token_cek = self.panggil_token()
+        
+        # 2. Jika setelah rantai kata ada sama dengan (=), ini adalah PENETAPAN DOMAIN!
+        if token_cek and token_cek[0] == 'ASSIGN':
+            self.makan_token('ASSIGN')
+            nilai = self.parse_ekspresi()
+            return {
+                'tipe': 'MODIFIKASI_TAKDIR',
+                'rantai': rantai,
+                'isi': nilai
+            }
+            
+        # 3. Jika setelah kata pertama ada kurung buka '(', ini adalah PANGGILAN FUNGSI!
+        elif token_cek and token_cek[0] == 'KURUNG_B':
+            self.makan_token('KURUNG_B')
+            argumen = []
+            if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_T':
+                while True:
+                    argumen.append(self.parse_ekspresi())
+                    if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
+                        self.makan_token('KOMA')
+                    else:
+                        break
+            self.makan_token('KURUNG_T')
+            return {'tipe': 'PANGGILAN_FUNGSI', 'nama': rantai[0], 'argumen': argumen}
+            
+        else:
+            raise SyntaxError(f"Hukum Enlil Dilanggar! Domain '{rantai[0]}' dibiarkan menggantung tanpa aksi.")
+
     def parse_waktu(self):
         self.makan_token('FUNGSI') # makan tunggu/jeda
         self.makan_token('KURUNG_B')
@@ -433,6 +475,15 @@ class EnkiParser:
         elif jenis == 'balikan':
             target = self.makan_token('IDENTITAS')[1] # Baca variabel yang mau di-undo
             return {'tipe': 'PERINTAH_BALIKAN', 'target': target}
+
+    def parse_identitas_berantai(self):
+        # Baca identitas pertama
+        rantai = [self.makan_token('IDENTITAS')[1]]
+        # Selama token selanjutnya adalah TITIK, makan terus!
+        while self.panggil_token() and self.panggil_token()[0] == 'TITIK':
+            self.makan_token('TITIK')
+            rantai.append(self.makan_token('IDENTITAS')[1])
+        return rantai
 
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":

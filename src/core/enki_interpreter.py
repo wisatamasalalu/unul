@@ -96,12 +96,12 @@ class EnkiInterpreter:
                     import sys; sys.exit(1)
         # ------------------------------------------------------------------
 
-        # --- PERBAIKAN: DETEKSI VARIABEL TAK DIKENAL (UNDEFINED) ---
+        # --- PERBAIKAN: BACA VARIABEL ATAU TEKS BEBAS (LOOSE TEXT MODE) ---
         if isinstance(nilai_mentah, str):
             # 1. Jika teks literal ("..."), bersihkan kutip
             if (nilai_mentah.startswith('"') and nilai_mentah.endswith('"')) or (nilai_mentah.startswith("'") and nilai_mentah.endswith("'")):
                 return nilai_mentah[1:-1]
-            # 2. Jika ada di memori (Variabel Sah)
+            # 2. Jika ada di memori RAM (Variabel Sah)
             elif nilai_mentah in self.memory:
                 return self.memory[nilai_mentah]['isi']
             # 3. Jika Angka Mesin/Literal, biarkan
@@ -112,10 +112,28 @@ class EnkiInterpreter:
                 except ValueError:
                     if nilai_mentah.startswith(('0x', '0X', '0b', '0B', '0o', '0O')):
                         return nilai_mentah
-                    # JIKA BUKAN SEMUANYA, MAKA INI ADALAH VARIABEL GAIB!
-                    print(f"🚨 KERNEL PANIC! Takdir/Variabel '{nilai_mentah}' tidak dikenali oleh alam semesta!")
-                    import sys; sys.exit(1)
+                    
+                    # 🔥 KESAKTIAN ARSITEK: JIKA TIDAK ADA DI RAM, JADIKAN TEKS BIASA! 🔥
+                    return nilai_mentah
         # -------------------------------------------------------------
+        
+        # --- PERBAIKAN: BACA PROPERTI TITIK (BOS.KITA.NAMA) ---
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'BACA_PROPERTI':
+            rantai = nilai_mentah['rantai']
+            nama_root = rantai[0]
+            
+            # Jika domain tidak ada, kembalikan sebagai teks bersambung (contoh: "kucing.lucu")
+            if nama_root not in self.memory:
+                return ".".join(rantai)
+                
+            current = self.memory[nama_root]['isi']
+            for prop in rantai[1:]:
+                if isinstance(current, dict) and prop in current:
+                    current = current[prop]
+                else:
+                    return ".".join(rantai) # Fallback ke teks literal jika sub-domain kosong
+            return current
+        # -----------------------------------------------------------
 
         # TAMBAHAN BARU: STRUKTUR ARRAY
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'STRUKTUR_ARRAY':
@@ -316,29 +334,100 @@ class EnkiInterpreter:
             # print(f"[SISTEM] Mode Alokasi Memori: {self.mode_kompilasi.upper()}")
 
         elif node['tipe'] == 'DEKLARASI_TAKDIR':
-            nama = node['nama']
+            rantai_nama = node['nama']
             isi_final = self.evaluasi_nilai(node['isi'])
             ukuran_kavling = node.get('ukuran')
+            sifat = node['sifat']
             
-            # --- KEMBALIKAN FITUR: KERNEL PANIC ARRAY STATIS ---
-            if ukuran_kavling is not None and isinstance(isi_final, list):
-                if len(isi_final) > int(ukuran_kavling):
-                    print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan ! Dipesan {ukuran_kavling} kavling, tapi diisi {len(isi_final)} data!")
-                    import sys; sys.exit(1)
+            # Amankan dari bentrokan versi lama/baru (Pastikan selalu berbentuk List)
+            if isinstance(rantai_nama, str): rantai_nama = [rantai_nama]
+            
+            # --- JIKA VARIABEL TUNGGAL (Misal: takdir.soft hasil = 10) ---
+            if len(rantai_nama) == 1:
+                nama = rantai_nama[0] # Ambil wujud teksnya (string)
+                
+                if ukuran_kavling is not None and isinstance(isi_final, list):
+                    if len(isi_final) > int(ukuran_kavling):
+                        print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan ! Dipesan {ukuran_kavling} kavling, tapi diisi {len(isi_final)} data!")
+                        import sys; sys.exit(1)
 
-            # --- MESIN WAKTU: SIMPAN RIWAYAT JIKA TAKDIR DIUBAH ---
-            # --- PERLINDUNGAN TAKDIR TETAP (HARD / File Environtment Variable .ANU) ---
-            if nama in self.memory:
-                if self.memory[nama].get('sifat') == 'TETAP':
-                    print(f"🚨 KERNEL PANIC! Takdir '{nama}' bersifat TETAP (Hard/Rahasia) dan tidak bisa diubah/diretas!")
+                if nama in self.memory:
+                    if self.memory[nama].get('sifat') == 'TETAP':
+                        print(f"🚨 KERNEL PANIC! Takdir '{nama}' bersifat TETAP (Hard) dan tidak bisa diubah!")
+                        import sys; sys.exit(1)
+                        
+                    if 'riwayat' not in self.memory[nama]: self.memory[nama]['riwayat'] = []
+                    self.memory[nama]['riwayat'].append(self.memory[nama]['isi'])
+                    self.memory[nama]['isi'] = isi_final
+                else:
+                    self.memory[nama] = {'isi': isi_final, 'sifat': sifat, 'ukuran': ukuran_kavling, 'riwayat': []}
+            
+            # --- JIKA NESTED OBJECT / DOMAIN (Misal: takdir.soft bos.kita.nama = "Unul") ---
+            else:
+                nama_root = rantai_nama[0]
+                
+                if nama_root not in self.memory:
+                    self.memory[nama_root] = {'isi': {}, 'sifat': sifat, 'riwayat': []}
+                    
+                if self.memory[nama_root].get('sifat') == 'TETAP':
+                    print(f"🚨 KERNEL PANIC! Wujud '{nama_root}' bersifat TETAP, propertinya tidak bisa dimodifikasi!")
                     import sys; sys.exit(1)
                     
-                if 'riwayat' not in self.memory[nama]: self.memory[nama]['riwayat'] = []
-                self.memory[nama]['riwayat'].append(self.memory[nama]['isi'])
-                self.memory[nama]['isi'] = isi_final
-            else:
-                self.memory[nama] = {'isi': isi_final, 'sifat': node['sifat'], 'ukuran': ukuran_kavling, 'riwayat': []}
+                current = self.memory[nama_root]['isi']
+                if not isinstance(current, dict):
+                    print(f"🚨 KERNEL PANIC! Takdir '{nama_root}' bukan sebuah wujud/objek yang bisa ditambahi titik!")
+                    import sys; sys.exit(1)
+                    
+                for prop in rantai_nama[1:-1]:
+                    if prop not in current or not isinstance(current[prop], dict):
+                        current[prop] = {} 
+                    current = current[prop]
+                    
+                kunci_akhir = rantai_nama[-1]
+                current[kunci_akhir] = isi_final
+        
+        # ==========================================
+        # KEAJAIBAN BARU: MODIFIKASI DOMAIN BERTINGKAT
+        # (kucing.lucu.imut = "Banget")
+        # ==========================================
+        elif node['tipe'] == 'MODIFIKASI_TAKDIR':
+            rantai = node['rantai']
+            isi_final = self.evaluasi_nilai(node['isi'])
+            nama_root = rantai[0]
             
+            # ATURAN ARSITEK: Leluhur harus di-define dulu!
+            if nama_root not in self.memory:
+                print(f"🚨 KERNEL PANIC! Domain leluhur '{nama_root}' belum diciptakan!")
+                print(f"Gunakan 'takdir.soft {nama_root} = {{}}' terlebih dahulu.")
+                import sys; sys.exit(1)
+                
+            if self.memory[nama_root].get('sifat') == 'TETAP':
+                print(f"🚨 KERNEL PANIC! Domain '{nama_root}' bersifat TETAP (Hard). Silsilahnya tidak bisa diubah!")
+                import sys; sys.exit(1)
+                
+            # Jika user memodifikasi variabel biasa (contoh: umur = 20)
+            if len(rantai) == 1:
+                self.memory[nama_root]['riwayat'].append(self.memory[nama_root]['isi'])
+                self.memory[nama_root]['isi'] = isi_final
+                
+            # Jika user membangun Sub-Domain Bertingkat (kucing.lucu.imut)
+            else:
+                current = self.memory[nama_root]['isi']
+                
+                # Cek apakah root-nya benar-benar Wujud (Objek/Dictionary)
+                if not isinstance(current, dict):
+                    print(f"🚨 KERNEL PANIC! '{nama_root}' bukan sebuah wujud/objek, tidak bisa memiliki sub-domain!")
+                    import sys; sys.exit(1)
+                    
+                # Menelusuri rantai dan MENCIPTAKAN ANAK secara gaib jika belum ada
+                for prop in rantai[1:-1]:
+                    if prop not in current or not isinstance(current[prop], dict):
+                        current[prop] = {} # Otomatis melahirkan child!
+                    current = current[prop]
+                    
+                kunci_akhir = rantai[-1]
+                current[kunci_akhir] = isi_final
+
         elif node['tipe'] == 'PERINTAH_KETIK':
             # --- PERBAIKAN: Langsung serahkan apapun isinya ke evaluasi_nilai ---
             hasil_ketik = self.evaluasi_nilai(node['target'])
