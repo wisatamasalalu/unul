@@ -1,0 +1,43 @@
+datang
+untuk array.dinamis
+
+ketik("=== MEMULAI UJI LABIRIN MEMORI ===")
+
+^^ 1. Mutasi Wujud Ekstrem
+takdir.soft entitas = "Hanya Teks"
+ketik("Keadaan 1 (Teks):")
+ketik(entitas)
+
+^^ Berubah menjadi Objek (Dictionary)
+entitas = {}
+entitas.level1 = {}
+entitas.level1.level2 = {}
+entitas.level1.level2.inti = "Harta Karun"
+
+ketik("Keadaan 2 (Objek Bersarang):")
+ketik(entitas)
+
+^^ 2. Modifikasi di Kedalaman Labirin
+entitas.level1.level2.inti = "Kosong"
+ketik("Keadaan 3 (Modifikasi Inti):")
+ketik(entitas.level1.level2.inti)
+
+^^ 3. Uji Balikan Berantai (Targeted Undo di Kedalaman)
+ketik("--- Memutar Waktu di Kedalaman Labirin ---")
+balikan entitas.level1.level2.inti
+
+ketik("Hasil Balikan Inti (Harusnya 'Harta Karun'):")
+ketik(entitas.level1.level2.inti)
+
+^^ 4. Uji Balikan Mutasi (Kembali ke Teks)
+ketik("--- Memutar Waktu ke Masa Sebelum Menjadi Objek ---")
+balikan entitas ^^ Balikan saat mutasi ke {}
+balikan entitas ^^ Balikan ke "Hanya Teks"
+
+ketik("Hasil Balikan Total (Harusnya 'Hanya Teks'):")
+ketik(entitas)
+
+ketik("=== UJI LABIRIN SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
