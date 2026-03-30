@@ -9,6 +9,12 @@ class EnkiInterpreter:
 
     def evaluasi_nilai(self, nilai_mentah):
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'FUNGSI_DENGAR':
+            # --- KEAJAIBAN BARU: Dukungan Navigasi Panah (Arrow Keys) ---
+            try:
+                import readline # Mengaktifkan navigasi kursor & riwayat di Linux/Mac
+            except ImportError:
+                pass # Abaikan jika di Windows, karena Windows CMD/PowerShell sudah otomatis bisa
+                
             # Gunakan fungsi input() bawaan Python untuk mendengarkan user
             jawaban = input("> ") 
             return jawaban
@@ -359,7 +365,7 @@ class EnkiInterpreter:
                 logika = node['logika']
                 if logika in ['dan', '&&']: sah_final = sah1 and sah2
                 elif logika in ['atau', '||']: sah_final = sah1 or sah2
-                                
+
             # 3. Eksekusi sesuai hasil timbangan
             if sah_final:
                 # Jika syarat terpenuhi, jalankan blok 'maka'
