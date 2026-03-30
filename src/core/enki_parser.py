@@ -468,9 +468,17 @@ class EnkiParser:
             nilai = self.parse_ekspresi() # Baca nilai/ekspresi yang mau dipulangkan
             return {'tipe': 'PERINTAH_PULANG', 'nilai': nilai}
         elif jenis == 'balikan':
-            target = self.makan_token('IDENTITAS')[1] # Baca variabel yang mau di-undo
-            return {'tipe': 'PERINTAH_BALIKAN', 'target': target}
-
+            # --- KEAJAIBAN BARU: Menelusuri Identitas Berantai (Nested Domain) ---
+            target_chain = [self.makan_token('IDENTITAS')[1]]
+            
+            # Selama ada titik setelah identitas, teruskan memakan token!
+            while self.panggil_token() and self.panggil_token()[0] == 'TITIK':
+                self.makan_token('TITIK')
+                target_chain.append(self.makan_token('IDENTITAS')[1])
+            
+            # Kirimkan target dalam bentuk list/array ke Interpreter
+            return {'tipe': 'PERINTAH_BALIKAN', 'target': target_chain}
+            
     def parse_identitas_berantai(self):
         # Baca identitas pertama
         rantai = [self.makan_token('IDENTITAS')[1]]

@@ -1,5 +1,6 @@
 from enki_lexer import enki_lexer
 from enki_parser import EnkiParser
+import copy
 
 class EnkiInterpreter:
     def __init__(self, ast):
@@ -421,9 +422,15 @@ class EnkiInterpreter:
                 print(f"🚨 KERNEL PANIC! Domain '{nama_root}' bersifat TETAP (Hard). Silsilahnya tidak bisa diubah!")
                 import sys; sys.exit(1)
                 
+            # --- SUNTIKAN DEEPCOPY UNTUK MENYIMPAN RIWAYAT (OPSI A & B) ---
+            # Sebelum memodifikasi nilai saat ini, fotokopi dulu seluruh isi root ke riwayat!
+            if 'riwayat' not in self.memory[nama_root]:
+                self.memory[nama_root]['riwayat'] = []
+            self.memory[nama_root]['riwayat'].append(copy.deepcopy(self.memory[nama_root]['isi']))
+            # -------------------------------------------------------------
+                
             # Jika user memodifikasi variabel biasa (contoh: umur = 20)
             if len(rantai) == 1:
-                self.memory[nama_root]['riwayat'].append(self.memory[nama_root]['isi'])
                 self.memory[nama_root]['isi'] = isi_final
                 
             # Jika user membangun Sub-Domain Bertingkat (kucing.lucu.imut)
@@ -443,7 +450,8 @@ class EnkiInterpreter:
                     
                 kunci_akhir = rantai[-1]
                 current[kunci_akhir] = isi_final
-
+        # ==========================================
+        
         elif node['tipe'] == 'PERINTAH_KETIK':
             # --- PERBAIKAN: Langsung serahkan apapun isinya ke evaluasi_nilai ---
             hasil_ketik = self.evaluasi_nilai(node['target'])
@@ -478,14 +486,49 @@ class EnkiInterpreter:
             return {'aksi': 'PULANG', 'nilai': nilai_final}
             
         elif node['tipe'] == 'PERINTAH_BALIKAN':
-            target = node['target']
-            if target in self.memory and len(self.memory[target].get('riwayat', [])) > 0:
-                # Ambil ingatan masa lalu (pop), dan jadikan masa kini
-                nilai_masa_lalu = self.memory[target]['riwayat'].pop()
-                self.memory[target]['isi'] = nilai_masa_lalu
-            else:
-                print(f"🚨 Peringatan: Takdir '{target}' tidak memiliki masa lalu untuk dibalikkan!")
+            target_chain = node['target']
+            
+            if isinstance(target_chain, str):
+                target_chain = [target_chain]
 
+            root_var = target_chain[0]
+
+            if root_var not in self.memory:
+                print(f"🚨 KERNEL PANIC! Takdir '{root_var}' belum diciptakan!")
+                import sys; sys.exit(1)
+
+            # --- KALIBRASI: Menggunakan 'riwayat' dan 'isi' sesuai strukturmu ---
+            riwayat = self.memory[root_var].get('riwayat', [])
+            if len(riwayat) == 0:
+                print(f"🚨 Peringatan: Takdir '{'.'.join(target_chain)}' tidak memiliki masa lalu!")
+                return
+
+            # OPSI A: DEEP UNDO (Balikan Total Induk)
+            if len(target_chain) == 1:
+                masa_lalu = riwayat.pop()
+                self.memory[root_var]['isi'] = copy.deepcopy(masa_lalu)
+            
+            # OPSI B: TARGETED UNDO (Balikan Titik Spesifik)
+            else:
+                masa_lalu = riwayat.pop() 
+                
+                # 1. Ambil nilai spesifik dari MASA LALU
+                nilai_lama = masa_lalu
+                try:
+                    for part in target_chain[1:]:
+                        nilai_lama = nilai_lama[part]
+                except (KeyError, TypeError):
+                    print(f"🚨 Peringatan: Sub-domain '{'.'.join(target_chain)}' belum ada di masa lalu!")
+                    return
+                
+                # 2. Cari posisi di MASA KINI untuk ditimpa
+                kini = self.memory[root_var]['isi']
+                for part in target_chain[1:-1]:
+                    kini = kini[part]
+                
+                # 3. Timpa nilai masa kini dengan nilai dari masa lalu
+                kini[target_chain[-1]] = copy.deepcopy(nilai_lama)
+                
         # ==========================================
         # 3 FITUR BARU: JEDA, PERGI, HENTI
         # ==========================================

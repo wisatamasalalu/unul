@@ -1,0 +1,46 @@
+datang
+untuk array.dinamis
+
+ketik("=== MENGUJI GABUNGAN DEEP UNDO & TARGETED UNDO ===")
+
+^^ Persiapan Wujud Bersarang
+takdir.soft realita = {}
+realita.dimensi = "Tiga"
+realita.warna = "Biru"
+
+ketik("1. Masa Kini (Awal):")
+ketik(realita)
+
+^^ Melakukan Mutasi
+realita.dimensi = "Empat"
+realita.warna = "Merah"
+
+ketik("2. Setelah Mutasi (Dimensi & Warna berubah):")
+ketik(realita)
+
+^^ ==========================================
+^^ UJI OPSI B: TARGETED UNDO (Balikan Titik)
+^^ ==========================================
+ketik("3. Memanggil 'balikan realita.warna'...")
+balikan realita.warna
+
+^^ Hasil yang diharapkan: warna kembali "Biru", tapi dimensi tetap "Empat"
+ketik("Hasil Targeted Undo (Hanya warna yang kembali):")
+ketik(realita)
+
+^^ ==========================================
+^^ UJI OPSI A: DEEP UNDO (Balikan Total)
+^^ ==========================================
+^^ Karena tadi sudah pop 1 kali riwayat (waktu warna berubah), kita balikan lagi
+^^ untuk kembali ke bentuk penciptaan awal (dimensi Tiga).
+ketik("4. Memanggil 'balikan realita' (Balikan Total)...")
+balikan realita
+
+^^ Hasil yang diharapkan: Semua kembali ke Tiga dan Biru
+ketik("Hasil Deep Undo (Semuanya keriset):")
+ketik(realita)
+
+ketik("=== PENGUJIAN SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
