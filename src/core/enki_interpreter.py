@@ -151,30 +151,38 @@ class EnkiInterpreter:
 
         # --- PERBAIKAN: BACA INDEKS ARRAY & OBJEK ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'BACA_ARRAY':
-            nama_var = nilai_mentah['nama']
+            rantai = nilai_mentah['nama'] # Sekarang ini berupa List (contoh: ['pengguna'])
+            nama_root = rantai[0]
             indeks_mentah = self.evaluasi_nilai(nilai_mentah['index'])
             
-            if nama_var in self.memory:
-                data_asli = self.memory[nama_var]['isi']
+            if nama_root in self.memory:
+                data_asli = self.memory[nama_root]['isi']
+                
+                # Menelusuri domain bertingkat jika ada (contoh: bos.karyawan[0])
+                for prop in rantai[1:]:
+                    if isinstance(data_asli, dict) and prop in data_asli:
+                        data_asli = data_asli[prop]
+                    else:
+                        print(f"🚨 KERNEL PANIC! Properti '{prop}' tidak ditemukan pada wujud '{nama_root}'!"); import sys; sys.exit(1)
                 
                 # Jika dia Array [1, 2, 3]
                 if isinstance(data_asli, list):
                     indeks = int(indeks_mentah)
                     if 0 <= indeks < len(data_asli): return str(data_asli[indeks])
                     else:
-                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{nama_var}'!"); import sys; sys.exit(1)
+                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{'.'.join(rantai)}'!"); import sys; sys.exit(1)
                 
                 # Jika dia Objek {"nama": "Unul"}
                 elif isinstance(data_asli, dict):
                     kunci = str(indeks_mentah).strip('"\'')
                     if kunci in data_asli: return str(data_asli[kunci])
                     else:
-                        print(f"🚨 KERNEL PANIC! Kunci '{kunci}' tidak ditemukan di dalam objek '{nama_var}'!"); import sys; sys.exit(1)
+                        print(f"🚨 KERNEL PANIC! Kunci '{kunci}' tidak ditemukan di dalam objek '{'.'.join(rantai)}'!"); import sys; sys.exit(1)
                 
                 else:
-                    print(f"🚨 KERNEL PANIC! Takdir '{nama_var}' bukan array atau objek!"); import sys; sys.exit(1)
+                    print(f"🚨 KERNEL PANIC! Takdir '{'.'.join(rantai)}' bukan array atau objek!"); import sys; sys.exit(1)
             else:
-                print(f"🚨 KERNEL PANIC! Takdir '{nama_var}' tidak ditemukan!"); import sys; sys.exit(1)
+                print(f"🚨 KERNEL PANIC! Takdir '{nama_root}' tidak ditemukan!"); import sys; sys.exit(1)
         # --------------------------------------------
 
         # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
