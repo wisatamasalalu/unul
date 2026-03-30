@@ -94,11 +94,20 @@ class EnkiParser:
             token = self.panggil_token()
             if token and token[0] == 'OPERATOR' and token[1] in ['*', '/', '%']:
                 op = self.makan_token('OPERATOR')[1]
-                kanan = self.parse_pangkat() # Minta kasta pangkat untuk sisi kanan
+                kanan = self.parse_pangkat()
                 kiri = {'tipe': 'OPERASI_MATEMATIKA', 'kiri': kiri, 'operator': op, 'kanan': kanan}
+            
+            # --- KEAJAIBAN BARU: ALIAS PEMBAGIAN (:) ---
+            elif token and token[0] == 'TITIK_DUA':
+                self.makan_token('TITIK_DUA') # Makan simbol ':'
+                kanan = self.parse_pangkat()
+                # Kita tipu Eksekutor dengan mengubahnya menjadi '/' di Pohon Logika
+                kiri = {'tipe': 'OPERASI_MATEMATIKA', 'kiri': kiri, 'operator': '/', 'kanan': kanan}
+            # -------------------------------------------
+            
             else: break
         return kiri
-
+        
     def parse_pangkat(self):
         kiri = self.parse_faktor()
         while self.pos < len(self.tokens):

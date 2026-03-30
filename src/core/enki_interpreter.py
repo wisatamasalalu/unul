@@ -22,6 +22,11 @@ class EnkiInterpreter:
             try:
                 # Cerdas mendeteksi angka bulat atau desimal
                 def jadikan_angka(n):
+                    if isinstance(n, str):
+                        n = n.strip('"\'')
+                        # Keajaiban Python: Deteksi otomatis awalan 0x, 0b, 0o
+                        if n.startswith(('0x', '0X', '0b', '0B', '0o', '0O')):
+                            return int(n, 0) 
                     num = float(n)
                     return int(num) if num.is_integer() else num
                 
@@ -169,6 +174,25 @@ class EnkiInterpreter:
                             return teks_balasan # Biarkan teks jika bukan JSON
                 except Exception as e:
                     return f"🚨 Gagal Setor Data ke Awan: {e}"
+
+            # --- PUSTAKA ANGKA & BASIS MESIN ---
+            elif nama == 'bulatkan':
+                angka = float(args_evaluated[0])
+                # Jika user tidak menyebutkan jumlah digit, default ke 0
+                digit = int(args_evaluated[1]) if len(args_evaluated) > 1 else 0
+                hasil = round(angka, digit)
+                return str(int(hasil)) if hasil.is_integer() else str(hasil)
+            
+            elif nama == 'ke_hex': return hex(int(args_evaluated[0]))
+            elif nama == 'ke_biner': return bin(int(args_evaluated[0]))
+            elif nama == 'ke_oktal': return oct(int(args_evaluated[0]))
+            
+            elif nama == 'ke_ascii': 
+                teks = str(args_evaluated[0]).strip('"\'')
+                return str(ord(teks[0])) if teks else "0"
+            elif nama == 'dari_ascii': 
+                return chr(int(args_evaluated[0]))
+            # -----------------------------------
 
             # --- KEAJAIBAN BARU: FUNGSI EVALUASI (DYNAMIC EVAL) ---
             elif nama == 'evaluasi':

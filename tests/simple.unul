@@ -1,0 +1,21 @@
+ketik("=== MENGUJI PEMBULATAN ===")
+takdir.soft bagi = 100 / 3
+ketik(bulatkan(bagi, 2))  ^^ Harusnya mencetak 33.33
+
+ketik("=== MENGUJI ANGKA MESIN NATIVE ===")
+^^ Mesin akan otomatis menghitung 255 (Hex) + 2 (Biner) + 8 (Oktal)
+takdir.soft rahasia = 0xFF + 0b10 + 0o10 
+ketik("Hasil 0xFF + 0b10 + 0o10 adalah:")
+ketik(rahasia)
+
+ketik("=== MENGUJI KONVERSI ===")
+ketik("Angka 255 dalam Hex adalah:")
+ketik(ke_hex(255))
+
+ketik("Huruf 'A' dalam kode ASCII komputer adalah:")
+ketik(ke_ascii("A"))
+
+ketik("=== SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")    
