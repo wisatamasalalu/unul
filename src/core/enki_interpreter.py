@@ -7,6 +7,43 @@ class EnkiInterpreter:
         self.memory = {}
         self.functions = {}
         self.mode_kompilasi = 'dinamis' # Default (Garbage Collected / .ko)
+    
+    # --- PEMBACA BERKAS RAHASIA (.anu) SEPERTI .env ---
+    # --- KEAJAIBAN BARU: PEMBACA BERKAS RAHASIA (.anu) ---
+    def muat_anu(self, path_file_utama):
+        import os
+        direktori = os.path.dirname(os.path.abspath(path_file_utama))
+        path_anu = os.path.join(direktori, '.anu')
+
+        # Cek apakah kode mewajibkan .anu
+        wajib_anu = any(node.get('tipe') == 'PRAGMA_BUTUH_ANU' for node in self.ast)
+
+        if os.path.exists(path_anu):
+            with open(path_anu, 'r') as f:
+                for baris in f:
+                    baris = baris.strip()
+                    if not baris or baris.startswith('^^'): continue
+                    
+                    if '=' in baris:
+                        kunci, nilai = baris.split('=', 1)
+                        kunci = kunci.strip()
+                        nilai = nilai.strip()
+                        
+                        if (nilai.startswith('"') and nilai.endswith('"')) or (nilai.startswith("'") and nilai.endswith("'")):
+                            nilai = nilai[1:-1]
+                        else:
+                            try:
+                                if '.' in nilai: nilai = float(nilai)
+                                else: nilai = int(nilai)
+                            except ValueError:
+                                pass 
+                                
+                        self.memory[kunci] = {'isi': nilai, 'sifat': 'TETAP', 'riwayat': []}
+        else:
+            if wajib_anu:
+                print(f"🚨 KERNEL PANIC! Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan di folder '{direktori}'!")
+                import sys; sys.exit(1)
+    # -----------------------------------------------------
 
     def evaluasi_nilai(self, nilai_mentah):
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'FUNGSI_DENGAR':
@@ -59,13 +96,26 @@ class EnkiInterpreter:
                     import sys; sys.exit(1)
         # ------------------------------------------------------------------
 
-        # Jika ini adalah variabel (IDENTITAS), ambil isinya dari memori
-        if isinstance(nilai_mentah, str) and nilai_mentah in self.memory:
-            return self.memory[nilai_mentah]['isi']
-        
-        # Jika teks literal, bersihkan kutip
-        if isinstance(nilai_mentah, str) and ((nilai_mentah.startswith('"') and nilai_mentah.endswith('"')) or (nilai_mentah.startswith("'") and nilai_mentah.endswith("'"))):
-            return nilai_mentah[1:-1]
+        # --- PERBAIKAN: DETEKSI VARIABEL TAK DIKENAL (UNDEFINED) ---
+        if isinstance(nilai_mentah, str):
+            # 1. Jika teks literal ("..."), bersihkan kutip
+            if (nilai_mentah.startswith('"') and nilai_mentah.endswith('"')) or (nilai_mentah.startswith("'") and nilai_mentah.endswith("'")):
+                return nilai_mentah[1:-1]
+            # 2. Jika ada di memori (Variabel Sah)
+            elif nilai_mentah in self.memory:
+                return self.memory[nilai_mentah]['isi']
+            # 3. Jika Angka Mesin/Literal, biarkan
+            else:
+                try:
+                    float(nilai_mentah)
+                    return nilai_mentah
+                except ValueError:
+                    if nilai_mentah.startswith(('0x', '0X', '0b', '0B', '0o', '0O')):
+                        return nilai_mentah
+                    # JIKA BUKAN SEMUANYA, MAKA INI ADALAH VARIABEL GAIB!
+                    print(f"🚨 KERNEL PANIC! Takdir/Variabel '{nilai_mentah}' tidak dikenali oleh alam semesta!")
+                    import sys; sys.exit(1)
+        # -------------------------------------------------------------
 
         # TAMBAHAN BARU: STRUKTUR ARRAY
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'STRUKTUR_ARRAY':
@@ -277,7 +327,12 @@ class EnkiInterpreter:
                     import sys; sys.exit(1)
 
             # --- MESIN WAKTU: SIMPAN RIWAYAT JIKA TAKDIR DIUBAH ---
+            # --- PERLINDUNGAN TAKDIR TETAP (HARD / File Environtment Variable .ANU) ---
             if nama in self.memory:
+                if self.memory[nama].get('sifat') == 'TETAP':
+                    print(f"🚨 KERNEL PANIC! Takdir '{nama}' bersifat TETAP (Hard/Rahasia) dan tidak bisa diubah/diretas!")
+                    import sys; sys.exit(1)
+                    
                 if 'riwayat' not in self.memory[nama]: self.memory[nama]['riwayat'] = []
                 self.memory[nama]['riwayat'].append(self.memory[nama]['isi'])
                 self.memory[nama]['isi'] = isi_final
@@ -433,6 +488,7 @@ if __name__ == "__main__":
         pohon_logika = parser.parse()
         print(f"=== EKSEKUSI PROGRAM UNUL: {os.path.basename(file_path)} ===")
         interpreter = EnkiInterpreter(pohon_logika)
+        interpreter.muat_anu(file_path)
         interpreter.jalankan()
         print("====================================")
     except Exception as e:

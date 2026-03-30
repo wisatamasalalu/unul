@@ -1,0 +1,19 @@
+datang
+untuk array.dinamis
+butuh .anu
+
+ketik("=== MENGAKSES MEMORI RAHASIA ===")
+
+^^ Mesin seharusnya membaca dari .anu
+ketik(NAMA_BOS)
+
+jika SERVER_AKTIF == 1 maka
+    ketik("Server hidup. Memasukkan sandi database:")
+    ketik(SANDI_DATABASE)
+putus
+
+ketik("=== MENGUJI PERLINDUNGAN ===")
+^^ Kita coba retas/ubah sandinya!
+takdir.soft SANDI_DATABASE = 000000
+
+pergi

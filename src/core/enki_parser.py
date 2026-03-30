@@ -30,9 +30,11 @@ class EnkiParser:
                 self.ast.append({'tipe': 'DEKLARASI_DATANG'})
             elif token[0] == 'PRAGMA':
                 nilai_pragma = self.makan_token('PRAGMA')[1]
-                # Ekstrak kata 'dinamis' atau 'statis' dari kalimat
-                mode = 'dinamis' if 'dinamis' in nilai_pragma else 'statis'
-                self.ast.append({'tipe': 'PRAGMA_KOMPILASI', 'mode': mode})
+                if 'untuk array' in nilai_pragma:
+                    mode = 'dinamis' if 'dinamis' in nilai_pragma else 'statis'
+                    self.ast.append({'tipe': 'PRAGMA_KOMPILASI', 'mode': mode})
+                elif 'butuh .anu' in nilai_pragma:
+                    self.ast.append({'tipe': 'PRAGMA_BUTUH_ANU'})
             elif token[0] == 'TAKDIR':
                 self.ast.append(self.parse_takdir())
             elif token[0] == 'FUNGSI' and token[1] == 'ketik':
