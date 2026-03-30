@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# Baris sakti di atas (Shebang) memberi tahu Arch Linux untuk mengeksekusi file ini dengan Python
-
 import sys
 import os
+import json
 
-# Menambahkan folder src/core ke radar Python agar bisa membaca mesin Enki
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(os.path.join(BASE_DIR, 'src', 'core'))
 
@@ -12,18 +10,76 @@ from enki_lexer import enki_lexer
 from enki_parser import EnkiParser
 from enki_interpreter import EnkiInterpreter
 
+# File tersembunyi yang bertindak sebagai "RAM/Ingatan Sementara" untuk CLI
+FILE_INGATAN = os.path.join(os.getcwd(), '.ingatan-unul')
+
+def muat_ingatan():
+    if os.path.exists(FILE_INGATAN):
+        with open(FILE_INGATAN, 'r') as f:
+            try: return json.load(f)
+            except: return []
+    return []
+
+def simpan_ingatan(data):
+    with open(FILE_INGATAN, 'w') as f:
+        json.dump(data, f)
+
 def main():
     if len(sys.argv) < 2:
         print("=== UNUL CLI - Galeri Langkah Bahagia ===")
-        print("Cara pakai : unul ayo <nama_file.sabu>")
+        print("Eksekusi : unul ayo <kitab.unul>")
+        print("RAM Add  : unul ingat | rindu <kitab.unul>")
+        print("RAM Del  : unul lupa | lepas <kitab.unul> / semua")
         sys.exit(1)
 
     perintah = sys.argv[1]
 
-    # Eksekusi perintah "ayo"
-    if perintah == "ayo" or perintah == "bangkit" or perintah == "wujud":
+    # ==========================================
+    # KEAJAIBAN BARU: MANAJEMEN RAM (INGAT & LUPA)
+    # ==========================================
+    if perintah in ["ingat", "rindu"]:
         if len(sys.argv) < 3:
-            print(f"🚨 Peringatan: Kamu lupa memasukkan kitab takdir (.sabu / .unul)!")
+            print("🚨 Peringatan: Masukkan kitab yang ingin diingat ke dalam RAM!")
+            sys.exit(1)
+        target = os.path.abspath(sys.argv[2])
+        if not os.path.exists(target):
+            print(f"🚨 Bencana! Kitab '{target}' tidak ditemukan di alam semesta.")
+            sys.exit(1)
+            
+        ingatan = muat_ingatan()
+        if target not in ingatan:
+            ingatan.append(target)
+            simpan_ingatan(ingatan)
+            print(f"🧠 Berhasil! Kitab '{os.path.basename(target)}' telah ditanam ke latar belakang RAM.")
+        else:
+            print(f"💡 Kitab '{os.path.basename(target)}' sudah ada di dalam RAM.")
+        sys.exit(0)
+
+    elif perintah in ["lupa", "lepas"]:
+        if len(sys.argv) < 3:
+            print("🚨 Peringatan: Masukkan kitab yang ingin dilepas, atau ketik 'semua'!")
+            sys.exit(1)
+        target = sys.argv[2]
+        if target == "semua":
+            if os.path.exists(FILE_INGATAN): os.remove(FILE_INGATAN)
+            print("🧹 Seluruh ingatan di RAM telah dibersihkan.")
+        else:
+            target_abs = os.path.abspath(target)
+            ingatan = muat_ingatan()
+            if target_abs in ingatan:
+                ingatan.remove(target_abs)
+                simpan_ingatan(ingatan)
+                print(f"🧹 Kitab '{os.path.basename(target)}' telah dilepas dari RAM.")
+            else:
+                print(f"❓ Kitab '{os.path.basename(target)}' memang tidak ada di dalam RAM.")
+        sys.exit(0)
+
+    # ==========================================
+    # EKSEKUSI UTAMA (AYO / BANGKIT / WUJUD)
+    # ==========================================
+    elif perintah in ["ayo", "bangkit", "wujud"]:
+        if len(sys.argv) < 3:
+            print(f"🚨 Peringatan: Kamu lupa memasukkan kitab takdir!")
             sys.exit(1)
 
         file_path = sys.argv[2]
@@ -31,19 +87,30 @@ def main():
             with open(file_path, "r") as f:
                 kode_user = f.read()
         except FileNotFoundError:
-            print(f"🚨 Bencana! Kitab '{file_path}' tidak ditemukan di alam semesta.")
+            print(f"🚨 Bencana! Kitab '{file_path}' tidak ditemukan.")
             sys.exit(1)
 
-        # Bangkitkan Trinitas Enki
         tokens = enki_lexer(kode_user)
         parser = EnkiParser(tokens)
         try:
             pohon_logika = parser.parse()
+            
+            # --- SUNTIKAN RAM KE DALAM AST ---
+            ingatan = muat_ingatan()
+            # Balik urutannya agar saat di-insert di 0, urutan muatnya tetap benar
+            for path_ingatan in reversed(ingatan):
+                node_sowan_siluman = {'tipe': 'PERINTAH_SOWAN', 'target': f'"{path_ingatan}"'}
+                pohon_logika.insert(0, node_sowan_siluman)
+            # ---------------------------------
+            
             interpreter = EnkiInterpreter(pohon_logika)
-            import os
+            
+            # --- Wajibkan CLI memuat file .anu ---
             path_absolut = os.path.abspath(file_path)
             interpreter.muat_anu(path_absolut)
+            
             interpreter.jalankan()
+            
         except Exception as e:
             print(f"\n🔥 GAGAL EKSEKUSI: {e}")
             sys.exit(1)

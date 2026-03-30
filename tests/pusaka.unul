@@ -1,0 +1,3 @@
+ciptakan fungsi salam_ram() maka
+    ketik("Halo dari dalam RAM! Saya dipanggil tanpa perintah sowan!")
+putus
