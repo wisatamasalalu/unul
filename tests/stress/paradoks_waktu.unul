@@ -1,0 +1,64 @@
+datang
+untuk array.dinamis
+
+^^ ========================================================
+^^ UJI PARADOKS MESIN WAKTU (STATE & SCOPE)
+^^ ========================================================
+
+ketik("=== MEMULAI UJI PARADOKS MESIN WAKTU ===")
+
+^^ Takdir awal
+takdir.soft entitas_waktu = 0
+ketik("Waktu Awal:")
+ketik(entitas_waktu)
+
+^^ 1. Membangun Paradoks di dalam Siklus
+effort 3 kali maka
+    ketik("--- SIKLUS BARU ---")
+    
+    ^^ Mutasi Maju Beruntun
+    entitas_waktu = entitas_waktu + 10
+    ketik("Mutasi 1 (+10):")
+    ketik(entitas_waktu)
+    
+    entitas_waktu = entitas_waktu + 5
+    ketik("Mutasi 2 (+5):")
+    ketik(entitas_waktu)
+    
+    ^^ Memutar balik waktu (Undo)
+    balikan entitas_waktu
+    ketik("Balikan 1x (Membatalkan +5):")
+    ketik(entitas_waktu)
+    
+    balikan entitas_waktu
+    ketik("Balikan 2x (Membatalkan +10):")
+    ketik(entitas_waktu)
+    
+    ^^ 2. Stress Test: SIKSAAN UNDERFLOW
+    ^^ Sengaja melakukan balikan ekstra melewati batas riwayat
+    ^^ untuk menguji apakah interpreter akan memuntahkan Peringatan 
+    ^^ atau malah Kernel Panic!
+    balikan entitas_waktu
+    ketik("Balikan Paksa (Melampaui batas realita):")
+    ketik(entitas_waktu)
+putus
+
+^^ 3. Uji Mutasi Objek Bertingkat (Domain) dengan Balikan
+ketik("--- MENGUJI BALIKAN PADA DOMAIN BERTINGKAT ---")
+takdir.soft realita = {}
+realita.dimensi.nama = "Dimensi Tiga"
+ketik("Realita Awal:")
+ketik(realita.dimensi.nama)
+
+^^ Modifikasi Domain
+realita.dimensi.nama = "Dimensi Empat"
+ketik("Realita Dimodifikasi:")
+ketik(realita.dimensi.nama)
+
+^^ Memutar waktu pada wujud bersarang (Seharusnya ERROR/Tidak bisa di-undo karena logika balikanmu saat ini belum support domain bertingkat dengan titik)
+balikan realita
+ketik("Mencoba balikan domain 'realita':")
+ketik(realita)
+
+ketik("=== UJI PARADOKS SELESAI ===")
+pergi

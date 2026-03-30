@@ -1,0 +1,46 @@
+datang
+untuk array.dinamis
+
+^^ ========================================================
+^^ UJI KEKACAUAN MATEMATIKA (MATH MADNESS)
+^^ ========================================================
+
+^^ Penciptaan Fungsi Bantuan
+ciptakan fungsi hitung_pajak(persen) maka
+    pulang persen / 100.0
+putus
+
+ciptakan fungsi acak(min, max) maka
+    ^^ Mockup fungsi acak, mengembalikan nilai desimal untuk tes
+    pulang 4.45
+putus
+
+ketik("=== MEMULAI UJI KEKACAUAN MATEMATIKA ===")
+
+^^ Persiapan Variabel dan Array
+takdir.soft data_angka = [10, 25.5, 100]
+
+^^ Uji Coba Objek/Kamus (Dictionary)
+^^ Jika UNUL belum mendukung deklarasi objek murni, kita paksa Parser membaca
+^^ titik (.) sebagai akses properti untuk melihat apakah Lexer akan crash.
+takdir.soft bos.gaji = 50000.50
+
+ketik("Menguji pembedahan ekspresi AST (Abstract Syntax Tree)...")
+
+^^ --------------------------------------------------------
+^^ BARIS EKSTREM (STRESS TEST PARSER)
+^^ --------------------------------------------------------
+takdir.soft hasil_kacau = (data_angka[1] * bos.gaji) / hitung_pajak(10) + acak(1, 5)
+
+ketik("Hasil perhitungan ekstrem:")
+ketik(hasil_kacau)
+
+jika hasil_kacau > 0 maka
+    ketik("STATUS: Parser berhasil membedah ekspresi kompleks tanpa tersedak!")
+lain
+    ketik("STATUS: Operasi gagal atau menghasilkan nilai tak terduga.")
+putus
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

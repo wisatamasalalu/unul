@@ -80,9 +80,17 @@ class EnkiInterpreter:
                 if op == '+': hasil_math = kiri_num + kanan_num
                 elif op == '-': hasil_math = kiri_num - kanan_num
                 elif op == '*': hasil_math = kiri_num * kanan_num
-                elif op == '/': hasil_math = kiri_num / kanan_num # Pembagian kini bisa menghasilkan desimal!
-                elif op == '%': hasil_math = kiri_num % kanan_num  
-                elif op == '^': hasil_math = kiri_num ** kanan_num 
+                elif op == '/': 
+                    if kanan_num == 0:
+                        print("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
+                        import sys; sys.exit(1)
+                    hasil_math = kiri_num / kanan_num 
+                elif op == '%': 
+                    if kanan_num == 0:
+                        print("🚨 KERNEL PANIC! Kehancuran Dimensi: Operasi sisa bagi (modulo) dengan nol (0) dilarang!")
+                        import sys; sys.exit(1)
+                    hasil_math = kiri_num % kanan_num  
+                elif op == '^': hasil_math = kiri_num ** kanan_num
                 
                 # Kembalikan sebagai teks, buang .0 jika ternyata hasilnya bulat
                 return str(int(hasil_math)) if isinstance(hasil_math, float) and hasil_math.is_integer() else str(hasil_math)
@@ -558,7 +566,7 @@ class EnkiInterpreter:
                         berhenti = True
                         break
                 if berhenti: break
-                
+
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:

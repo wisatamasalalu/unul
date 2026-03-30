@@ -1,0 +1,43 @@
+datang
+untuk array.dinamis
+
+^^ ========================================================
+^^ UJI PELANGGARAN TABU (KERNEL PANIC TEST)
+^^ ========================================================
+
+^^ ketik("=== MEMULAI UJI PELANGGARAN TABU ===")
+
+^^ 1. PELANGGARAN MATEMATIKA (DIBAGI NOL)
+^^ ketik("--- 1. Menguji Kehancuran Dimensi (Div By Zero) ---")
+^^ takdir.soft bilangan = 50
+^^ ketik("Mencoba membagi 50 dengan 0...")
+
+^^ Harusnya memicu peringatan UNUL, bukan Python ZeroDivisionError
+^^ takdir.soft hasil_kiamat = bilangan / 0
+^^ ketik("Hasil Kiamat:")
+^^ ketik(hasil_kiamat)
+
+^^ 2. PELANGGARAN ARRAY (OUT OF BOUNDS)
+^^ ketik("--- 2. Menguji Jurang Array ---")
+^^ takdir.soft memori_fana = [10, 20]
+^^ ketik("Mencoba mengakses memori_fana indeks ke-999...")
+
+^^ Harusnya memicu peringatan UNUL, bukan Python IndexError
+^^ takdir.soft nilai_gaib = memori_fana[999]
+^^ ketik("Nilai Gaib:")
+^^ ketik(nilai_gaib)
+
+^^ 3. PELANGGARAN TAKDIR MUTLAK (UBAH KONSTANTA)
+ketik("--- 3. Menguji Pemberontakan Takdir ---")
+takdir.hard HUKUM_ALAM = 100
+ketik("Mencoba mengubah takdir.hard HUKUM_ALAM menjadi 999...")
+
+^^ Harusnya memicu peringatan karena takdir.hard bersifat abadi
+HUKUM_ALAM = 999
+ketik("Hukum Alam Sekarang:")
+ketik(HUKUM_ALAM)
+
+ketik("=== UJI PELANGGARAN TABU SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
