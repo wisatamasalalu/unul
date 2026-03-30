@@ -40,6 +40,9 @@ def main():
         try:
             pohon_logika = parser.parse()
             interpreter = EnkiInterpreter(pohon_logika)
+            import os
+            path_absolut = os.path.abspath(file_path)
+            interpreter.muat_anu(path_absolut)
             interpreter.jalankan()
         except Exception as e:
             print(f"\n🔥 GAGAL EKSEKUSI: {e}")
