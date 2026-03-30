@@ -1,0 +1,48 @@
+^^ Inisialisasi Kode UNUL v0.2.1
+datang
+untuk array.dinamis
+butuh .anu
+
+^^ 1. Mengambil 'Takdir' dari konfigurasi rahasia
+takdir.hard NAMA_SISTEM = NAMA_BOS
+takdir.hard KUNCI_KEAMANAN = SANDI_DATABASE
+
+ketik("=== Memulai Protokol " + NAMA_SISTEM + " ===")
+
+^^ 2. Penciptaan Fungsi Validasi (Hukum Karma)
+ciptakan fungsi validasi_akses(sandi) maka
+    jika sandi == 777999 maka
+        ketik("Akses Diterima. Membuka gerbang DUFS...")
+        pulang "SAH"
+    lain
+        ketik("Akses Ditolak! Melaporkan ke Enki_Studio...")
+        pulang "HARAM"
+    putus
+putus
+
+^^ 3. Menjalankan Pengecekan
+takdir.soft status_akses = validasi_akses(KUNCI_KEAMANAN)
+
+jika status_akses == "SAH" maka
+    ^^ 4. Hukum Siklus: Simulasi Pemindaian 3 Sektor Memori
+    takdir.soft sektor = 1
+    
+    ketik("Memulai Pemindaian Sektor...")
+    
+    effort 3 kali maka
+        ketik("Memindai Sektor ke-" + sektor)
+        
+        jika sektor == 2 maka
+            ketik("> Peringatan: Ada anomali di Sektor 2!")
+        putus
+        
+        sektor = sektor + 1
+    putus
+    
+    ketik("Pemindaian Selesai. Sistem Stabil.")
+lain
+    ketik("Sistem Terkunci. Sowan kepada Admin segera.")
+putus
+
+^^ Menutup koneksi
+ketik("Log keluar dari " + NAMA_SISTEM)

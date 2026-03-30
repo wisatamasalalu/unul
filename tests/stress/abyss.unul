@@ -1,0 +1,61 @@
+datang
+untuk array.dinamis
+
+^^ ========================================================
+^^ UJI KEDALAMAN ABYSS (STRESS TEST DEEP NESTING)
+^^ ========================================================
+
+^^ Penciptaan Fungsi (Level 0)
+ciptakan fungsi analisis_inti(kedalaman) maka
+    jika kedalaman > 5 maka
+        pulang "Abyss Terlalu Gelap!"
+    lain
+        pulang "Masih dalam batas wajar."
+    putus
+putus
+
+ketik("=== MEMULAI PENYELAMAN ===")
+takdir.soft status_sistem = "stabil"
+takdir.soft tekanan = 0
+
+^^ LEVEL 1: Siklus Utama
+effort 2 kali maka
+    ketik("Menyelam ke zona senja...")
+    
+    ^^ LEVEL 2: Hukum Karma (Pengecekan Status)
+    jika status_sistem == "stabil" maka
+        ketik("Status stabil, melanjutkan ke zona tengah.")
+        
+        ^^ LEVEL 3: Siklus Dalam
+        effort 3 kali maka
+            
+            ^^ LEVEL 4: Hukum Karma (Pengecekan Tekanan)
+            jika tekanan < 10 maka
+                tekanan = tekanan + 1
+                ketik("Tekanan saat ini: " + tekanan)
+                
+                ^^ LEVEL 5: Pemanggilan Fungsi di kedalaman
+                takdir.soft laporan = analisis_inti(tekanan)
+                
+                ^^ LEVEL 6: Hukum Karma Terdalam
+                jika laporan == "Masih dalam batas wajar." maka
+                    ketik("Pesan dari inti: " + laporan)
+                lain
+                    ketik("PERINGATAN KRITIS: " + laporan)
+                    henti ^^ Mendobrak siklus terdalam!
+                putus ^^ Putus Level 6
+                
+            putus ^^ Putus Level 4
+            
+        putus ^^ Putus Level 3
+        
+    putus ^^ Putus Level 2
+    
+putus ^^ Putus Level 1
+
+ketik("=== PENYELAMAN SELESAI ===")
+ketik("Tekanan akhir:")
+ketik(tekanan)
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

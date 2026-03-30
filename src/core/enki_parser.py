@@ -232,11 +232,10 @@ class EnkiParser:
             self.makan_token('LOGIKA')
             pembalik1 = True
 
-        # --- Syarat Pertama ---
-        kiri = self.makan_token('IDENTITAS')[1]
+        # --- Syarat Pertama (DIUBAH: Menggunakan parse_ekspresi agar support TITIK) ---
+        kiri = self.parse_ekspresi() 
         pembanding = self.makan_token('PEMBANDING')[1]
-        token_kanan = self.panggil_token()
-        kanan = self.makan_token(token_kanan[0])[1]
+        kanan = self.parse_ekspresi()
         
         # --- Cek Gerbang Logika (Syarat Kedua) ---
         logika = None
@@ -249,24 +248,23 @@ class EnkiParser:
         if token_cek and token_cek[0] == 'LOGIKA' and token_cek[1] in ['dan', 'atau', '&&', '||']:
             logika = self.makan_token('LOGIKA')[1] # Makan 'dan' / 'atau'
             
-            # --- KEAJAIBAN BARU: Cek Pembalik (NOT) Syarat 2 ---
             if self.panggil_token() and self.panggil_token()[0] == 'LOGIKA' and self.panggil_token()[1] in ['bukan', '!']:
                 self.makan_token('LOGIKA')
                 pembalik2 = True
                 
-            kiri2 = self.makan_token('IDENTITAS')[1]
+            # --- Syarat Kedua (DIUBAH JUGA) ---
+            kiri2 = self.parse_ekspresi()
             pembanding2 = self.makan_token('PEMBANDING')[1]
-            t_kanan2 = self.panggil_token()
-            kanan2 = self.makan_token(t_kanan2[0])[1]
+            kanan2 = self.parse_ekspresi()
+
         self.makan_token('KARMA') # makan 'maka'
         
         aksi = []
-        aksi_lain = [] # Siapkan wadah untuk takdir alternatif
+        aksi_lain = []
         
         # 1. Baca blok utama (maka)
         while self.pos < len(self.tokens):
             token_cek = self.panggil_token()
-            # Berhenti jika ketemu 'putus' ATAU 'lain'
             if token_cek and token_cek[0] == 'KARMA' and token_cek[1] in ['putus', 'lain']:
                 break 
 
@@ -276,12 +274,11 @@ class EnkiParser:
             elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
-            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
             else: self.pos += 1
                 
         token_penutup = self.makan_token('KARMA') # Makan 'putus' atau 'lain'
         
-        # 2. Jika penutupnya adalah 'lain', baca blok alternatifnya
         if token_penutup[1] == 'lain':
             while self.pos < len(self.tokens):
                 token_cek = self.panggil_token()
@@ -296,15 +293,13 @@ class EnkiParser:
                 elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi_lain.append(self.parse_siklus())
                 elif token_cek[0] == 'IDENTITAS': aksi_lain.append(self.parse_panggilan_fungsi())
                 else: self.pos += 1
-            
-            self.makan_token('KARMA') # Makan kata 'putus' yang sesungguhnya
+            self.makan_token('KARMA')
 
         return {
             'tipe': 'HUKUM_KARMA', 
             'pembalik1': pembalik1, 'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan,
             'logika': logika, 'pembalik2': pembalik2, 'kiri2': kiri2, 'pembanding2': pembanding2, 'kanan2': kanan2,
-            'aksi': aksi,
-            'aksi_lain': aksi_lain
+            'aksi': aksi, 'aksi_lain': aksi_lain
         }
 
     def parse_siklus(self):
@@ -331,7 +326,7 @@ class EnkiParser:
             elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
-            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
             else: self.pos += 1
                 
         self.makan_token('KARMA') # Makan kata 'putus'
@@ -376,7 +371,7 @@ class EnkiParser:
             elif token_cek[0] == 'KONTROL': aksi.append(self.parse_kontrol())
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
-            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_panggilan_fungsi())
+            elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
             else: self.pos += 1 
                 
         self.makan_token('KARMA') # makan 'putus'

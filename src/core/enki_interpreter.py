@@ -531,14 +531,18 @@ class EnkiInterpreter:
 
             # 3. Eksekusi sesuai hasil timbangan
             if sah_final:
-                # Jika syarat terpenuhi, jalankan blok 'maka'
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
+                    # 🔥 TERUSKAN SINYAL PULANG KE ATAS
+                    if isinstance(hasil, dict) and hasil.get('aksi') == 'PULANG':
+                        return hasil
                     if hasil == "HENTI": return "HENTI"
             elif len(node.get('aksi_lain', [])) > 0:
-                # Jika syarat GAGAL dan ada blok 'lain', jalankan alternatifnya!
                 for aksi_node in node['aksi_lain']:
                     hasil = self.eksekusi_node(aksi_node)
+                    # 🔥 TERUSKAN SINYAL PULANG KE ATAS JUGA
+                    if isinstance(hasil, dict) and hasil.get('aksi') == 'PULANG':
+                        return hasil
                     if hasil == "HENTI": return "HENTI"
 
         elif node['tipe'] == 'HUKUM_SIKLUS':
@@ -547,11 +551,14 @@ class EnkiInterpreter:
                 berhenti = False
                 for aksi_node in node['aksi']:
                     hasil = self.eksekusi_node(aksi_node)
+                    # 🔥 TERUSKAN SINYAL PULANG DARI DALAM LOOP
+                    if isinstance(hasil, dict) and hasil.get('aksi') == 'PULANG':
+                        return hasil
                     if hasil == "HENTI":
-                        berhenti = True # Sinyal diterima, siklus didobrak!
+                        berhenti = True
                         break
                 if berhenti: break
-
+                
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:
