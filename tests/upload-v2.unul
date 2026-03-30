@@ -1,0 +1,26 @@
+ketik("=== MENGUJI OBJEK & API INTERNET ===")
+
+^^ 1. Kita buat Objek UNUL murni terlebih dahulu!
+takdir.soft profil = {
+    "nama": "Developer Kece",
+    "sistem": "LinuxDNC",
+    "versi": 1
+}
+
+ketik("Membaca nama dari objek lokal:")
+ketik(profil["nama"])
+
+^^ 2. Menguji dari Internet
+takdir.soft alamat_post = "https://httpbin.org/post"
+takdir.soft data_user = ["Gue", "Arsitek LinuxDNC"]
+
+ketik("Mengirim data ke awan dan mengambil IP Address kita...")
+takdir.soft hasil_post = setor(alamat_post, data_user)
+
+^^ KEAJAIBAN TERJADI DI SINI! Kita membedah JSON dari internet!
+takdir.soft ip_address = hasil_post["origin"]
+
+ketik("IP Address Kamu Adalah:")
+ketik(ip_address)
+
+ketik("=== SELESAI ===")

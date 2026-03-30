@@ -76,8 +76,39 @@ class EnkiParser:
     def parse_ekspresi(self):
         token_kiri = self.panggil_token()
         
+        # --- KEAJAIBAN BARU: CEK APAKAH INI OBJEK / WUJUD ({}) ---
+        if token_kiri and token_kiri[0] == 'KURUNG_K_B':
+            self.makan_token('KURUNG_K_B')
+            elemen_objek = {}
+            
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] != 'KURUNG_K_T':
+                while True:
+                    # Kunci objek bisa berupa Teks atau Identitas
+                    token_key = self.panggil_token()
+                    if token_key[0] in ['TEKS', 'IDENTITAS']:
+                        kunci = self.makan_token(token_key[0])[1].strip('"\'')
+                    else:
+                        raise SyntaxError("Hukum Enlil: Kunci objek harus berupa Teks!")
+                        
+                    self.makan_token('TITIK_DUA') # Makan simbol ':'
+                    nilai = self.parse_ekspresi()
+                    elemen_objek[kunci] = nilai
+                    
+                    token_koma = self.panggil_token()
+                    if token_koma and token_koma[0] == 'KOMA':
+                        self.makan_token('KOMA')
+                    else:
+                        break
+                        
+            self.makan_token('KURUNG_K_T')
+            kiri = {
+                'tipe': 'STRUKTUR_OBJEK',
+                'isi': elemen_objek
+            }
+
         # --- CEK APAKAH INI ARRAY (KOTAK DATA) ---
-        if token_kiri and token_kiri[0] == 'KURUNG_S_B':
+        elif token_kiri and token_kiri[0] == 'KURUNG_S_B':
             self.makan_token('KURUNG_S_B')
             elemen_array = []
             
@@ -345,7 +376,7 @@ class EnkiParser:
         elif jenis == 'balikan':
             target = self.makan_token('IDENTITAS')[1] # Baca variabel yang mau di-undo
             return {'tipe': 'PERINTAH_BALIKAN', 'target': target}
-            
+
 # --- BLOK PENGUJIAN PARSER ---
 if __name__ == "__main__":
     file_path = os.path.join(os.path.dirname(__file__), '../../tests/aplikasi.unul')

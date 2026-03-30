@@ -42,26 +42,40 @@ class EnkiInterpreter:
                 hasil_array.append(self.evaluasi_nilai(elemen))
             return hasil_array
         
-        # --- TAMBAHAN BARU: BACA INDEKS ARRAY SPESIFIK ---
+        # TAMBAHAN BARU: STRUKTUR OBJEK
+        if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'STRUKTUR_OBJEK':
+            hasil_objek = {}
+            for kunci, nilai in nilai_mentah['isi'].items():
+                hasil_objek[kunci] = self.evaluasi_nilai(nilai)
+            return hasil_objek
+
+        # --- PERBAIKAN: BACA INDEKS ARRAY & OBJEK ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'BACA_ARRAY':
-            nama_array = nilai_mentah['nama']
-            indeks = int(self.evaluasi_nilai(nilai_mentah['index']))
+            nama_var = nilai_mentah['nama']
+            indeks_mentah = self.evaluasi_nilai(nilai_mentah['index'])
             
-            if nama_array in self.memory:
-                array_asli = self.memory[nama_array]['isi']
-                if isinstance(array_asli, list):
-                    if 0 <= indeks < len(array_asli):
-                        return str(array_asli[indeks])
+            if nama_var in self.memory:
+                data_asli = self.memory[nama_var]['isi']
+                
+                # Jika dia Array [1, 2, 3]
+                if isinstance(data_asli, list):
+                    indeks = int(indeks_mentah)
+                    if 0 <= indeks < len(data_asli): return str(data_asli[indeks])
                     else:
-                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{nama_array}'!")
-                        import sys; sys.exit(1)
+                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{nama_var}'!"); import sys; sys.exit(1)
+                
+                # Jika dia Objek {"nama": "Unul"}
+                elif isinstance(data_asli, dict):
+                    kunci = str(indeks_mentah).strip('"\'')
+                    if kunci in data_asli: return str(data_asli[kunci])
+                    else:
+                        print(f"🚨 KERNEL PANIC! Kunci '{kunci}' tidak ditemukan di dalam objek '{nama_var}'!"); import sys; sys.exit(1)
+                
                 else:
-                    print(f"🚨 KERNEL PANIC! Takdir '{nama_array}' bukan sebuah array!")
-                    import sys; sys.exit(1)
+                    print(f"🚨 KERNEL PANIC! Takdir '{nama_var}' bukan array atau objek!"); import sys; sys.exit(1)
             else:
-                print(f"🚨 KERNEL PANIC! Takdir '{nama_array}' tidak ditemukan!")
-                import sys; sys.exit(1)
-        # -------------------------------------------------
+                print(f"🚨 KERNEL PANIC! Takdir '{nama_var}' tidak ditemukan!"); import sys; sys.exit(1)
+        # --------------------------------------------
 
         # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'PANGGILAN_FUNGSI':
@@ -98,7 +112,12 @@ class EnkiInterpreter:
                     # Menggunakan urllib bawaan agar tidak perlu install library eksternal
                     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'})
                     with urllib.request.urlopen(req) as respon:
-                        return respon.read().decode('utf-8')
+                        teks_balasan = respon.read().decode('utf-8')
+                        try:
+                            import json
+                            return json.loads(teks_balasan) # Otomatis disulap jadi Objek UNUL!
+                        except json.JSONDecodeError:
+                            return teks_balasan # Biarkan teks jika bukan JSON
                 except Exception as e:
                     return f"🚨 Gagal Ambil Data dari Awan: {e}"
 
@@ -122,7 +141,12 @@ class EnkiInterpreter:
                     req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
                     
                     with urllib.request.urlopen(req) as respon:
-                        return respon.read().decode('utf-8')
+                        teks_balasan = respon.read().decode('utf-8')
+                        try:
+                            import json
+                            return json.loads(teks_balasan) # Otomatis disulap jadi Objek UNUL!
+                        except json.JSONDecodeError:
+                            return teks_balasan # Biarkan teks jika bukan JSON
                 except Exception as e:
                     return f"🚨 Gagal Setor Data ke Awan: {e}"
 
