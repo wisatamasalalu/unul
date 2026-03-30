@@ -3,28 +3,42 @@ import os
 
 def enki_lexer(source_code):
     # Definisi Hukum Takdir & Perintah (Token)
+    # Definisi Hukum Takdir & Perintah (Token)
     token_specification = [
         ('KOMENTAR',  r'\^\^.*'),              # Simbol ^^ untuk komentar
         ('TAKDIR',    r'takdir\.(hard|soft)'), # Mengenali takdir.hard atau takdir.soft
-        ('FUNGSI',    r'\b(ketik|dengar|tunggu|jeda)\b'),               # Perintah ketik (lowercase)
-        ('TEKS',      r"('[^']*'|\"[^\"]*\")"), # Mengenali kutip ' atau "
-        ('KARMA',     r'\b(jika|maka|putus)\b'), # Kata kunci takdir
-        ('SIKLUS',    r'\b(effort|kali)\b'), # Program pengulangan
-        ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), # Ciptakan fungsi baru
+        ('FUNGSI',    r'\b(ketik|dengar|tunggu|jeda)\b'),               
+        ('TEKS',      r"('[^']*'|\"[^\"]*\")"), 
+        ('KARMA',     r'\b(jika|maka|putus)\b'), 
+        ('SIKLUS',    r'\b(effort|kali)\b'), 
+        ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), 
         ('KONTROL',   r'\b(henti|pergi|pulang|balikan)\b'),
-        ('SOWAN',     r'\bsowan\b'), # Untuk memecah ribuan baris kode di satu file
-        ('PEMBANDING',r'==|!=|>=|<=|>|<'),         # Timbangan keadilan
-        ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), # Nama variabel (namaku, umur)
-        ('OPERATOR',  r'[+\-*/]'),             # Operator aritmatika
-        ('ASSIGN',    r'='),                   # Sama dengan
+        ('SOWAN',     r'\bsowan\b'), 
+        ('PEMBANDING',r'==|!=|>=|<=|>|<'),         
+        
+        # --- KEAJAIBAN BARU (OMNI-SYMBOLS) ---
+        ('LOGIKA',    r'\b(dan|atau|bukan)\b|&&|\|\||!'), # Gerbang Logika (AND/OR/NOT)
+        ('IDENTITAS', r'[a-zA-Z_][a-zA-Z0-9_]*'), 
+        ('TITIK_DUA', r':'),                   # Simbol Titik Dua (Krusial untuk Objek/Dictionary JSON)
+        ('TITIK',     r'\.'),                  # Simbol Titik (Krusial untuk akses properti, misal: bos.nama)
+        ('OPERATOR',  r'[+\-*/%^]'),           # Ditambah Modulo (%) sisa bagi, dan Pangkat (^)
+        # -------------------------------------
+
+        ('ASSIGN',    r'='),                   
         ('KURUNG_B',  r'\('),
         ('KURUNG_T',  r'\)'),
-        ('KURUNG_S_B',r'\['),                  # Kurung Siku Buka
-        ('KURUNG_S_T',r'\]'),                  # Kurung Siku Tutup
+        ('KURUNG_S_B',r'\['),                  
+        ('KURUNG_S_T',r'\]'),
+        
+        # --- KEAJAIBAN BARU (OBJEK/DICTIONARY) ---
+        ('KURUNG_K_B',r'\{'),                  # Kurung Kurawal Buka (Untuk Wujud/Objek)
+        ('KURUNG_K_T',r'\}'),                  # Kurung Kurawal Tutup
+        # -----------------------------------------
+
         ('KOMA',      r','),
-        ('ANGKA',     r'\d+'),                 # Angka
-        ('SPASI',     r'[ \t\n]+'),            # Abaikan spasi
-        ('MISMATCH',  r'.'),                   # Ilegal
+        ('ANGKA',     r'\d+'),                 
+        ('SPASI',     r'[ \t\n]+'),            
+        ('MISMATCH',  r'.'),                   
     ]
     
     tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specification)
