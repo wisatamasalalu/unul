@@ -1,0 +1,10 @@
+ketik("Masukkan perhitungan yang kamu inginkan:")
+takdir.soft input_pengguna = dengar()
+takdir.soft hasil = evaluasi(input_pengguna)
+ketik("Hasilnya adalah:")
+ketik(hasil)
+
+ketik("=== SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")    

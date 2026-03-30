@@ -1,0 +1,33 @@
+^^ Kalkulator sederhana by UNUL
+ketik("Ini adalah alat hitung")
+ketik("Masukkan angka yang mau dihitung dan berikan tanda + : / * -")
+
+takdir.soft angka1 = dengar()
+takdir.soft operator = dengar()
+takdir.soft angka2 = dengar()
+
+ketik(angka1)
+ketik(operator)
+ketik(angka2)   
+ketik("Hasilnya adalah:")
+
+jika operator == "+" maka
+    ketik(angka1 + angka2)
+putus
+
+jika operator == "-" maka
+    ketik(angka1 - angka2)
+putus
+
+jika operator == "*" maka
+    ketik(angka1 * angka2)
+putus
+
+jika operator == "/" maka
+    ketik(angka1 / angka2)
+putus
+
+ketik("=== SELESAI ===")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")    

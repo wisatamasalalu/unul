@@ -163,6 +163,27 @@ class EnkiInterpreter:
                 except Exception as e:
                     return f"🚨 Gagal Setor Data ke Awan: {e}"
 
+            # --- KEAJAIBAN BARU: FUNGSI EVALUASI (DYNAMIC EVAL) ---
+            elif nama == 'evaluasi':
+                teks_ekspresi = str(args_evaluated[0]).strip('"\'')
+                
+                # Kita panggil ulang Trinitas Enki khusus untuk teks ini
+                from enki_lexer import enki_lexer
+                from enki_parser import EnkiParser
+                
+                try:
+                    # 1. Pecah teks menjadi token
+                    sub_tokens = enki_lexer(teks_ekspresi)
+                    # 2. Minta Parser membedah teks tersebut sebagai "Ekspresi"
+                    sub_parser = EnkiParser(sub_tokens)
+                    sub_ast_node = sub_parser.parse_ekspresi()
+                    
+                    # 3. Jalankan hasilnya menggunakan Interpreter yang sedang berjalan
+                    return self.evaluasi_nilai(sub_ast_node)
+                except Exception as e:
+                    return f"🚨 Gagal Evaluasi: {e}"
+            # ------------------------------------------------------
+
             # Jika tidak ada di mana-mana
             else:
                 print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak dikenal oleh alam semesta!")

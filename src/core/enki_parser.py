@@ -73,162 +73,107 @@ class EnkiParser:
             'isi': nilai
         }
 
+    # --- PINTU MASUK EKSPRESI (KASTA TERENDAH: PENJUMLAHAN) ---
     def parse_ekspresi(self):
+        return self.parse_penjumlahan()
+
+    def parse_penjumlahan(self):
+        kiri = self.parse_perkalian()
+        while self.pos < len(self.tokens):
+            token = self.panggil_token()
+            if token and token[0] == 'OPERATOR' and token[1] in ['+', '-']:
+                op = self.makan_token('OPERATOR')[1]
+                kanan = self.parse_perkalian() # Minta kasta perkalian untuk sisi kanan
+                kiri = {'tipe': 'OPERASI_MATEMATIKA', 'kiri': kiri, 'operator': op, 'kanan': kanan}
+            else: break
+        return kiri
+
+    def parse_perkalian(self):
+        kiri = self.parse_pangkat()
+        while self.pos < len(self.tokens):
+            token = self.panggil_token()
+            if token and token[0] == 'OPERATOR' and token[1] in ['*', '/', '%']:
+                op = self.makan_token('OPERATOR')[1]
+                kanan = self.parse_pangkat() # Minta kasta pangkat untuk sisi kanan
+                kiri = {'tipe': 'OPERASI_MATEMATIKA', 'kiri': kiri, 'operator': op, 'kanan': kanan}
+            else: break
+        return kiri
+
+    def parse_pangkat(self):
+        kiri = self.parse_faktor()
+        while self.pos < len(self.tokens):
+            token = self.panggil_token()
+            if token and token[0] == 'OPERATOR' and token[1] == '^':
+                op = self.makan_token('OPERATOR')[1]
+                kanan = self.parse_faktor() # Pangkat adalah kasta tertinggi sebelum nilai tunggal
+                kiri = {'tipe': 'OPERASI_MATEMATIKA', 'kiri': kiri, 'operator': op, 'kanan': kanan}
+            else: break
+        return kiri
+
+    # --- PONDASI: MEMBACA NILAI TUNGGAL (FAKTOR) ---
+    def parse_faktor(self):
         token_kiri = self.panggil_token()
         
-        # --- KEAJAIBAN BARU: CEK APAKAH INI OBJEK / WUJUD ({}) ---
+        # 1. Cek Objek / Wujud ({})
         if token_kiri and token_kiri[0] == 'KURUNG_K_B':
             self.makan_token('KURUNG_K_B')
             elemen_objek = {}
-            
-            token_cek = self.panggil_token()
-            if token_cek and token_cek[0] != 'KURUNG_K_T':
+            if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_K_T':
                 while True:
-                    # Kunci objek bisa berupa Teks atau Identitas
                     token_key = self.panggil_token()
-                    if token_key[0] in ['TEKS', 'IDENTITAS']:
-                        kunci = self.makan_token(token_key[0])[1].strip('"\'')
-                    else:
-                        raise SyntaxError("Hukum Enlil: Kunci objek harus berupa Teks!")
-                        
-                    self.makan_token('TITIK_DUA') # Makan simbol ':'
-                    nilai = self.parse_ekspresi()
-                    elemen_objek[kunci] = nilai
-                    
-                    token_koma = self.panggil_token()
-                    if token_koma and token_koma[0] == 'KOMA':
-                        self.makan_token('KOMA')
-                    else:
-                        break
-                        
+                    kunci = self.makan_token(token_key[0])[1].strip('"\'')
+                    self.makan_token('TITIK_DUA')
+                    elemen_objek[kunci] = self.parse_ekspresi()
+                    if self.panggil_token() and self.panggil_token()[0] == 'KOMA': self.makan_token('KOMA')
+                    else: break
             self.makan_token('KURUNG_K_T')
-            kiri = {
-                'tipe': 'STRUKTUR_OBJEK',
-                'isi': elemen_objek
-            }
+            return {'tipe': 'STRUKTUR_OBJEK', 'isi': elemen_objek}
 
-        # --- CEK APAKAH INI ARRAY (KOTAK DATA) ---
+        # 2. Cek Array ([])
         elif token_kiri and token_kiri[0] == 'KURUNG_S_B':
             self.makan_token('KURUNG_S_B')
             elemen_array = []
-            
-            token_cek = self.panggil_token()
-            if token_cek and token_cek[0] != 'KURUNG_S_T':
+            if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_S_T':
                 while True:
-                    elemen = self.parse_ekspresi() # Rekursif canggih
-                    elemen_array.append(elemen)
-                    
-                    token_koma = self.panggil_token()
-                    if token_koma and token_koma[0] == 'KOMA':
-                        self.makan_token('KOMA')
-                    else:
-                        break # Berhenti jika tidak ada koma
-            
+                    elemen_array.append(self.parse_ekspresi())
+                    if self.panggil_token() and self.panggil_token()[0] == 'KOMA': self.makan_token('KOMA')
+                    else: break
             self.makan_token('KURUNG_S_T')
-            kiri = {
-                'tipe': 'STRUKTUR_ARRAY',
-                'isi': elemen_array
-            }
-        # -----------------------------------------
-        # Cek apakah ini Fungsi Dengar
+            return {'tipe': 'STRUKTUR_ARRAY', 'isi': elemen_array}
+
+        # 3. Cek Fungsi Dengar
         elif token_kiri and token_kiri[0] == 'FUNGSI' and token_kiri[1] == 'dengar':
-            self.makan_token('FUNGSI')
-            self.makan_token('KURUNG_B')
-            self.makan_token('KURUNG_T')
-            kiri = {'tipe': 'FUNGSI_DENGAR'}
-        # Jika bukan DENGAR, cek apakah Teks atau Angka literal
+            self.makan_token('FUNGSI'); self.makan_token('KURUNG_B'); self.makan_token('KURUNG_T')
+            return {'tipe': 'FUNGSI_DENGAR'}
+
+        # 4. Teks atau Angka literal
         elif token_kiri and token_kiri[0] in ['TEKS', 'ANGKA']:
-            kiri = self.makan_token(token_kiri[0])[1]
-            
-        # --- KEAJAIBAN BARU: CEK IDENTITAS (Variabel, Fungsi, atau Index Array) ---
+            return self.makan_token(token_kiri[0])[1]
+
+        # 5. Identitas (Variabel, Fungsi, Index Array)
         elif token_kiri and token_kiri[0] == 'IDENTITAS':
             nama_id = self.makan_token('IDENTITAS')[1]
             token_cek = self.panggil_token()
             
-            # 1. Cek apakah ini Panggilan Fungsi ( ada tanda '(' )
-            if token_cek and token_cek[0] == 'KURUNG_B':
+            if token_cek and token_cek[0] == 'KURUNG_B': # Panggilan Fungsi
                 self.makan_token('KURUNG_B')
                 argumen = []
-                token_dalam = self.panggil_token()
-                if token_dalam and token_dalam[0] != 'KURUNG_T':
+                if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_T':
                     while True:
                         argumen.append(self.parse_ekspresi())
-                        if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
-                            self.makan_token('KOMA')
-                        else:
-                            break
+                        if self.panggil_token() and self.panggil_token()[0] == 'KOMA': self.makan_token('KOMA')
+                        else: break
                 self.makan_token('KURUNG_T')
-                kiri = {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id, 'argumen': argumen}
-                
-            # 2. Cek apakah ini Baca Index Array ( ada tanda '[' )
-            elif token_cek and token_cek[0] == 'KURUNG_S_B':
-                self.makan_token('KURUNG_S_B') # Makan '['
-                index_ekspresi = self.parse_ekspresi() # Baca angka indeksnya
-                self.makan_token('KURUNG_S_T') # Makan ']'
-                kiri = {'tipe': 'BACA_ARRAY', 'nama': nama_id, 'index': index_ekspresi}
-                
-            # 3. Jika tidak ada kurung apa-apa, berarti ini Variabel biasa
+                return {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id, 'argumen': argumen}
+            elif token_cek and token_cek[0] == 'KURUNG_S_B': # Baca Index Array
+                self.makan_token('KURUNG_S_B')
+                index_ekspresi = self.parse_ekspresi()
+                self.makan_token('KURUNG_S_T')
+                return {'tipe': 'BACA_ARRAY', 'nama': nama_id, 'index': index_ekspresi}
             else:
-                kiri = nama_id
-        # --------------------------------------------------------------------------
+                return nama_id
 
-        else:
-            raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")
-
-        # Looping untuk matematika berderet
-        while self.pos < len(self.tokens):
-            token_cek = self.panggil_token()
-            if token_cek and token_cek[0] == 'OPERATOR':
-                operator = self.makan_token('OPERATOR')[1]
-                
-                # --- PERBAIKAN: Otak Kanan Dibuat Sama Cerdasnya Dengan Otak Kiri ---
-                token_kanan = self.panggil_token()
-                
-                if token_kanan and token_kanan[0] in ['TEKS', 'ANGKA']:
-                    kanan = self.makan_token(token_kanan[0])[1]
-                elif token_kanan and token_kanan[0] == 'IDENTITAS':
-                    nama_id_kanan = self.makan_token('IDENTITAS')[1]
-                    token_cek_kanan = self.panggil_token()
-                    
-                    # Cek kalau kanan adalah Panggilan Fungsi
-                    if token_cek_kanan and token_cek_kanan[0] == 'KURUNG_B':
-                        self.makan_token('KURUNG_B')
-                        arg_kanan = []
-                        if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_T':
-                            while True:
-                                arg_kanan.append(self.parse_ekspresi())
-                                if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
-                                    self.makan_token('KOMA')
-                                else:
-                                    break
-                        self.makan_token('KURUNG_T')
-                        kanan = {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id_kanan, 'argumen': arg_kanan}
-                        
-                    # Cek kalau kanan adalah Index Array
-                    elif token_cek_kanan and token_cek_kanan[0] == 'KURUNG_S_B':
-                        self.makan_token('KURUNG_S_B')
-                        idx_kanan = self.parse_ekspresi()
-                        self.makan_token('KURUNG_S_T')
-                        kanan = {'tipe': 'BACA_ARRAY', 'nama': nama_id_kanan, 'index': idx_kanan}
-                        
-                    # Kalau bukan apa-apa, berarti Identitas (Variabel) biasa
-                    else:
-                        kanan = nama_id_kanan
-                else:
-                    raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai kanan tidak valid: {token_kanan}")
-                
-                # Update nilai kiri menjadi hasil operasi matematika berderet
-                kiri = {
-                    'tipe': 'OPERASI_MATEMATIKA',
-                    'kiri': kiri,
-                    'operator': operator,
-                    'kanan': kanan
-                }
-                # --------------------------------------------------------------------
-            else:
-                break # Keluar dari loop jika bukan operator
-                
-        return kiri  
+        raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai tidak valid: {token_kiri}")  
         
     def parse_ketik(self):
         self.makan_token('FUNGSI')
