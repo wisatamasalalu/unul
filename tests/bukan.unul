@@ -1,0 +1,19 @@
+ketik("=== MENGUJI OPERATOR PEMBALIK (BUKAN) ===")
+
+takdir.soft nama = "Enki"
+takdir.soft umur = 20
+
+^^ Menguji pembalik tunggal
+jika bukan nama == "Unul" maka
+    ketik("Tentu saja, kamu adalah Enki!")
+lain
+    ketik("Ini tidak mungkin tercetak.")
+putus
+
+^^ Menguji pembalik ganda (Syarat 1 dan Syarat 2)
+jika umur > 15 dan bukan nama == "Linux" maka
+    ketik("Umur cukup, dan kamu bukan Linux. Akses Diterima!")
+putus
+
+ketik("=== FASE 3.1 RESMI SELESAI ===")
+pergi

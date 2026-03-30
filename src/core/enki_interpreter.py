@@ -348,15 +348,18 @@ class EnkiInterpreter:
 
             # 1. Timbang Syarat Pertama
             sah1 = evaluasi_syarat(node['kiri'], node['pembanding'], node['kanan'])
+            if node.get('pembalik1'): sah1 = not sah1 # Sihir Pembalik Bekerja!
             
             # 2. Timbang Syarat Kedua (Jika Ada Gerbang Logika)
             sah_final = sah1
             if node.get('logika'):
                 sah2 = evaluasi_syarat(node['kiri2'], node['pembanding2'], node['kanan2'])
+                if node.get('pembalik2'): sah2 = not sah2 # Sihir Pembalik Bekerja!
+                
                 logika = node['logika']
                 if logika in ['dan', '&&']: sah_final = sah1 and sah2
                 elif logika in ['atau', '||']: sah_final = sah1 or sah2
-                
+                                
             # 3. Eksekusi sesuai hasil timbangan
             if sah_final:
                 # Jika syarat terpenuhi, jalankan blok 'maka'

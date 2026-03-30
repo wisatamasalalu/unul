@@ -107,7 +107,7 @@ class EnkiParser:
             
             else: break
         return kiri
-        
+
     def parse_pangkat(self):
         kiri = self.parse_faktor()
         while self.pos < len(self.tokens):
@@ -207,27 +207,38 @@ class EnkiParser:
     def parse_karma(self):
         self.makan_token('KARMA') # makan 'jika'
         
+        # --- KEAJAIBAN BARU: Cek Pembalik (NOT) Syarat 1 ---
+        pembalik1 = False
+        if self.panggil_token() and self.panggil_token()[0] == 'LOGIKA' and self.panggil_token()[1] in ['bukan', '!']:
+            self.makan_token('LOGIKA')
+            pembalik1 = True
+
         # --- Syarat Pertama ---
         kiri = self.makan_token('IDENTITAS')[1]
         pembanding = self.makan_token('PEMBANDING')[1]
         token_kanan = self.panggil_token()
         kanan = self.makan_token(token_kanan[0])[1]
         
-        # --- KEAJAIBAN BARU: Cek Gerbang Logika (Syarat Kedua) ---
+        # --- Cek Gerbang Logika (Syarat Kedua) ---
         logika = None
+        pembalik2 = False
         kiri2 = None
         pembanding2 = None
         kanan2 = None
         
         token_cek = self.panggil_token()
-        if token_cek and token_cek[0] == 'LOGIKA':
+        if token_cek and token_cek[0] == 'LOGIKA' and token_cek[1] in ['dan', 'atau', '&&', '||']:
             logika = self.makan_token('LOGIKA')[1] # Makan 'dan' / 'atau'
+            
+            # --- KEAJAIBAN BARU: Cek Pembalik (NOT) Syarat 2 ---
+            if self.panggil_token() and self.panggil_token()[0] == 'LOGIKA' and self.panggil_token()[1] in ['bukan', '!']:
+                self.makan_token('LOGIKA')
+                pembalik2 = True
+                
             kiri2 = self.makan_token('IDENTITAS')[1]
             pembanding2 = self.makan_token('PEMBANDING')[1]
             t_kanan2 = self.panggil_token()
             kanan2 = self.makan_token(t_kanan2[0])[1]
-        # ---------------------------------------------------------
-
         self.makan_token('KARMA') # makan 'maka'
         
         aksi = []
@@ -271,12 +282,12 @@ class EnkiParser:
 
         return {
             'tipe': 'HUKUM_KARMA', 
-            'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan,
-            'logika': logika, 'kiri2': kiri2, 'pembanding2': pembanding2, 'kanan2': kanan2,
+            'pembalik1': pembalik1, 'kiri': kiri, 'pembanding': pembanding, 'kanan': kanan,
+            'logika': logika, 'pembalik2': pembalik2, 'kiri2': kiri2, 'pembanding2': pembanding2, 'kanan2': kanan2,
             'aksi': aksi,
-            'aksi_lain': aksi_lain # Simpan blok alternatif ke AST
+            'aksi_lain': aksi_lain
         }
-
+        
     def parse_siklus(self):
         self.makan_token('SIKLUS') # effort
         token_jumlah = self.panggil_token()
