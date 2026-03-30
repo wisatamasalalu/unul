@@ -13,20 +13,33 @@ class EnkiInterpreter:
             jawaban = input("> ") 
             return jawaban
         # Jika ini adalah operasi matematika
+        # --- PERBAIKAN: OPERASI MATEMATIKA LANJUTAN & PENGGABUNGAN TEKS ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'OPERASI_MATEMATIKA':
             kiri = self.evaluasi_nilai(nilai_mentah['kiri'])
             kanan = self.evaluasi_nilai(nilai_mentah['kanan'])
             op = nilai_mentah['operator']
             
-            # Ubah ke integer murni untuk dihitung komputer
-            kiri_int = int(kiri)
-            kanan_int = int(kanan)
-            
-            if op == '+': return str(kiri_int + kanan_int)
-            if op == '-': return str(kiri_int - kanan_int)
-            if op == '*': return str(kiri_int * kanan_int)
-            if op == '/': return str(kiri_int // kanan_int) # Pembagian bulat
-
+            try:
+                # Coba jadikan angka dan hitung secara matematika
+                kiri_int = int(kiri)
+                kanan_int = int(kanan)
+                
+                if op == '+': return str(kiri_int + kanan_int)
+                if op == '-': return str(kiri_int - kanan_int)
+                if op == '*': return str(kiri_int * kanan_int)
+                if op == '/': return str(kiri_int // kanan_int) # Pembagian bulat
+                if op == '%': return str(kiri_int % kanan_int)  # Sisa bagi (Modulo)
+                if op == '^': return str(kiri_int ** kanan_int) # Pangkat
+                
+            except ValueError:
+                # Jika gagal diubah jadi angka, berarti salah satunya adalah TEKS!
+                if op == '+': 
+                    return str(kiri) + str(kanan) # Gabungkan teksnya!
+                else:
+                    print(f"🚨 KERNEL PANIC! Tidak bisa menggunakan operator '{op}' pada teks/huruf!")
+                    import sys; sys.exit(1)
+        # ------------------------------------------------------------------
+        
         # Jika ini adalah variabel (IDENTITAS), ambil isinya dari memori
         if isinstance(nilai_mentah, str) and nilai_mentah in self.memory:
             return self.memory[nilai_mentah]['isi']

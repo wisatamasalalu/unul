@@ -181,18 +181,50 @@ class EnkiParser:
             if token_cek and token_cek[0] == 'OPERATOR':
                 operator = self.makan_token('OPERATOR')[1]
                 
+                # --- PERBAIKAN: Otak Kanan Dibuat Sama Cerdasnya Dengan Otak Kiri ---
                 token_kanan = self.panggil_token()
-                if token_kanan and token_kanan[0] in ['ANGKA', 'IDENTITAS']:
+                
+                if token_kanan and token_kanan[0] in ['TEKS', 'ANGKA']:
                     kanan = self.makan_token(token_kanan[0])[1]
+                elif token_kanan and token_kanan[0] == 'IDENTITAS':
+                    nama_id_kanan = self.makan_token('IDENTITAS')[1]
+                    token_cek_kanan = self.panggil_token()
                     
-                    kiri = {
-                        'tipe': 'OPERASI_MATEMATIKA',
-                        'kiri': kiri,
-                        'operator': operator,
-                        'kanan': kanan
-                    }
+                    # Cek kalau kanan adalah Panggilan Fungsi
+                    if token_cek_kanan and token_cek_kanan[0] == 'KURUNG_B':
+                        self.makan_token('KURUNG_B')
+                        arg_kanan = []
+                        if self.panggil_token() and self.panggil_token()[0] != 'KURUNG_T':
+                            while True:
+                                arg_kanan.append(self.parse_ekspresi())
+                                if self.panggil_token() and self.panggil_token()[0] == 'KOMA':
+                                    self.makan_token('KOMA')
+                                else:
+                                    break
+                        self.makan_token('KURUNG_T')
+                        kanan = {'tipe': 'PANGGILAN_FUNGSI', 'nama': nama_id_kanan, 'argumen': arg_kanan}
+                        
+                    # Cek kalau kanan adalah Index Array
+                    elif token_cek_kanan and token_cek_kanan[0] == 'KURUNG_S_B':
+                        self.makan_token('KURUNG_S_B')
+                        idx_kanan = self.parse_ekspresi()
+                        self.makan_token('KURUNG_S_T')
+                        kanan = {'tipe': 'BACA_ARRAY', 'nama': nama_id_kanan, 'index': idx_kanan}
+                        
+                    # Kalau bukan apa-apa, berarti Identitas (Variabel) biasa
+                    else:
+                        kanan = nama_id_kanan
                 else:
-                    raise SyntaxError("Hukum Enlil Dilanggar! Angka/Variabel selanjutnya hilang.")
+                    raise SyntaxError(f"Hukum Enlil Dilanggar! Nilai kanan tidak valid: {token_kanan}")
+                
+                # Update nilai kiri menjadi hasil operasi matematika berderet
+                kiri = {
+                    'tipe': 'OPERASI_MATEMATIKA',
+                    'kiri': kiri,
+                    'operator': operator,
+                    'kanan': kanan
+                }
+                # --------------------------------------------------------------------
             else:
                 break # Keluar dari loop jika bukan operator
                 

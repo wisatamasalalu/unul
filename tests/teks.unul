@@ -1,0 +1,20 @@
+ketik("=== MENGUJI PENGGABUNGAN TEKS ===")
+
+takdir.soft nama = "Penguasa LinuxDNC"
+takdir.soft sapaan = "Selamat datang, " + nama + "! Sistem siap."
+
+ketik(sapaan)
+
+ketik("=== MENGUJI MATEMATIKA LANJUTAN ===")
+takdir.soft pangkat = 2 ^ 3
+ketik("2 pangkat 3 adalah:")
+ketik(pangkat)
+
+takdir.soft ganjil_genap = 10 % 3
+ketik("10 dibagi 3 sisanya adalah:")
+ketik(ganjil_genap)
+
+ketik("=== MENGUJI KERNEL PANIC ===")
+^^ Sengaja mengurangi teks!
+takdir.soft error = "Halo" - "Hai"
+ketik(error)
