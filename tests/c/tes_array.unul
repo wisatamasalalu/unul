@@ -1,0 +1,15 @@
+datang
+untuk array.dinamis
+
+takdir.soft daftar_angka = [10, 20, 30]
+takdir.soft daftar_nama = ["Enki", "Enlil", "Anu"]
+
+ketik("Isi kavling angka:")
+ketik(daftar_angka)
+
+ketik("Isi kavling dewa:")
+ketik(daftar_nama)
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

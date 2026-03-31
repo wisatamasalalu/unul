@@ -24,6 +24,7 @@ typedef enum {
     AST_PRAGMA_MEMORI,    // untuk array.dinamis / .statis
     AST_PERINTAH_PERGI,    // pergi
     AST_HUKUM_SIKLUS,     // effort X kali maka...
+    AST_STRUKTUR_ARRAY    // buat array.dinamis
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)

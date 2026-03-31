@@ -123,6 +123,23 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         free(hasil_kiri); free(hasil_kanan);
         return hasil_akhir;
     }
+
+    // --- BACA ARRAY MENJADI TEKS BERDERET ---
+    if (node->jenis == AST_STRUKTUR_ARRAY) {
+        char buffer[2048] = "[";
+        for (int i = 0; i < node->jumlah_anak; i++) {
+            char* isi_elemen = evaluasi_ekspresi(node->anak_anak[i], ram);
+            
+            strncat(buffer, isi_elemen, 2048 - strlen(buffer) - 1);
+            free(isi_elemen); // Jangan biarkan memori bocor!
+            
+            if (i < node->jumlah_anak - 1) {
+                strncat(buffer, ", ", 2048 - strlen(buffer) - 1);
+            }
+        }
+        strncat(buffer, "]", 2048 - strlen(buffer) - 1);
+        return strdup(buffer);
+    }
     
     return strdup("");
 }

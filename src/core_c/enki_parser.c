@@ -95,6 +95,20 @@ ASTNode* parse_ekspresi(Parser* p) {
         maju(p); maju(p); maju(p); // Lewati 'dengar', '(', ')'
     }
 
+    // --- KEAJAIBAN BARU: TANGKAP ARRAY KAVLING DINAMIS ---
+    else if (t.jenis == TOKEN_KURUNG_S_B) {
+        simpul_kiri = buat_node(AST_STRUKTUR_ARRAY);
+        maju(p); // lewati '['
+        
+        while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
+            ASTNode* elemen = parse_ekspresi(p); // Tangkap angka/teks di dalamnya
+            if (elemen) tambah_anak(simpul_kiri, elemen); // Kita pinjam fungsi tambah_anak!
+            
+            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+        }
+        maju(p); // lewati ']'
+    }
+
     // Cek apakah setelahnya ada OPERATOR (misal: + atau -)
     Token t_next = token_sekarang(p);
     if (t_next.jenis == TOKEN_OPERATOR) {
