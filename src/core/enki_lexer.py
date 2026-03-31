@@ -16,7 +16,7 @@ def enki_lexer(source_code):
         ('SOWAN',     r'\bsowan\b'), 
         ('HEADER',    r'\bdatang\b'),
         ('PRAGMA',    r'\b(untuk\s+array\.(dinamis|statis)|butuh\s+\.anu)\b'),
-        ('PEMBANDING',r'==|!=|>=|<=|>|<'),         
+        ('PEMBANDING',r'==|!=|>=|<=|>|<|\bberisi\b'),
         
         # --- KEAJAIBAN BARU (OMNI-SYMBOLS) ---
         ('LOGIKA',    r'\b(dan|atau|bukan)\b|&&|\|\||!'), # Gerbang Logika (AND/OR/NOT)

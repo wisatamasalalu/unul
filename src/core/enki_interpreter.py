@@ -120,7 +120,8 @@ class EnkiInterpreter:
                     return nilai_mentah
                 except ValueError:
                     if nilai_mentah.startswith(('0x', '0X', '0b', '0B', '0o', '0O')):
-                        return nilai_mentah
+                        # 🔥 KEAJAIBAN BARU: Terjemahkan ke basis Desimal murni!
+                        return str(int(nilai_mentah, 0))
                     
                     # 🔥 KESAKTIAN ARSITEK: JIKA TIDAK ADA DI RAM, JADIKAN TEKS BIASA! 🔥
                     return nilai_mentah
@@ -214,6 +215,9 @@ class EnkiInterpreter:
                 return str(random.randint(int(args_evaluated[0]), int(args_evaluated[1])))
 
             # 4. Pustaka Teks
+            # 4. Pustaka Teks
+            elif nama in ['panjang_teks', 'panjang']:
+                return str(len(str(args_evaluated[0])))
             elif nama == 'panjang_teks':
                 return str(len(str(args_evaluated[0])))
             elif nama == 'huruf_besar':
@@ -567,6 +571,7 @@ class EnkiInterpreter:
                 elif pemb == '!=': return k_val != kan_val
                 elif pemb == '>=': return k_val >= kan_val
                 elif pemb == '<=': return k_val <= kan_val
+                elif pemb == 'berisi': return str(kan_val) in str(k_val)
                 return False
 
             # 1. Timbang Syarat Pertama

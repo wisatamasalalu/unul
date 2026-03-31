@@ -22,9 +22,9 @@ ketik("Nilai Desimal dari Biner 0b1111 (Harusnya 15): ")
 ketik(hak_akses)
 
 ^^ 4. ASCII ke Angka (Menerjemahkan karakter 'A' ke 65)
-^^ Menguji apakah kita punya fungsi bawaan ascii() atau angka()
+^^ Fungsi bawaan sudah diubah sesuai kitab: ke_ascii()
 takdir.soft huruf = "A"
-takdir.soft kode_ascii = angka(huruf)
+takdir.soft kode_ascii = ke_ascii(huruf)
 ketik("Kode ASCII dari huruf 'A': ")
 ketik(kode_ascii)
 
