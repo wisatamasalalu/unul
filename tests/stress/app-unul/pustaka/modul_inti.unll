@@ -1,0 +1,29 @@
+^^ unul-app/pustaka/modul_inti.unll
+sowan "pustaka/sihir_waktu.unll"
+
+ciptakan fungsi jalankan_inti(kode) maka
+    jika kode == 777999 maka
+        ketik("[MODUL INTI] Akses Diterima. Memulai Penyelaman...")
+        
+        takdir.soft tingkat_stress = 0
+        
+        ^^ Siklus Level 1
+        effort 2 kali maka
+            tingkat_stress = tingkat_stress + 1
+            ketik(">> Siklus Luar, Iterasi ke-" + tingkat_stress)
+            
+            ^^ Siklus Level 2 (Bersarang)
+            effort 3 kali maka
+                jika tingkat_stress == 2 maka
+                    ketik(">> [MODUL INTI] Mencapai dasar jurang. Membuka Labirin Waktu...")
+                    takdir.soft hasil_waktu = uji_labirin_waktu()
+                    pulang "INTI_STABIL" ^^ Dobrak siklus dan langsung pulang!
+                putus
+            putus
+        putus
+        
+    lain
+        ketik("[MODUL INTI] Akses Ditolak! Pelanggaran Keamanan.")
+        pulang "INTI_HANCUR"
+    putus
+putus

@@ -1,0 +1,32 @@
+^^ unul-app/main.unul
+datang
+untuk array.dinamis
+butuh .anu
+
+sowan "pustaka/modul_inti.unll"
+
+ketik("=======================================")
+ketik("   STRESS TEST: PROYEK MULTI-DIMENSI   ")
+ketik("=======================================")
+
+ketik("Menginisialisasi sistem untuk: " + NAMA_BOS)
+
+jika STATUS_SISTEM == "SIAP" dan bukan NAMA_BOS == "Penyusup" maka
+    ketik("Mengeksekusi Inti Sistem...")
+    
+    ^^ Pemanggilan Fungsi dan Parsing Matematika Sebaris
+    takdir.soft status = jalankan_inti(KODE_AKSES)
+    
+    jika status == "INTI_STABIL" maka
+        ketik("=======================================")
+        ketik("Semua sistem beroperasi dalam batas wajar.")
+        ketik("=======================================")
+    lain
+        ketik("Terjadi anomali KERNEL PANIC. Menghentikan program.")
+    putus
+putus
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
+ketik("=======================================")

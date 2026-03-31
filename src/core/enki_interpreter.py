@@ -528,7 +528,7 @@ class EnkiInterpreter:
                 
                 # 3. Timpa nilai masa kini dengan nilai dari masa lalu
                 kini[target_chain[-1]] = copy.deepcopy(nilai_lama)
-                
+
         # ==========================================
         # 3 FITUR BARU: JEDA, PERGI, HENTI
         # ==========================================
@@ -555,8 +555,11 @@ class EnkiInterpreter:
                 try:
                     # Ubah ke float agar bisa membandingkan 3.14 > 3
                     k_val, kan_val = float(k_val), float(kan_val)
-                except ValueError:
-                    k_val, kan_val = str(k_val).strip('"\''), str(kan_val).strip('"\'')
+                except (ValueError, TypeError):
+                    # Jika gagal (karena itu Teks atau Objek), periksa operatornya!
+                    if pemb in ['>', '<', '>=', '<=']:
+                        print(f"🚨 KERNEL PANIC! Hukum Alam menolak membandingkan ukuran antara '{k_val}' dan '{kan_val}'. Operator '{pemb}' hanya untuk angka yang sah!")
+                        import sys; sys.exit(1)
                 
                 if pemb == '>': return k_val > kan_val
                 elif pemb == '<': return k_val < kan_val

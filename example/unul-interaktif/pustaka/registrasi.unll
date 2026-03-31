@@ -1,0 +1,69 @@
+^^ unul-interaktif/pustaka/registrasi.unll
+
+ciptakan fungsi formulir_pendaftaran() maka
+    ^^ 1. Persiapan Objek Bersarang (Wujud)
+    takdir.soft data_kandidat = {}
+    data_kandidat.nama = "Anonim"
+    data_kandidat.umur = 0
+    data_kandidat.status = "Memulai"
+    
+    ketik("=== MENGISI FORMULIR ===")
+    
+    ^^ 2. Input Teks Biasa (Nama)
+    ketik("1. Siapa nama panggillanmu? (Wajib diisi): ")
+    data_kandidat.nama = dengar()
+    
+    ^^ Validasi nama kosong
+    jika data_kandidat.nama == "" maka
+        ketik("🚨 Nama tidak boleh kosong! Anda gagal di tahap awal.")
+        pulang "GAGAL_NAMA"
+    putus
+    
+    data_kandidat.status = "Tahap Pengecekan Umur"
+    takdir.soft lolos_umur = 0
+    
+    ^^ 3. Uji Loop (Siklus) & Validasi Input (Henti)
+    effort BATAS_COBA kali maka
+        ketik("> PERINGATAN: Masukkan ANGKA (18 - 120), jangan dikosongkan!")
+        ketik("2. Berapa umurmu?: ")
+        takdir.soft input_umur = dengar()
+        
+        ^^ Kita hindari KERNEL PANIC dari backend dengan mengecek kosong dulu
+        jika input_umur == "" maka
+            ketik("   Validasi Umur: DITOLAK. Umur tidak boleh kosong!")
+        lain
+            ^^ Cek batas bawah dan atas menggunakan operator 'dan'
+            jika input_umur > 17 dan input_umur < 121 maka
+                ketik("   Validasi Umur: DITERIMA.")
+                data_kandidat.umur = input_umur
+                lolos_umur = 1
+                henti
+            lain
+                ketik("   Validasi Umur: DITOLAK. Umur di luar batas yang diizinkan (18-120) atau input tidak valid.")
+            putus
+        putus
+    putus
+    
+    jika lolos_umur == 0 maka
+        ketik("🚨 Anda kehabisan kesempatan mengisi umur.")
+        pulang "GAGAL_UMUR"
+    putus
+    
+    data_kandidat.status = "Verifikasi Akhir"
+    
+    ^^ 4. Uji Targeted Undo (Balikan pada properti objek)
+    ketik("--- RANGKUMAN SEMENTARA ---")
+    ketik(data_kandidat)
+    ketik("3. Apakah data ini benar? (Ketik 'batal' untuk mereset status): ")
+    takdir.soft konfirmasi = dengar()
+    
+    jika konfirmasi == "batal" maka
+        ketik(">> Memutar waktu untuk membatalkan status ke tahap sebelumnya...")
+        balikan data_kandidat.status
+        ketik(">> Status saat ini: " + data_kandidat.status)
+        pulang "DIBATALKAN_USER"
+    putus
+    
+    data_kandidat.status = "RESMI"
+    pulang data_kandidat
+putus

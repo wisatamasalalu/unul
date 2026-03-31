@@ -1,0 +1,32 @@
+^^ unul-interaktif/main.unul
+datang
+untuk array.dinamis
+butuh .anu
+
+sowan "pustaka/registrasi.unll"
+
+ketik("=================================================")
+ketik("   SELAMAT DATANG DI " + NAMA_PORTAL)
+ketik("   Mode: Uji Interaktif dan Validasi Logika")
+ketik("=================================================")
+
+takdir.soft hasil_akhir = formulir_pendaftaran()
+
+ketik("=================================================")
+jika hasil_akhir == "GAGAL_NAMA" maka
+    ketik("[HASIL] Pendaftaran ditolak karena nama kosong.")
+lain
+    jika hasil_akhir == "GAGAL_UMUR" maka
+        ketik("[HASIL] Pendaftaran ditolak karena gagal verifikasi umur.")
+    lain
+        jika hasil_akhir == "DIBATALKAN_USER" maka
+            ketik("[HASIL] Pendaftaran sengaja dibatalkan oleh user.")
+        lain
+            ketik("[HASIL] SELAMAT! Pendaftaran Berhasil.")
+            ketik("Data Bukti Tersimpan:")
+            ketik(hasil_akhir)
+        putus
+    putus
+putus
+
+pergi

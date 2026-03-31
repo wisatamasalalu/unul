@@ -1,0 +1,27 @@
+^^ unul-app/pustaka/sihir_waktu.unll
+ciptakan fungsi uji_labirin_waktu() maka
+    ^^ Persiapan Wujud Bersarang
+    takdir.soft realita = {}
+    realita.dimensi = "Tiga"
+    realita.ruang = {}
+    realita.ruang.kordinat = "Bumi"
+    realita.ruang.waktu = "Masa Kini"
+    
+    ketik("> Sebelum Distorsi Waktu:")
+    ketik(realita)
+    
+    ^^ Melakukan Mutasi
+    realita.ruang.waktu = "Masa Depan"
+    realita.ruang.kordinat = "Mars"
+    
+    ketik("> Setelah Distorsi:")
+    ketik(realita)
+    
+    ^^ Opsi B: Targeted Undo (Memutar waktu pada titik spesifik)
+    balikan realita.ruang.waktu
+    
+    ketik("> Setelah Targeted Undo (Waktu kembali, Kordinat tetap di Mars):")
+    ketik(realita)
+    
+    pulang realita
+putus
