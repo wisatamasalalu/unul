@@ -1,0 +1,4 @@
+datang
+sowan "pustaka.unll"
+ketik("Dewa dari pustaka adalah: " + nama_dewa)
+pergi

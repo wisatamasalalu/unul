@@ -25,7 +25,8 @@ typedef enum {
     AST_PERINTAH_PERGI,    // pergi
     AST_HUKUM_SIKLUS,     // effort X kali maka...
     AST_STRUKTUR_ARRAY,    // buat array.dinamis
-    AST_AKSES_ARRAY
+    AST_AKSES_ARRAY,       // Akses data array
+    AST_PERINTAH_SOWAN     // Seperti import atau include, kata kunci pemanggilan file
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)

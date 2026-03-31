@@ -271,6 +271,48 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             eksekusi_program(node->blok_siklus, ram);
         }
     }
+
+    // ATM DARI BLUEPRINT: elif node['tipe'] == 'PERINTAH_SOWAN'
+    else if (node->jenis == AST_PERINTAH_SOWAN) {
+        char* target_file = strdup(node->nilai_teks);
+        bersihkan_kutip(target_file); // Membuang tanda kutip " "
+        
+        // 1. with open(target_file, "r")
+        FILE *file = fopen(target_file, "r");
+        if (!file) {
+            printf("🚨 Bencana Sowan! Kitab '%s' tidak ditemukan.\n", target_file);
+            exit(1);
+        }
+        
+        // Baca seluruh isi file ke memori (kode_sowan = f.read())
+        fseek(file, 0, SEEK_END);
+        long fsize = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        char *kode_sowan = malloc(fsize + 1);
+        fread(kode_sowan, 1, fsize, file);
+        kode_sowan[fsize] = '\0';
+        fclose(file);
+        
+        // 2. Lexer -> Parser -> Eksekusi (Recursive Injection)
+        // ⚠️ CATATAN ARSITEK: Ganti pemanggilan fungsi ini 
+        // dengan nama fungsi Lexer & Parser yang biasa Anda panggil di main.c!
+        
+        Token* token_list_sowan = NULL; 
+        jalankan_lexer(kode_sowan, &token_list_sowan); // Tiru cara main.c memanggil Lexer
+        
+        Parser parser_sowan;
+        inisialisasi_parser(&parser_sowan, token_list_sowan); // Tiru cara main.c memanggil Parser
+        
+        ASTNode* ast_sowan = parse_program(&parser_sowan);
+        
+        // 3. for node_sowan in ast_sowan: self.eksekusi_node()
+        // Kita cukup panggil eksekusi_program karena RAM-nya DIPAKAI BERSAMA (pointer ram yang sama)!
+        eksekusi_program(ast_sowan, ram); 
+        
+        // Bersihkan memori file setelah disuntikkan
+        free(kode_sowan);
+        free(target_file);
+    }
 }
 
 // --- 4. EKSEKUSI PROGRAM UTAMA ---

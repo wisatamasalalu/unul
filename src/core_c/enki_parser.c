@@ -272,6 +272,20 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
+    // ATM DARI BLUEPRINT: elif token[0] == 'SOWAN':
+    // (Jika Lexer Anda mendeteksi kata 'sowan' sebagai TOKEN_IDENTITAS)
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "sowan") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_SOWAN);
+        maju(p); // lewati kata 'sowan'
+        
+        Token t_target = token_sekarang(p);
+        if (t_target.jenis == TOKEN_TEKS) {
+            node->nilai_teks = strdup(t_target.isi); // Simpan nama file (contoh: "pustaka.unll")
+            maju(p); // lewati nama file
+        }
+        return node;
+    }
+
     // Jika bukan apa-apa (misal karakter asing/sisa baris kosong), maju 1 langkah agar tidak infinite loop
     maju(p);
     return NULL;
