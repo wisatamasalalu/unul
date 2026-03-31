@@ -8,6 +8,7 @@ import json
 import time
 import random
 import urllib.request
+import copy
 try:
     import readline
 except ImportError:
@@ -451,7 +452,6 @@ class EnkiInterpreter:
             # --- SUNTIKAN DEEPCOPY UNTUK MENYIMPAN RIWAYAT (OPSI A & B) ---
             if 'riwayat' not in self.memory[nama_root]:
                 self.memory[nama_root]['riwayat'] = []
-            import copy
             self.memory[nama_root]['riwayat'].append(copy.deepcopy(self.memory[nama_root]['isi']))
             # -------------------------------------------------------------
                 
@@ -659,7 +659,8 @@ class EnkiInterpreter:
             # 2. Jika Sistem Hancur, jalankan blok TEBUS/TABU
             if error_terjadi:
                 if node.get('pesan_tabu'):
-                    self.variables[node['pesan_tabu']] = pesan_error
+                    # Menyimpan pesan error secara sah ke dalam RAM UNUL
+                    self.memory[node['pesan_tabu']] = {'sifat': 'SOFT', 'isi': pesan_error}
                 
                 for perintah in node.get('blok_tebus', []):
                     hasil = self.eksekusi_node(perintah)
@@ -678,7 +679,8 @@ class EnkiInterpreter:
         waktu = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         # Integrasi: Cek mode di .anu (1 untuk Debug / Full Stack Trace, 0 untuk Minimal)
-        mode_debug = self.variables.get('MODE_DEBUG', "0")
+        node_debug = self.memory.get('MODE_DEBUG')
+        mode_debug = str(node_debug['isi']) if node_debug else "0"
         
         with open("enki_sistem.diary", "a") as f:
             f.write(f"=== [TABU DILANGGAR] ===\n")

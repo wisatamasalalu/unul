@@ -1,0 +1,30 @@
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-03-31 22:49:52
+Pesan Alam     : 🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+Jejak Memori (Stack Trace):
+Traceback (most recent call last):
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 647, in eksekusi_node
+    hasil = self.eksekusi_node(perintah)
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 386, in eksekusi_node
+    isi_final = self.evaluasi_nilai(node['isi'])
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 96, in evaluasi_nilai
+    raise RuntimeError("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
+RuntimeError: 🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-03-31 22:59:24
+Pesan Alam     : 🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+Jejak Memori (Stack Trace):
+Traceback (most recent call last):
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 647, in eksekusi_node
+    hasil = self.eksekusi_node(perintah)
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 387, in eksekusi_node
+    isi_final = self.evaluasi_nilai(node['isi'])
+  File "/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/core/enki_interpreter.py", line 97, in evaluasi_nilai
+    raise RuntimeError("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
+RuntimeError: 🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+
+========================
+

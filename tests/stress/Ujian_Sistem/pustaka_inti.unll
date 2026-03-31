@@ -1,0 +1,29 @@
+^^ Modul Eksternal untuk Uji Coba Sowan & Logika
+ciptakan fungsi validasi_sandi(input_sandi) maka
+    ^^ 1. Uji True Regex
+    jika cocok_pola(input_sandi, "^[0-9]{6}$") == "0" maka
+        pulang "DITOLAK_FORMAT_SALAH"
+    putus
+    
+    ^^ 2. Uji Integrasi RAM .anu
+    takdir.soft sandi_angka = ke_desimal(input_sandi)
+    jika sandi_angka == KUNCI_AKSES maka
+        pulang "SAH"
+    lain
+        pulang "DITOLAK_SALAH_KUNCI"
+    putus
+putus
+
+ciptakan fungsi ritual_matriks(teks_sakti) maka
+    ^^ 3. Uji Transmutasi Array & Basis Mesin
+    ketik("--- TRANSMUTASI TEKS ---")
+    ketik("Asli: ")
+    ketik(teks_sakti)
+    
+    takdir.soft huruf_pertama = ke_ascii(teks_sakti)
+    ketik("Sandi ASCII Huruf Pertama: ")
+    ketik(huruf_pertama)
+    
+    ketik("Wujud Biner ASCII: ")
+    ketik(ke_biner(huruf_pertama))
+putus

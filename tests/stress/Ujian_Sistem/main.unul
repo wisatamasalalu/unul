@@ -1,0 +1,78 @@
+^^ ===================================================
+^^ STRESS TEST KESELURUHAN FITUR UNUL (PYTHON CORE)
+^^ ===================================================
+
+datang untuk array.dinamis
+butuh .anu
+sowan "pustaka_inti.unll"
+
+ketik("🔥 MEMULAI UJIAN MUTLAK SISTEM 🔥")
+ketik("Versi: ")
+ketik(VERSI_SISTEM)
+
+^^ 4. Uji Interaksi User (tanya/dengar)
+ketik("Masukkan 6 Digit Sandi Sistem:")
+takdir.soft masukan_user = tanya("> ")
+
+takdir.soft status = validasi_sandi(masukan_user)
+
+^^ 5. Uji Hukum Tabu & Percabangan
+jika status == "SAH" maka
+    ketik("✅ AKSES DITERIMA! Selamat datang, Arsitek.")
+lain
+    ketik("🚨 AKSES DITOLAK! Memulai simulasi Kiamat Sistem...")
+    
+    coba maka
+        ^^ Sengaja melanggar batas agar ditangkap Tabu
+        takdir.soft kiamat = 1 / 0
+    tabu melanggar alasan_sesat maka
+        ketik("⚠️ TABU DILANGGAR: ")
+        ketik(alasan_sesat)
+    tebus maka
+        ketik("🔄 Sistem menebus kesalahan. Memori diamankan dari Kiamat.")
+    pasrah
+putus
+
+^^ 6. Uji Modifikasi Domain Bertingkat & Mesin Waktu (Balikan)
+ketik(" ")
+ketik("--- UJI KAVLING BERTINGKAT & MESIN WAKTU ---")
+takdir.soft server = {}
+server.jaringan = {}
+server.jaringan.status = "Mati"
+ketik("Status Awal: ")
+ketik(server.jaringan.status)
+
+server.jaringan.status = "Menyala"
+ketik("Status Berubah: ")
+ketik(server.jaringan.status)
+
+balikan server.jaringan.status
+ketik("Status Masa Lalu (Di-undo): ")
+ketik(server.jaringan.status)
+
+^^ 7. Uji Protokol Utusan (Internet)
+ketik(" ")
+ketik("--- UJI PROTOKOL AWAN ---")
+coba maka
+    takdir.soft balasan = ambil("https://httpbin.org/get")
+    ketik("Utusan awan berhasil pulang membawa data.")
+tabu melanggar e maka
+    ketik("Gagal memanggil awan. Mungkin tidak ada internet.")
+pasrah
+
+^^ 8. Uji Siklus (Loop)
+ketik(" ")
+ketik("--- UJI HUKUM SIKLUS ---")
+takdir.soft batas = 3
+effort batas kali maka
+    ketik("Sistem memindai anomali...")
+putus
+
+^^ Eksekusi Pustaka
+ritual_matriks("Enki")
+
+ketik(" ")
+ketik("🏆 SELURUH UJIAN SELESAI DENGAN SEMPURNA!")
+ketik("Waktu Selesai (Epoch):")
+ketik(waktu_sekarang())
+pergi
