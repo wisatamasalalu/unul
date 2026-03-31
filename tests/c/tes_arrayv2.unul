@@ -1,0 +1,12 @@
+datang
+untuk array.dinamis
+
+takdir.soft daftar_dewa = ["Enki", "Enlil", "Anu", "Marduk"]
+
+ketik("Dewa pada indeks ke-0 adalah: ")
+ketik(daftar_dewa[0])
+
+ketik("Dewa pada indeks ke-3 adalah: ")
+ketik(daftar_dewa[3])
+
+pergi

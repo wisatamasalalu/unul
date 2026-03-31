@@ -69,6 +69,34 @@ void bersihkan_kutip(char* teks) {
     }
 }
 
+// Fungsi Bantuan: Mengekstrak elemen ke-X dari teks array (contoh: "[A, B, C]")
+char* ambil_elemen_array(const char* teks_array, int target_indeks) {
+    if (!teks_array || teks_array[0] != '[') return strdup("");
+    
+    char* copy = strdup(teks_array + 1); // lewati '['
+    char* akhir = strchr(copy, ']');
+    if (akhir) *akhir = '\0'; // hapus ']'
+
+    int indeks_sekarang = 0;
+    char* token = strtok(copy, ","); // Potong berdasarkan koma
+    char* hasil = strdup("");
+    
+    while (token != NULL) {
+        if (indeks_sekarang == target_indeks) {
+            while(*token == ' ') token++; // Hapus spasi di depan teks jika ada
+            free(hasil);
+            hasil = strdup(token);
+            bersihkan_kutip(hasil); // Bersihkan kutipan jika itu teks
+            break;
+        }
+        indeks_sekarang++;
+        token = strtok(NULL, ",");
+    }
+    
+    free(copy);
+    return hasil;
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
@@ -139,6 +167,24 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
         strncat(buffer, "]", 2048 - strlen(buffer) - 1);
         return strdup(buffer);
+    }
+
+    // --- EVALUASI AKSES ARRAY (daftar_nama[1]) ---
+    if (node->jenis == AST_AKSES_ARRAY) {
+        // 1. Ambil teks utuh array dari RAM
+        const char* memori_array = baca_dari_ram(ram, node->kiri->nilai_teks);
+        if (!memori_array) {
+            printf("🚨 KERNEL PANIC! Array '%s' belum diciptakan!\n", node->kiri->nilai_teks);
+            exit(1);
+        }
+        
+        // 2. Evaluasi angka indeksnya (bisa angka murni atau variabel)
+        char* teks_indeks = evaluasi_ekspresi(node->indeks_array, ram);
+        int indeks = atoi(teks_indeks);
+        free(teks_indeks);
+        
+        // 3. Potong dan ambil!
+        return ambil_elemen_array(memori_array, indeks);
     }
     
     return strdup("");

@@ -85,44 +85,58 @@ ASTNode* parse_ekspresi(Parser* p) {
     Token t = token_sekarang(p);
     ASTNode* simpul_kiri = NULL;
     
-    // Tangkap Teks Literal, Angka, atau Identitas (Sisi Kiri)
-    if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA || (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "dengar") != 0)) {
-        simpul_kiri = buat_node(t.jenis == TOKEN_TEKS ? AST_LITERAL_TEKS : (t.jenis == TOKEN_ANGKA ? AST_LITERAL_TEKS : AST_IDENTITAS));
+    // 1. Tangkap Teks atau Angka Murni
+    if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA) {
+        simpul_kiri = buat_node(AST_LITERAL_TEKS);
         simpul_kiri->nilai_teks = strdup(t.isi);
         maju(p);
-    } else if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "dengar") == 0) {
-        simpul_kiri = buat_node(AST_FUNGSI_DENGAR);
-        maju(p); maju(p); maju(p); // Lewati 'dengar', '(', ')'
     }
-
-    // --- KEAJAIBAN BARU: TANGKAP ARRAY KAVLING DINAMIS ---
+    // 2. Tangkap Identitas (Nama Variabel atau Fungsi)
+    else if (t.jenis == TOKEN_IDENTITAS) {
+        if (strcmp(t.isi, "dengar") == 0) {
+            simpul_kiri = buat_node(AST_FUNGSI_DENGAR);
+            maju(p); maju(p); maju(p); // Lewati dengar, (, )
+        } else {
+            simpul_kiri = buat_node(AST_IDENTITAS);
+            simpul_kiri->nilai_teks = strdup(t.isi);
+            maju(p); // lewati nama variabel
+            
+            // --- CEK AKSES ARRAY (Contoh: daftar_dewa[0]) ---
+            if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+                ASTNode* node_akses = buat_node(AST_AKSES_ARRAY);
+                node_akses->kiri = simpul_kiri; // Simpan nama variabel
+                maju(p); // lewati '['
+                node_akses->indeks_array = parse_ekspresi(p); // Tangkap indeks (0)
+                maju(p); // lewati ']'
+                simpul_kiri = node_akses; // Timpa menjadi node akses array
+            }
+        }
+    }
+    // 3. Tangkap Pembuatan Array Baru (Contoh: [1, 2, 3])
     else if (t.jenis == TOKEN_KURUNG_S_B) {
         simpul_kiri = buat_node(AST_STRUKTUR_ARRAY);
         maju(p); // lewati '['
         
         while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
-            ASTNode* elemen = parse_ekspresi(p); // Tangkap angka/teks di dalamnya
-            if (elemen) tambah_anak(simpul_kiri, elemen); // Kita pinjam fungsi tambah_anak!
-            
+            ASTNode* elemen = parse_ekspresi(p); 
+            if (elemen) tambah_anak(simpul_kiri, elemen); 
             if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
         }
         maju(p); // lewati ']'
     }
 
-    // Cek apakah setelahnya ada OPERATOR (misal: + atau -)
+    // 4. Cek Operasi Matematika / Penggabungan Teks (Contoh: + atau -)
     Token t_next = token_sekarang(p);
     if (t_next.jenis == TOKEN_OPERATOR) {
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
         simpul_matematika->operator_math = strdup(t_next.isi);
-        simpul_matematika->kiri = simpul_kiri; // Kiri masuk ke operasi
+        simpul_matematika->kiri = simpul_kiri; 
         maju(p); // Lewati lambang '+'
-        
-        // Evaluasi sisi Kanan secara rekursif
         simpul_matematika->kanan = parse_ekspresi(p); 
         return simpul_matematika;
     }
 
-    return simpul_kiri; // Jika tidak ada operator, kembalikan nilai tunggal
+    return simpul_kiri;
 }
 
 // Mengurai Satu Baris Perintah Penuh (Statement)
