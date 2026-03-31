@@ -4,7 +4,7 @@ import os
 import json
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.append(os.path.join(BASE_DIR, 'src', 'core'))
+sys.path.append(os.path.join(BASE_DIR, 'src', 'legacy'))
 
 from enki_lexer import enki_lexer
 from enki_parser import EnkiParser

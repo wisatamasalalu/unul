@@ -7,5 +7,5 @@ setup(
     author='Wisata Masa Lalu',
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    scripts=['bin/unul'], # Ini yang akan otomatis jadi perintah global "unul"
+    scripts=['bin/unul-legacy'], # Ini yang akan otomatis jadi perintah global "unul"
 )

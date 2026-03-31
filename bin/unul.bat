@@ -3,4 +3,4 @@ import os
             interpreter.muat_anu(path_absolut)
 @echo off
 REM Eksekutor UNUL CLI untuk lingkungan Windows
-python "%~dp0unul" %*
+python "%~dp0unul-legacy" %*
