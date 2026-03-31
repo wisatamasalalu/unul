@@ -1,0 +1,41 @@
+^^ tests/regex.unul
+datang
+untuk array.dinamis
+
+ketik("=================================================")
+ketik("   UJI VALIDASI TINGKAT DEWA (STRING & POLA)     ")
+ketik("=================================================")
+
+^^ 1. Validasi NIK / User ID (Wajib 16 digit, murni angka)
+ketik("1. Masukkan NIK (16 Digit): ")
+takdir.soft nik = dengar()
+
+^^ Kita asumsikan ada fungsi bawaan panjang()
+jika panjang(nik) == 16 maka
+    ketik(">> NIK Diterima: " + nik)
+lain
+    ketik("🚨 KESALAHAN: NIK harus tepat 16 karakter!")
+putus
+
+^^ 2. Validasi Tanggal Lahir (Pemisah - atau /)
+ketik("2. Masukkan Tanggal Lahir (DD-MM-YYYY atau DD/MM/YYYY): ")
+takdir.soft ttl = dengar()
+
+^^ Kita uji apakah mesin mengenali operator 'berisi' atau 'mengandung'
+jika ttl berisi "-" atau ttl berisi "/" maka
+    ketik(">> Tanggal Lahir Diterima: " + ttl)
+lain
+    ketik("🚨 KESALAHAN: Format harus dipisah dengan - atau /")
+putus
+
+^^ 3. Validasi Email (Harus ada @ dan .)
+ketik("3. Masukkan Email Anda: ")
+takdir.soft surel = dengar()
+
+jika surel berisi "@" dan surel berisi "." maka
+    ketik(">> Email Diterima: " + surel)
+lain
+    ketik("🚨 KESALAHAN: Email tidak valid!")
+putus
+
+pergi

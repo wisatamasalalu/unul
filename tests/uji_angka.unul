@@ -1,0 +1,31 @@
+^^ unul-interaktif/uji_angka.unul
+datang
+untuk array.dinamis
+
+ketik("=================================================")
+ketik("      UJI COBA DOMAIN ANGKA & BILANGAN           ")
+ketik("=================================================")
+
+^^ 1. Pecahan / Float (Seharusnya sudah bisa)
+takdir.soft phi = 3.14159
+ketik("Nilai Pecahan Phi: ")
+ketik(phi)
+
+^^ 2. Hexadecimal (Basis 16) - Awalan 0x
+takdir.soft warna_putih = 0xFFFFFF
+ketik("Nilai Desimal dari Hex 0xFFFFFF (Harusnya 16777215): ")
+ketik(warna_putih)
+
+^^ 3. Binary (Basis 2) - Awalan 0b
+takdir.soft hak_akses = 0b1111
+ketik("Nilai Desimal dari Biner 0b1111 (Harusnya 15): ")
+ketik(hak_akses)
+
+^^ 4. ASCII ke Angka (Menerjemahkan karakter 'A' ke 65)
+^^ Menguji apakah kita punya fungsi bawaan ascii() atau angka()
+takdir.soft huruf = "A"
+takdir.soft kode_ascii = angka(huruf)
+ketik("Kode ASCII dari huruf 'A': ")
+ketik(kode_ascii)
+
+pergi
