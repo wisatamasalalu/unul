@@ -1,0 +1,4 @@
+takdir.soft umur = 10 + 5
+ketik("Umur saya tahun depan adalah: ")
+ketik(umur + 1)
+ketik("Ini adalah " + "Keajaiban UNUL!")

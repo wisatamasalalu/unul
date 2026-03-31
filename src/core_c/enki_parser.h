@@ -17,6 +17,7 @@ typedef enum {
     AST_LITERAL_TEKS,     // "Sebuah Teks"
     AST_IDENTITAS,        // nama_variabel
     AST_TIDAK_DIKENAL     // Node kosong/error
+    AST_OPERASI_MATEMATIKA // AST Matematika Dasar
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
@@ -31,6 +32,7 @@ typedef struct ASTNode {
 
     // --- Cabang untuk Literal / Identitas ---
     char* nilai_teks;           // Menyimpan teks (misal: "Siapa nama anda?")
+    char* operator_math; // Buat ngitung
 
     // --- Cabang untuk Deklarasi (Kiri = Kanan) atau Panggilan Fungsi ---
     struct ASTNode* kiri;       // Contoh: Menunjuk ke node identitas (nama_user)

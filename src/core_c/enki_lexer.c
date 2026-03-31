@@ -113,6 +113,31 @@ TokenArray enki_lexer(const char* kode_sumber) {
             continue;
         }
 
+        // [TAMBAHKAN INI SEBELUM BLOK 5 (IDENTITAS)]
+        // 4.5 Tangkap Angka (Mendukung Desimal sederhana)
+        if (isdigit(c)) {
+            int awal = i;
+            while (isdigit(kode_sumber[i]) || kode_sumber[i] == '.') {
+                i++; kolom++;
+            }
+            int panjang = i - awal;
+            char* angka = (char*)malloc(panjang + 1);
+            strncpy(angka, &kode_sumber[awal], panjang);
+            angka[panjang] = '\0';
+            tambah_token(&token_list, TOKEN_ANGKA, angka, baris, kolom - panjang);
+            free(angka);
+            continue;
+        }
+
+        // 4.6 Tangkap Operator Matematika & Assignment
+        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
+            char op_str[2] = {c, '\0'};
+            TokenJenis tj = (c == '=') ? TOKEN_ASSIGN : TOKEN_OPERATOR;
+            tambah_token(&token_list, tj, op_str, baris, kolom);
+            i++; kolom++;
+            continue;
+        }
+
         // 5. Tangkap Kata (Identitas, Keyword, Fungsi)
         if (isalpha(c) || c == '_') {
             int awal = i;

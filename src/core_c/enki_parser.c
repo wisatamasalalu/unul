@@ -69,34 +69,32 @@ ASTNode* parse_ekspresi(Parser* p);
 // Mengurai Nilai (Sisi Kanan) -> Teks, Variabel, atau Panggilan Fungsi
 ASTNode* parse_ekspresi(Parser* p) {
     Token t = token_sekarang(p);
+    ASTNode* simpul_kiri = NULL;
     
-    // Jika itu "String Literal"
-    if (t.jenis == TOKEN_TEKS) {
-        ASTNode* node = buat_node(AST_LITERAL_TEKS);
-        node->nilai_teks = strdup(t.isi);
+    // Tangkap Teks Literal, Angka, atau Identitas (Sisi Kiri)
+    if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA || (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "dengar") != 0)) {
+        simpul_kiri = buat_node(t.jenis == TOKEN_TEKS ? AST_LITERAL_TEKS : (t.jenis == TOKEN_ANGKA ? AST_LITERAL_TEKS : AST_IDENTITAS));
+        simpul_kiri->nilai_teks = strdup(t.isi);
         maju(p);
-        return node;
+    } else if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "dengar") == 0) {
+        simpul_kiri = buat_node(AST_FUNGSI_DENGAR);
+        maju(p); maju(p); maju(p); // Lewati 'dengar', '(', ')'
     }
-    
-    // Jika itu Kata / Identitas
-    if (t.jenis == TOKEN_IDENTITAS) {
-        // Cek apakah ini pemanggilan fungsi dengar()
-        if (strcmp(t.isi, "dengar") == 0) {
-            ASTNode* node = buat_node(AST_FUNGSI_DENGAR);
-            maju(p); // lewati kata 'dengar'
-            maju(p); // lewati '('
-            maju(p); // lewati ')'
-            return node;
-        } else {
-            // Jika bukan, berarti ini nama variabel (misal: nama_user)
-            ASTNode* node = buat_node(AST_IDENTITAS);
-            node->nilai_teks = strdup(t.isi);
-            maju(p);
-            return node;
-        }
+
+    // Cek apakah setelahnya ada OPERATOR (misal: + atau -)
+    Token t_next = token_sekarang(p);
+    if (t_next.jenis == TOKEN_OPERATOR) {
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
+        simpul_matematika->operator_math = strdup(t_next.isi);
+        simpul_matematika->kiri = simpul_kiri; // Kiri masuk ke operasi
+        maju(p); // Lewati lambang '+'
+        
+        // Evaluasi sisi Kanan secara rekursif
+        simpul_matematika->kanan = parse_ekspresi(p); 
+        return simpul_matematika;
     }
-    
-    return NULL;
+
+    return simpul_kiri; // Jika tidak ada operator, kembalikan nilai tunggal
 }
 
 // Mengurai Satu Baris Perintah Penuh (Statement)
