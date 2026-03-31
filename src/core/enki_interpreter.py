@@ -53,8 +53,7 @@ class EnkiInterpreter:
                         self.memory[kunci] = {'isi': nilai, 'sifat': 'TETAP', 'riwayat': []}
         else:
             if wajib_anu:
-                print(f"🚨 KERNEL PANIC! Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan di folder '{direktori}'!")
-                import sys; sys.exit(1)
+                raise RuntimeError(f"🚨 KERNEL PANIC! Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan di folder '{direktori}'!")
     # -----------------------------------------------------
 
     def evaluasi_nilai(self, nilai_mentah):
@@ -94,13 +93,11 @@ class EnkiInterpreter:
                 elif op == '*': hasil_math = kiri_num * kanan_num
                 elif op == '/': 
                     if kanan_num == 0:
-                        print("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
-                        import sys; sys.exit(1)
+                        raise RuntimeError("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
                     hasil_math = kiri_num / kanan_num 
                 elif op == '%': 
                     if kanan_num == 0:
-                        print("🚨 KERNEL PANIC! Kehancuran Dimensi: Operasi sisa bagi (modulo) dengan nol (0) dilarang!")
-                        import sys; sys.exit(1)
+                        raise RuntimeError("🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!")
                     hasil_math = kiri_num % kanan_num  
                 elif op == '^': hasil_math = kiri_num ** kanan_num
                 
@@ -112,8 +109,7 @@ class EnkiInterpreter:
                 if op == '+': 
                     return str(kiri) + str(kanan) # Gabungkan teksnya!
                 else:
-                    print(f"🚨 KERNEL PANIC! Tidak bisa menggunakan operator '{op}' pada teks/huruf!")
-                    import sys; sys.exit(1)
+                    raise TypeError(f"🚨 KERNEL PANIC! Tidak bisa menggunakan operator '{op}' pada teks/huruf!")
         # ------------------------------------------------------------------
 
         # --- PERBAIKAN: BACA VARIABEL ATAU TEKS BEBAS (LOOSE TEXT MODE) ---
@@ -184,26 +180,26 @@ class EnkiInterpreter:
                     if isinstance(data_asli, dict) and prop in data_asli:
                         data_asli = data_asli[prop]
                     else:
-                        print(f"🚨 KERNEL PANIC! Properti '{prop}' tidak ditemukan pada wujud '{nama_root}'!"); import sys; sys.exit(1)
+                        raise KeyError(f"🚨 KERNEL PANIC! Properti '{prop}' tidak ditemukan pada wujud '{nama_root}'!")
                 
                 # Jika dia Array [1, 2, 3]
                 if isinstance(data_asli, list):
                     indeks = int(indeks_mentah)
                     if 0 <= indeks < len(data_asli): return str(data_asli[indeks])
                     else:
-                        print(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{'.'.join(rantai)}'!"); import sys; sys.exit(1)
+                        raise IndexError(f"🚨 KERNEL PANIC! Indeks {indeks} melampaui batas kavling '{'.'.join(rantai)}'!")
                 
                 # Jika dia Objek {"nama": "Unul"}
                 elif isinstance(data_asli, dict):
                     kunci = str(indeks_mentah).strip('"\'')
                     if kunci in data_asli: return str(data_asli[kunci])
                     else:
-                        print(f"🚨 KERNEL PANIC! Kunci '{kunci}' tidak ditemukan di dalam objek '{'.'.join(rantai)}'!"); import sys; sys.exit(1)
+                        raise KeyError(f"🚨 KERNEL PANIC! Kunci '{kunci}' tidak ditemukan di dalam objek '{'.'.join(rantai)}'!")
                 
                 else:
-                    print(f"🚨 KERNEL PANIC! Takdir '{'.'.join(rantai)}' bukan array atau objek!"); import sys; sys.exit(1)
+                    raise TypeError(f"🚨 KERNEL PANIC! Takdir '{'.'.join(rantai)}' bukan array atau objek!")
             else:
-                print(f"🚨 KERNEL PANIC! Takdir '{nama_root}' tidak ditemukan!"); import sys; sys.exit(1)
+                raise NameError(f"🚨 KERNEL PANIC! Takdir '{nama_root}' tidak ditemukan!")
         # --------------------------------------------
 
         # --- EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
@@ -343,8 +339,7 @@ class EnkiInterpreter:
 
             # Jika tidak ada di mana-mana
             else:
-                print(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak dikenal oleh alam semesta!")
-                import sys; sys.exit(1)
+                raise NameError(f"🚨 KERNEL PANIC! Fungsi '{nama}' tidak dikenal oleh alam semesta!")
         # ----------------------------------------------------------------------------
         return nilai_mentah
 
@@ -399,13 +394,11 @@ class EnkiInterpreter:
                 
                 if ukuran_kavling is not None and isinstance(isi_final, list):
                     if len(isi_final) > int(ukuran_kavling):
-                        print(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan ! Dipesan {ukuran_kavling} kavling, tapi diisi {len(isi_final)} data!")
-                        import sys; sys.exit(1)
+                        raise MemoryError(f"🚨 KERNEL PANIC! Array '{nama}' kelebihan muatan ! Dipesan {ukuran_kavling} kavling, tapi diisi {len(isi_final)} data!")
 
                 if nama in self.memory:
                     if self.memory[nama].get('sifat') == 'TETAP':
-                        print(f"🚨 KERNEL PANIC! Takdir '{nama}' bersifat TETAP (Hard) dan tidak bisa diubah!")
-                        import sys; sys.exit(1)
+                        raise RuntimeError(f"🚨 KERNEL PANIC! Takdir '{nama}' bersifat TETAP (Hard) dan tidak bisa diubah!")
                         
                     if 'riwayat' not in self.memory[nama]: self.memory[nama]['riwayat'] = []
                     self.memory[nama]['riwayat'].append(self.memory[nama]['isi'])
@@ -421,13 +414,11 @@ class EnkiInterpreter:
                     self.memory[nama_root] = {'isi': {}, 'sifat': sifat, 'riwayat': []}
                     
                 if self.memory[nama_root].get('sifat') == 'TETAP':
-                    print(f"🚨 KERNEL PANIC! Wujud '{nama_root}' bersifat TETAP, propertinya tidak bisa dimodifikasi!")
-                    import sys; sys.exit(1)
+                    raise RuntimeError(f"🚨 KERNEL PANIC! Wujud '{nama_root}' bersifat TETAP, propertinya tidak bisa dimodifikasi!")
                     
                 current = self.memory[nama_root]['isi']
                 if not isinstance(current, dict):
-                    print(f"🚨 KERNEL PANIC! Takdir '{nama_root}' bukan sebuah wujud/objek yang bisa ditambahi titik!")
-                    import sys; sys.exit(1)
+                    raise TypeError(f"🚨 KERNEL PANIC! Takdir '{nama_root}' bukan sebuah wujud/objek yang bisa ditambahi titik!")
                     
                 for prop in rantai_nama[1:-1]:
                     if prop not in current or not isinstance(current[prop], dict):
@@ -496,7 +487,7 @@ class EnkiInterpreter:
             try:
                 with open(target_file, "r") as f: kode_sowan = f.read()
             except FileNotFoundError:
-                print(f"🚨 Bencana Sowan! Kitab '{target_file}' tidak ditemukan."); import sys; sys.exit(1)
+                raise FileNotFoundError(f"🚨 Bencana Sowan! Kitab '{target_file}' tidak ditemukan.")
             tokens_sowan = enki_lexer(kode_sowan)
             parser_sowan = EnkiParser(tokens_sowan)
             ast_sowan = parser_sowan.parse()
@@ -528,8 +519,7 @@ class EnkiInterpreter:
             root_var = target_chain[0]
 
             if root_var not in self.memory:
-                print(f"🚨 KERNEL PANIC! Takdir '{root_var}' belum diciptakan!")
-                import sys; sys.exit(1)
+                raise NameError(f"🚨 KERNEL PANIC! Takdir '{root_var}' belum diciptakan!")
 
             # --- KALIBRASI: Menggunakan 'riwayat' dan 'isi' sesuai strukturmu ---
             riwayat = self.memory[root_var].get('riwayat', [])
@@ -592,8 +582,7 @@ class EnkiInterpreter:
                 except (ValueError, TypeError):
                     # Jika gagal (karena itu Teks atau Objek), periksa operatornya!
                     if pemb in ['>', '<', '>=', '<=']:
-                        print(f"🚨 KERNEL PANIC! Hukum Alam menolak membandingkan ukuran antara '{k_val}' dan '{kan_val}'. Operator '{pemb}' hanya untuk angka yang sah!")
-                        import sys; sys.exit(1)
+                        raise TypeError(f"🚨 KERNEL PANIC! Hukum Alam menolak membandingkan ukuran antara '{k_val}' dan '{kan_val}'. Operator '{pemb}' hanya untuk angka yang sah!")
                 
                 if pemb == '>': return k_val > kan_val
                 elif pemb == '<': return k_val < kan_val
@@ -710,7 +699,7 @@ if __name__ == "__main__":
     # Cek apakah user memasukkan nama file di terminal
     if len(sys.argv) < 2:
         print("🚨 Peringatan: Kamu lupa memasukkan kitab takdir!")
-        print("Cara pakai : python src/core/enki_interpreter.py <nama_file.unul>")
+        print("Cara pakai : unul ayo <nama_file.unul>")
         sys.exit(1)
         
     file_path = sys.argv[1]
@@ -734,4 +723,8 @@ if __name__ == "__main__":
         interpreter.jalankan()
         print("====================================")
     except Exception as e:
-        print(f"\n🔥 GAGAL EKSEKUSI: {e}")
+        print("\n=================================================")
+        print(f"🔥 KIAMAT SISTEM (FATAL UNCAUGHT ERROR) 🔥")
+        print(f"Pesan Alam Semesta: {e}")
+        print("=================================================")
+        sys.exit(1) # Ini adalah satu-satunya Hard Exit yang halal!
