@@ -22,7 +22,8 @@ typedef enum {
     AST_KONDISI,          // Kondisi (misal: umur > 10)
     AST_DEKLARASI_DATANG, // datang
     AST_PRAGMA_MEMORI,    // untuk array.dinamis / .statis
-    AST_PERINTAH_PERGI    // pergi
+    AST_PERINTAH_PERGI,    // pergi
+    AST_HUKUM_SIKLUS,     // effort X kali maka...
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
@@ -46,6 +47,10 @@ typedef struct ASTNode {
     struct ASTNode* syarat;     // Menunjuk ke AST_KONDISI
     struct ASTNode* blok_maka;  // Menunjuk ke blok perintah jika SAH
     struct ASTNode* blok_lain;  // Menunjuk ke blok perintah jika GAGAL (else)
+
+    struct ASTNode* batas_loop;  // Menunjuk ke node jumlah perulangan
+    struct ASTNode* blok_siklus; // Menunjuk ke blok perintah yang diulang
+
     char* pembanding;           // Teks operator, misal "==" atau ">"
 
 } ASTNode;

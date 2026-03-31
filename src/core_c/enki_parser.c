@@ -31,6 +31,8 @@ ASTNode* buat_node(ASTJenis jenis) {
     node->blok_maka = NULL;
     node->blok_lain = NULL;
     node->pembanding = NULL;
+    node->batas_loop = NULL;
+    node->blok_siklus = NULL;
     return node;
 }
 
@@ -58,6 +60,9 @@ void bebaskan_ast(ASTNode* node) {
         bebaskan_ast(node->anak_anak[i]);
     }
     if (node->anak_anak) free(node->anak_anak);
+    if (node->batas_loop) bebaskan_ast(node->batas_loop);
+    if (node->blok_siklus) bebaskan_ast(node->blok_siklus);
+    
     free(node);
 }
 
@@ -203,6 +208,36 @@ ASTNode* parse_pernyataan(Parser* p) {
         }
 
         // E. Lewati kata 'putus'
+        Token t_putus = token_sekarang(p);
+        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
+
+        return node;
+    }
+
+    // 4. Apakah ini HUKUM SIKLUS? (effort X kali maka ... putus)
+    if (t.jenis == TOKEN_SIKLUS && strcmp(t.isi, "effort") == 0) {
+        ASTNode* node = buat_node(AST_HUKUM_SIKLUS);
+        maju(p); // lewati kata 'effort'
+
+        // Tangkap jumlah (bisa angka "5" atau variabel "batas")
+        node->batas_loop = parse_ekspresi(p);
+
+        // Lewati 'kali' dan 'maka'
+        Token t_kali = token_sekarang(p);
+        if (t_kali.jenis == TOKEN_SIKLUS && strcmp(t_kali.isi, "kali") == 0) maju(p);
+        Token t_maka = token_sekarang(p);
+        if (t_maka.jenis == TOKEN_KARMA && strcmp(t_maka.isi, "maka") == 0) maju(p);
+
+        // Tangkap isi blok perulangan
+        node->blok_siklus = buat_node(AST_PROGRAM);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_siklus, stmt);
+        }
+
+        // Lewati kata 'putus'
         Token t_putus = token_sekarang(p);
         if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
 

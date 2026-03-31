@@ -196,6 +196,18 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         // [Persiapan] Nanti kita gunakan untuk mengubah mode RAM (.ko / .ku)
         // printf("[SISTEM] Mode Memori: %s\n", node->nilai_teks);
     }
+
+    // 5. Eksekusi HUKUM SIKLUS (Perulangan)
+    else if (node->jenis == AST_HUKUM_SIKLUS) {
+        char* nilai_batas = evaluasi_ekspresi(node->batas_loop, ram);
+        int batas = atoi(nilai_batas); // Transmutasi teks/memori ke angka murni (Integer)
+        free(nilai_batas); // Buang sampah agar memori aman
+
+        // Perulangan ala C (Kecepatan Cahaya)
+        for (int i = 0; i < batas; i++) {
+            eksekusi_program(node->blok_siklus, ram);
+        }
+    }
 }
 
 // --- 4. EKSEKUSI PROGRAM UTAMA ---

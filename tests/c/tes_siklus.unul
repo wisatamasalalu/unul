@@ -1,0 +1,12 @@
+datang
+untuk array.dinamis
+
+takdir.soft batas = 3
+ketik("Mesin C memulai rotasi:")
+
+effort batas kali maka
+    ketik(">> Siklus berputar menembus memori!")
+putus
+
+ketik("Rotasi selesai dengan selamat.")
+pergi
