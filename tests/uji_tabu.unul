@@ -1,0 +1,17 @@
+^^ Aktifkan mode Debug di .anu untuk melihat Full Stack Trace di file .diary
+butuh .anu
+datang untuk array.dinamis
+
+ketik("1. Mulai ritual berbahaya...")
+
+coba maka
+    takdir.soft a = 10
+    takdir.soft bencana = a / 0
+    ketik("Ini tidak akan tercetak!")
+tabu melanggar nama_error maka
+    ketik("🚨 KERNEL PANIC BERHASIL DITAHAN!")
+    ketik("Sistem komplain:")
+    ketik(nama_error)
+pasrah
+
+ketik("2. Mesin tetap hidup dengan damai.")

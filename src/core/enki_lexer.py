@@ -9,7 +9,14 @@ def enki_lexer(source_code):
         ('TAKDIR',    r'takdir\.(hard|soft)'), # Mengenali takdir.hard atau takdir.soft
         ('FUNGSI',    r'\b(ketik|dengar|tunggu|jeda)\b'),               
         ('TEKS',      r"('[^']*'|\"[^\"]*\")"), 
-        ('KARMA',     r'\b(jika|maka|putus|lain)\b'), 
+        ('KARMA',     r'\b(jika|maka|putus|lain)\b'),
+        # --- KEAJAIBAN BARU (HUKUM TABU / ERROR HANDLING) ---
+        ('COBA',      r'\bcoba\b'),
+        ('TABU',      r'\btabu\b'),
+        ('MELANGGAR', r'\bmelanggar\b'),
+        ('TEBUS',     r'\btebus\b'),
+        ('PASRAH',    r'\bpasrah\b'),
+        # ----------------------------------------------------
         ('SIKLUS',    r'\b(effort|kali)\b'), 
         ('PENCIPTAAN',r'\b(ciptakan|fungsi)\b'), 
         ('KONTROL',   r'\b(henti|pergi|pulang|balikan)\b'),

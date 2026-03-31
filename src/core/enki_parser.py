@@ -53,6 +53,8 @@ class EnkiParser:
                 self.ast.append(self.parse_identitas_aksi())
             elif token[0] == 'SOWAN':
                 self.ast.append(self.parse_sowan())
+            elif token[0] == 'COBA':
+                self.ast.append(self.parse_tabu())
             else:
                 self.pos += 1 
         return self.ast
@@ -275,6 +277,7 @@ class EnkiParser:
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
             elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
+            elif token_cek[0] == 'COBA': aksi.append(self.parse_tabu())
             else: self.pos += 1
                 
         token_penutup = self.makan_token('KARMA') # Makan 'putus' atau 'lain'
@@ -292,6 +295,7 @@ class EnkiParser:
                 elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi_lain.append(self.parse_karma())
                 elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi_lain.append(self.parse_siklus())
                 elif token_cek[0] == 'IDENTITAS': aksi_lain.append(self.parse_panggilan_fungsi())
+                elif token_cek[0] == 'COBA': aksi_lain.append(self.parse_tabu())
                 else: self.pos += 1
             self.makan_token('KARMA')
 
@@ -327,6 +331,7 @@ class EnkiParser:
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
             elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
+            elif token_cek[0] == 'COBA': aksi.append(self.parse_tabu())
             else: self.pos += 1
                 
         self.makan_token('KARMA') # Makan kata 'putus'
@@ -334,6 +339,63 @@ class EnkiParser:
         return {
             'tipe': 'HUKUM_SIKLUS', 'jumlah': jumlah, 'aksi': aksi
         }
+
+    def parse_tabu(self):
+        node = {'tipe': 'HUKUM_TABU', 'blok_coba': [], 'blok_tebus': [], 'pesan_tabu': None}
+        self.makan_token('COBA')
+        self.makan_token('KARMA') # makan 'maka'
+
+        # 1. BACA BLOK COBA
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] in ['TABU', 'TEBUS', 'PASRAH']:
+                break
+                
+            if token_cek[0] == 'TAKDIR': node['blok_coba'].append(self.parse_takdir())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': node['blok_coba'].append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: node['blok_coba'].append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL': node['blok_coba'].append(self.parse_kontrol())
+            elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': node['blok_coba'].append(self.parse_karma())
+            elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': node['blok_coba'].append(self.parse_siklus())
+            elif token_cek[0] == 'IDENTITAS': node['blok_coba'].append(self.parse_identitas_aksi())
+            elif token_cek[0] == 'SOWAN': node['blok_coba'].append(self.parse_sowan())
+            elif token_cek[0] == 'COBA': node['blok_coba'].append(self.parse_tabu()) # Rekursif (coba di dalam coba)
+            else: self.pos += 1
+
+        # 2. BACA BLOK PENANGKAP (TABU/TEBUS)
+        token_cek = self.panggil_token()
+        if token_cek and token_cek[0] == 'TABU':
+            self.makan_token('TABU')
+            if self.panggil_token() and self.panggil_token()[0] == 'MELANGGAR':
+                self.makan_token('MELANGGAR')
+                # Tangkap wadah (variabel) error-nya
+                if self.panggil_token()[0] == 'IDENTITAS':
+                    node['pesan_tabu'] = self.makan_token('IDENTITAS')[1]
+            self.makan_token('KARMA') # makan 'maka'
+        elif token_cek and token_cek[0] == 'TEBUS':
+            self.makan_token('TEBUS')
+            self.makan_token('KARMA') # makan 'maka'
+
+        # 3. BACA AKSI PENEBUSAN ERROR
+        while self.pos < len(self.tokens):
+            token_cek = self.panggil_token()
+            if token_cek and token_cek[0] == 'PASRAH':
+                break
+                
+            if token_cek[0] == 'TAKDIR': node['blok_tebus'].append(self.parse_takdir())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] == 'ketik': node['blok_tebus'].append(self.parse_ketik())
+            elif token_cek[0] == 'FUNGSI' and token_cek[1] in ['tunggu', 'jeda']: node['blok_tebus'].append(self.parse_waktu())
+            elif token_cek[0] == 'KONTROL': node['blok_tebus'].append(self.parse_kontrol())
+            elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': node['blok_tebus'].append(self.parse_karma())
+            elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': node['blok_tebus'].append(self.parse_siklus())
+            elif token_cek[0] == 'IDENTITAS': node['blok_tebus'].append(self.parse_identitas_aksi())
+            elif token_cek[0] == 'SOWAN': node['blok_tebus'].append(self.parse_sowan())
+            elif token_cek[0] == 'COBA': node['blok_tebus'].append(self.parse_tabu())
+            else: self.pos += 1
+
+        # 4. PASRAH (Penutup)
+        self.makan_token('PASRAH')
+        return node    
 
     def parse_ciptaan(self):
         self.makan_token('PENCIPTAAN') # makan 'ciptakan'
@@ -372,6 +434,7 @@ class EnkiParser:
             elif token_cek[0] == 'KARMA' and token_cek[1] == 'jika': aksi.append(self.parse_karma())
             elif token_cek[0] == 'SIKLUS' and token_cek[1] == 'effort': aksi.append(self.parse_siklus())
             elif token_cek[0] == 'IDENTITAS': aksi.append(self.parse_identitas_aksi())
+            elif token_cek[0] == 'COBA': aksi.append(self.parse_tabu())
             else: self.pos += 1 
                 
         self.makan_token('KARMA') # makan 'putus'

@@ -648,10 +648,59 @@ class EnkiInterpreter:
                         break
                 if berhenti: break
 
+        elif node['tipe'] == 'HUKUM_TABU':
+            error_terjadi = False
+            pesan_error = ""
+            stack_trace = ""
+            
+            # 1. Jalankan blok COBA
+            try:
+                for perintah in node.get('blok_coba', []):
+                    hasil = self.eksekusi_node(perintah)
+                    if isinstance(hasil, dict) and hasil.get('tipe') == 'PULANG':
+                        return hasil
+            except Exception as e:
+                import traceback
+                error_terjadi = True
+                pesan_error = str(e)
+                stack_trace = traceback.format_exc()
+                
+                # Sihir Pencatatan Jejak Memori (.diary)
+                self.catat_diary(pesan_error, stack_trace)
+
+            # 2. Jika Sistem Hancur, jalankan blok TEBUS/TABU
+            if error_terjadi:
+                if node.get('pesan_tabu'):
+                    self.variables[node['pesan_tabu']] = pesan_error
+                
+                for perintah in node.get('blok_tebus', []):
+                    hasil = self.eksekusi_node(perintah)
+                    if isinstance(hasil, dict) and hasil.get('tipe') == 'PULANG':
+                        return hasil
+            return None        
+
     # Fungsi utama yang dijalankan pertama kali
     def jalankan(self):
         for node in self.ast:
             self.eksekusi_node(node)
+
+    def catat_diary(self, pesan, stack_trace):
+        """Menulis Kernel Panic & Stack Trace ke file .diary"""
+        import datetime
+        waktu = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Integrasi: Cek mode di .anu (1 untuk Debug / Full Stack Trace, 0 untuk Minimal)
+        mode_debug = self.variables.get('MODE_DEBUG', "0")
+        
+        with open("enki_sistem.diary", "a") as f:
+            f.write(f"=== [TABU DILANGGAR] ===\n")
+            f.write(f"Waktu Kejadian : {waktu}\n")
+            f.write(f"Pesan Alam     : {pesan}\n")
+            
+            # Tulis full stack trace hanya jika sedang mode DEBUG
+            if mode_debug == "1":
+                f.write(f"Jejak Memori (Stack Trace):\n{stack_trace}\n")
+            f.write("========================\n\n")        
 
 # --- BLOK EKSEKUSI UTAMA ---
 if __name__ == "__main__":
