@@ -26,10 +26,10 @@ def simpan_ingatan(data):
 
 def main():
     if len(sys.argv) < 2:
-        print("=== UNUL CLI - Galeri Langkah Bahagia ===")
+        print("=== UNUL CLI - Unifed Native Universal Language ===")
         print("Eksekusi : unul ayo <kitab.unul>")
-        print("RAM Add  : unul ingat | rindu <kitab.unul>")
-        print("RAM Del  : unul lupa | lepas <kitab.unul> / semua")
+        print("Cache Add  : unul ingat | rindu <kitab.unul>")
+        print("Cache Del  : unul lupa | lepas <kitab.unul> / semua")
         sys.exit(1)
 
     perintah = sys.argv[1]

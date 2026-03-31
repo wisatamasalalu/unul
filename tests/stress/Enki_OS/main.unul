@@ -1,0 +1,71 @@
+^^ ===================================================
+^^ ENKI OS - SIMULASI TERMINAL MUTLAK
+^^ ===================================================
+datang untuk array.dinamis
+butuh .anu
+
+^^ Sowan ke folder lib (Membuktikan import lintas folder)
+sowan "lib/sistem.unll"
+sowan "lib/keamanan.unll"
+
+bersihkan()
+ketik("=== SELAMAT DATANG DI ENKI OS ===")
+ketik("Versi: ")
+ketik(VERSI)
+
+^^ 1. MENGUJI 'dengar' (Pasif/Jeda)
+ketik("Tekan [ENTER] untuk membangunkan inti sistem...")
+dengar()
+
+^^ 2. MENGUJI 'tanya' (Interaktif/Menyimpan Nilai)
+ketik(" ")
+takdir.soft id_user = tanya("Masukkan ID Operator (Misal: ENK777) : ")
+
+takdir.soft status_id = validasi_id(id_user)
+
+jika status_id != "SAH" maka
+    ketik("🚨 AKSES DITOLAK! Format ID melanggar Hukum Enlil.")
+    pergi
+putus
+
+ketik(" ")
+takdir.soft sandi_user = bisik("Masukkan Sandi Root (Tersembunyi): ")
+
+^^ 3. MENGUJI RAM (.anu) & TRANSMUTASI
+jika sandi_user == KUNCI_ROOT maka
+    ketik("✅ AKSES DITERIMA!")
+    ketik("Sandi terenkripsi dalam memori: ")
+    ketik(enkripsi_sandi(sandi_user))
+lain
+    ketik("🚨 KUNCI ROOT SALAH!")
+    pergi
+putus
+
+^^ 4. MENGUJI KAVLING BERTINGKAT & MESIN WAKTU (Undo)
+ketik(" ")
+ketik("--- MENGUJI MESIN WAKTU ---")
+ketik("Status Jaringan Awal: ")
+ketik(memori_sistem.koneksi)
+
+memori_sistem.koneksi = "Menyambungkan..."
+ketik("Status Berubah: ")
+ketik(memori_sistem.koneksi)
+
+balikan memori_sistem.koneksi
+ketik("Status Di-undo (Kembali ke Masa Lalu): ")
+ketik(memori_sistem.koneksi)
+
+^^ 5. MENGUJI SIKLUS & TABU LINTAS FILE
+ketik(" ")
+ketik("--- MENGUJI SIKLUS & JARINGAN ---")
+effort 2 kali maka
+    hubungkan_jaringan()
+putus
+
+ketik(" ")
+ketik("============================================")
+ketik("🏆 ENKI OS BERHASIL BOOTING DENGAN SEMPURNA!")
+ketik("Semua fitur tingkat dewa telah teruji.")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

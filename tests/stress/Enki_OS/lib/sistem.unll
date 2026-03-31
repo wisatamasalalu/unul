@@ -1,0 +1,15 @@
+^^ Pustaka Sistem OS
+takdir.soft memori_sistem = {}
+memori_sistem.koneksi = "Terputus"
+
+ciptakan fungsi hubungkan_jaringan() maka
+    coba maka
+        ketik(">> Mencari sinyal utusan gaib...")
+        takdir.soft data = ambil("https://httpbin.org/get")
+        memori_sistem.koneksi = "Tersambung"
+        ketik(">> Sinyal ditemukan!")
+    tabu melanggar e maka
+        memori_sistem.koneksi = "Gagal"
+        ketik(">> Sinyal terhalang tembok gaib.")
+    pasrah
+putus

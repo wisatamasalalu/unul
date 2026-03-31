@@ -1,0 +1,15 @@
+^^ Pustaka Keamanan (Hanya Logika, Tanpa Interaksi Langsung)
+
+ciptakan fungsi validasi_id(id_masuk) maka
+    ^^ Menguji Regex: ID harus 3 Huruf Besar diikuti 3 Angka
+    jika cocok_pola(id_masuk, "^[A-Z]{3}[0-9]{3}$") == "0" maka
+        pulang "DITOLAK_FORMAT"
+    putus
+    pulang "SAH"
+putus
+
+ciptakan fungsi enkripsi_sandi(teks_sandi) maka
+    ^^ Menguji Transmutasi ASCII dan Biner
+    takdir.soft huruf_pertama = ke_ascii(teks_sandi)
+    pulang ke_biner(huruf_pertama)
+putus

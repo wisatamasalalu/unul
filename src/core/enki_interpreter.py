@@ -217,6 +217,11 @@ class EnkiInterpreter:
                 prompt = str(args_evaluated[0]) if args_evaluated else "> "
                 return input(prompt)
 
+            elif nama == 'bisik':
+                import getpass
+                prompt = str(args_evaluated[0]) if args_evaluated else "Sandi: "
+                return getpass.getpass(prompt)
+
             # 3. Pustaka Waktu & Angka Acak
             elif nama == 'waktu_sekarang':
                 import time
