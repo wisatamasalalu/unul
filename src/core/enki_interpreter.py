@@ -1,6 +1,17 @@
 from enki_lexer import enki_lexer
 from enki_parser import EnkiParser
 import copy
+import sys
+import os
+import re  # Hukum Pola Sakti (Regex)
+import json
+import time
+import random
+import urllib.request
+try:
+    import readline
+except ImportError:
+    pass
 
 class EnkiInterpreter:
     def __init__(self, ast):
@@ -195,7 +206,7 @@ class EnkiInterpreter:
                 print(f"🚨 KERNEL PANIC! Takdir '{nama_root}' tidak ditemukan!"); import sys; sys.exit(1)
         # --------------------------------------------
 
-        # --- TAMBAHAN BARU: EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
+        # --- EKSEKUSI FUNGSI KUSTOM & BAWAAN (TABLET OF DESTINIES) ---
         if isinstance(nilai_mentah, dict) and nilai_mentah.get('tipe') == 'PANGGILAN_FUNGSI':
             nama = nilai_mentah['nama']
             args_evaluated = [self.evaluasi_nilai(a) for a in nilai_mentah['argumen']]
@@ -204,90 +215,109 @@ class EnkiInterpreter:
             if hasattr(self, 'functions') and nama in self.functions:
                 return self.eksekusi_fungsi_kustom(nama, args_evaluated)
 
-            # 2. Pustaka Waktu
+            # 2. Pustaka Interaksi & Input (WAJIB ADA)
+            elif nama == 'tanya':
+                prompt = str(args_evaluated[0]) if args_evaluated else "> "
+                return input(prompt)
+
+            # 3. Pustaka Waktu & Angka Acak
             elif nama == 'waktu_sekarang':
                 import time
                 return str(int(time.time()))
-
-            # 3. Pustaka Matematika
             elif nama == 'acak':
                 import random
                 return str(random.randint(int(args_evaluated[0]), int(args_evaluated[1])))
 
-            # 4. Pustaka Teks
-            # 4. Pustaka Teks
+            # 4. MATRIKS TRANSMUTASI (Dec, Hex, Bin, Oct, ASCII) - BARU!
+            elif nama in ['ke_desimal', 'ke_angka']:
+                try: return str(int(str(args_evaluated[0]), 0))
+                except: return "0"
+            elif nama == 'ke_hex':
+                try: return hex(int(str(args_evaluated[0]), 0))
+                except: return "0x0"
+            elif nama == 'ke_biner':
+                try: return bin(int(str(args_evaluated[0]), 0))
+                except: return "0b0"
+            elif nama == 'ke_oktal':
+                try: return oct(int(str(args_evaluated[0]), 0))
+                except: return "0o0"
+            elif nama == 'ke_ascii':
+                teks = str(args_evaluated[0]).strip('"\'')
+                return str(ord(teks[0])) if teks else "0"
+            elif nama in ['dari_ascii', 'ke_karakter']:
+                try: return chr(int(str(args_evaluated[0]), 0))
+                except: return ""
+
+            # 5. Pustaka Teks & Pola Murni (True Regex)
             elif nama in ['panjang_teks', 'panjang']:
-                return str(len(str(args_evaluated[0])))
-            elif nama == 'panjang_teks':
                 return str(len(str(args_evaluated[0])))
             elif nama == 'huruf_besar':
                 return str(args_evaluated[0]).upper()
             elif nama == 'huruf_kecil':
                 return str(args_evaluated[0]).lower()
+            elif nama == 'cocok_pola':
+                import re
+                teks, pola = str(args_evaluated[0]), str(args_evaluated[1])
+                try:
+                    return "1" if re.search(pola, teks) else "0"
+                except: return "0"
 
-            # 5. Protokol Utusan (Internet via GET)
+            # 6. Protokol Utusan (Internet via GET/POST)
             elif nama == 'ambil':
-                import urllib.request
+                import urllib.request, json
                 url = str(args_evaluated[0]).strip('"\'')
                 try:
-                    # Menggunakan urllib bawaan agar tidak perlu install library eksternal
-                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'})
-                    with urllib.request.urlopen(req) as respon:
-                        teks_balasan = respon.read().decode('utf-8')
-                        try:
-                            import json
-                            return json.loads(teks_balasan) # Otomatis disulap jadi Objek UNUL!
-                        except json.JSONDecodeError:
-                            return teks_balasan # Biarkan teks jika bukan JSON
-                except Exception as e:
-                    return f"🚨 Gagal Ambil Data dari Awan: {e}"
+                    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as r:
+                        resp = r.read().decode('utf-8')
+                        try: return json.loads(resp)
+                        except: return resp
+                except Exception as e: return f"🚨 Gagal Ambil: {e}"
 
             elif nama == 'setor':
-                import urllib.request
-                import json
-                
-                url = str(args_evaluated[0]).strip('"\'')
-                data_mentah = args_evaluated[1]
-                
+                import urllib.request, json
+                url, data_mentah = str(args_evaluated[0]).strip('"\''), args_evaluated[1]
                 try:
-                    # Otomatis ubah Array UNUL jadi JSON
-                    if isinstance(data_mentah, list) or isinstance(data_mentah, dict):
-                        data_string = json.dumps(data_mentah)
-                        headers = {'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0'}
-                    else:
-                        data_string = str(data_mentah)
-                        headers = {'Content-Type': 'text/plain', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0'}
-                        
-                    data_bytes = data_string.encode('utf-8')
-                    req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
-                    
-                    with urllib.request.urlopen(req) as respon:
-                        teks_balasan = respon.read().decode('utf-8')
-                        try:
-                            import json
-                            return json.loads(teks_balasan) # Otomatis disulap jadi Objek UNUL!
-                        except json.JSONDecodeError:
-                            return teks_balasan # Biarkan teks jika bukan JSON
-                except Exception as e:
-                    return f"🚨 Gagal Setor Data ke Awan: {e}"
+                    data_string = json.dumps(data_mentah) if isinstance(data_mentah, (list, dict)) else str(data_mentah)
+                    req = urllib.request.Request(url, data=data_string.encode(), method='POST', headers={'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as r:
+                        resp = r.read().decode('utf-8')
+                        try: return json.loads(resp)
+                        except: return resp
+                except Exception as e: return f"🚨 Gagal Setor: {e}"
 
-            # --- PUSTAKA ANGKA & BASIS MESIN ---
+            # --- PUSTAKA ANGKA & BASIS MESIN (TRANSMUTASI MATRIX) ---
             elif nama == 'bulatkan':
                 angka = float(args_evaluated[0])
-                # Jika user tidak menyebutkan jumlah digit, default ke 0
                 digit = int(args_evaluated[1]) if len(args_evaluated) > 1 else 0
                 hasil = round(angka, digit)
                 return str(int(hasil)) if hasil.is_integer() else str(hasil)
+                
+            elif nama in ['ke_desimal', 'ke_angka']:
+                try: return str(int(str(args_evaluated[0]), 0))
+                except Exception: return "0"
             
-            elif nama == 'ke_hex': return hex(int(args_evaluated[0]))
-            elif nama == 'ke_biner': return bin(int(args_evaluated[0]))
-            elif nama == 'ke_oktal': return oct(int(args_evaluated[0]))
+            elif nama == 'ke_hex': 
+                try: return hex(int(str(args_evaluated[0]), 0))
+                except Exception: return "0x0"
+                
+            elif nama == 'ke_biner': 
+                try: return bin(int(str(args_evaluated[0]), 0))
+                except Exception: return "0b0"
+                
+            elif nama == 'ke_oktal': 
+                try: return oct(int(str(args_evaluated[0]), 0))
+                except Exception: return "0o0"
             
             elif nama == 'ke_ascii': 
-                teks = str(args_evaluated[0]).strip('"\'')
-                return str(ord(teks[0])) if teks else "0"
-            elif nama == 'dari_ascii': 
-                return chr(int(args_evaluated[0]))
+                try: 
+                    teks = str(args_evaluated[0]).strip('"\'')
+                    return str(ord(teks[0])) if teks else "0"
+                except Exception: return "0"
+                
+            elif nama in ['dari_ascii', 'ke_karakter', 'ke_huruf']: 
+                try: return chr(int(str(args_evaluated[0]), 0))
+                except Exception: return ""
             # -----------------------------------
 
             # --- KEAJAIBAN BARU: FUNGSI EVALUASI (DYNAMIC EVAL) ---

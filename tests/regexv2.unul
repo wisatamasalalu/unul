@@ -1,0 +1,39 @@
+^^ UJI VALIDASI TINGKAT DEWA (TRUE REGEX)
+datang
+untuk array.statis
+
+ketik("=================================================")
+ketik("   UJI VALIDASI TINGKAT DEWA (TRUE REGEX)        ")
+ketik("=================================================")
+
+^^ 1. VALIDASI NIK (Harus Murni 16 Digit Angka)
+ketik("1. Masukkan NIK (16 Digit): ")
+takdir.soft nik = tanya("> ")
+jika cocok_pola(nik, "^[0-9]{16}$") == "0" maka
+    ketik("🚨 KESALAHAN: NIK harus murni 16 digit angka!")
+lain
+    ketik(">> NIK Diterima: ")
+    ketik(nik)
+putus
+
+^^ 2. VALIDASI TANGGAL LAHIR (Pola DD-MM-YYYY atau DD/MM/YYYY)
+ketik("2. Masukkan Tanggal Lahir (DD-MM-YYYY atau DD/MM/YYYY): ")
+takdir.soft tgl = tanya("> ")
+jika cocok_pola(tgl, "^[0-9]{2}[-/][0-9]{2}[-/][0-9]{4}$") == "0" maka
+    ketik("🚨 KESALAHAN: Format salah! Harus angka dan dipisah dengan - atau /")
+lain
+    ketik(">> Tanggal Lahir Diterima: ")
+    ketik(tgl)
+putus
+
+^^ 3. VALIDASI EMAIL (Pola Standar Email)
+ketik("3. Masukkan Email Anda: ")
+takdir.soft email = tanya("> ")
+jika cocok_pola(email, "^[a-zA-Z0-9._]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$") == "0" maka
+    ketik("🚨 KESALAHAN: Email tidak valid!")
+lain
+    ketik(">> Email Diterima: ")
+    ketik(email)
+putus
+
+pergi

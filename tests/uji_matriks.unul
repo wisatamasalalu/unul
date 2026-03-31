@@ -1,0 +1,28 @@
+^^ UJI COBA MATRIKS TRANSMUTASI 4 ARAH
+datang
+untuk array.statis
+
+takdir.soft nilai_awal = 15
+
+ketik("=== TRANSMUTASI DARI DESIMAL (15) ===")
+takdir.soft wujud_biner = ke_biner(nilai_awal)
+takdir.soft wujud_hex = ke_hex(nilai_awal)
+ketik(wujud_biner)  ^^ Akan mencetak: 0b1111
+ketik(wujud_hex)    ^^ Akan mencetak: 0xf
+
+ketik("=== TRANSMUTASI DARI HEX (0xFF) ===")
+takdir.soft nilai_hex = "0xFF"
+ketik(ke_desimal(nilai_hex)) ^^ Akan mencetak: 255
+ketik(ke_biner(nilai_hex))   ^^ Akan mencetak: 0b11111111
+
+ketik("=== TRANSMUTASI ASCII <-> KARAKTER ===")
+takdir.soft sandi = ke_ascii("Z")
+ketik(sandi)                 ^^ Akan mencetak: 90
+ketik(ke_karakter(sandi))    ^^ Akan mencetak: Z
+
+ketik("=== UJI COBA TRUE REGEX ===")
+takdir.soft cek_nik = cocok_pola("1234567890123456", "^[0-9]{16}$")
+jika cek_nik == "1" maka
+    ketik("Status NIK: Sah dan Murni Angka!")
+putus
+pergi
