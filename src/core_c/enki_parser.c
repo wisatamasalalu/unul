@@ -26,6 +26,7 @@ ASTNode* buat_node(ASTJenis jenis) {
     node->nilai_teks = NULL;
     node->kiri = NULL;
     node->kanan = NULL;
+    node->operator_math = NULL;
     return node;
 }
 

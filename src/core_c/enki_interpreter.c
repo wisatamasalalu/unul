@@ -60,36 +60,68 @@ const char* baca_dari_ram(EnkiRAM* ram, const char* nama) {
     return NULL; 
 }
 
+// Fungsi Bantuan: Menghapus kutip ganda/tunggal di ujung teks (seperti .strip() di Python)
+void bersihkan_kutip(char* teks) {
+    int len = strlen(teks);
+    if (len >= 2 && (teks[0] == '"' || teks[0] == '\'') && (teks[len-1] == '"' || teks[len-1] == '\'')) {
+        memmove(teks, teks + 1, len - 2);
+        teks[len - 2] = '\0';
+    }
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
     
-    // Jika Teks Asli ("Halo")
     if (node->jenis == AST_LITERAL_TEKS) {
-        return strdup(node->nilai_teks);
+        char* teks_bersih = strdup(node->nilai_teks);
+        bersihkan_kutip(teks_bersih); // Hapus kutip sebelum masuk memori!
+        return teks_bersih;
     }
     
-    // Jika Identitas / Variabel (nama_user) -> Panggil dari RAM!
     if (node->jenis == AST_IDENTITAS) {
         const char* memori = baca_dari_ram(ram, node->nilai_teks);
-        if (memori) {
-            return strdup(memori);
-        } else {
-            printf("🚨 KERNEL PANIC! Takdir '%s' belum diciptakan!\n", node->nilai_teks);
-            exit(1);
-        }
+        if (memori) return strdup(memori);
+        printf("🚨 KERNEL PANIC! Takdir '%s' belum diciptakan!\n", node->nilai_teks);
+        exit(1);
     }
     
-    // Jika memanggil fungsi dengar()
     if (node->jenis == AST_FUNGSI_DENGAR) {
-        char buffer[1024];
-        printf("> "); // Tanda prompt
+        char buffer[1024] = {0};
+        printf("> ");
         if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-            // Hapus enter (\n) di akhir input
             buffer[strcspn(buffer, "\n")] = '\0';
             return strdup(buffer);
         }
         return strdup("");
+    }
+
+    // --- KEAJAIBAN BARU: OPERASI MATEMATIKA & GABUNG TEKS ---
+    if (node->jenis == AST_OPERASI_MATEMATIKA) {
+        char* hasil_kiri = evaluasi_ekspresi(node->kiri, ram);
+        char* hasil_kanan = evaluasi_ekspresi(node->kanan, ram);
+        
+        // C kaku! Kita harus pesan memori bersih dan kosong untuk hasilnya
+        char* hasil_akhir = (char*)malloc(1024);
+        memset(hasil_akhir, 0, 1024);
+
+        if (node->operator_math && strcmp(node->operator_math, "+") == 0) {
+            double angka_kiri = atof(hasil_kiri);
+            double angka_kanan = atof(hasil_kanan);
+
+            // Deteksi cerdas: Apakah ini teks murni?
+            if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
+                (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
+                // Ada teks, gabungkan string!
+                snprintf(hasil_akhir, 1024, "%s%s", hasil_kiri, hasil_kanan);
+            } else {
+                // Keduanya angka murni, jumlahkan!
+                snprintf(hasil_akhir, 1024, "%g", angka_kiri + angka_kanan);
+            }
+        }
+        
+        free(hasil_kiri); free(hasil_kanan);
+        return hasil_akhir;
     }
     
     return strdup("");

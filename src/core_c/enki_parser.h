@@ -16,7 +16,7 @@ typedef enum {
     AST_FUNGSI_DENGAR,    // dengar()
     AST_LITERAL_TEKS,     // "Sebuah Teks"
     AST_IDENTITAS,        // nama_variabel
-    AST_TIDAK_DIKENAL     // Node kosong/error
+    AST_TIDAK_DIKENAL,     // Node kosong/error
     AST_OPERASI_MATEMATIKA // AST Matematika Dasar
 } ASTJenis;
 
