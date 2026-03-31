@@ -1,0 +1,20 @@
+datang
+untuk array.dinamis
+
+takdir.soft umur = 20
+
+ketik("Sistem memeriksa umur...")
+
+jika umur >= 18 maka
+    ketik("Akses Diterima! Kamu sudah dewasa.")
+    takdir.soft status = "Lolos"
+lain
+    ketik("Akses Ditolak! Masih di bawah umur.")
+    takdir.soft status = "Gagal"
+putus
+
+ketik("Status akhir: " + status)
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah mati di C!")

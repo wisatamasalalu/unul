@@ -27,6 +27,10 @@ ASTNode* buat_node(ASTJenis jenis) {
     node->kiri = NULL;
     node->kanan = NULL;
     node->operator_math = NULL;
+    node->syarat = NULL;
+    node->blok_maka = NULL;
+    node->blok_lain = NULL;
+    node->pembanding = NULL;
     return node;
 }
 
@@ -45,6 +49,10 @@ void bebaskan_ast(ASTNode* node) {
     if (node->nilai_teks) free(node->nilai_teks);
     if (node->kiri) bebaskan_ast(node->kiri);
     if (node->kanan) bebaskan_ast(node->kanan);
+    if (node->pembanding) free(node->pembanding);
+    if (node->syarat) bebaskan_ast(node->syarat);
+    if (node->blok_maka) bebaskan_ast(node->blok_maka);
+    if (node->blok_lain) bebaskan_ast(node->blok_lain);
     
     for (int i = 0; i < node->jumlah_anak; i++) {
         bebaskan_ast(node->anak_anak[i]);
@@ -102,6 +110,26 @@ ASTNode* parse_ekspresi(Parser* p) {
 ASTNode* parse_pernyataan(Parser* p) {
     Token t = token_sekarang(p);
 
+    // --- PENANGKAP TATA KRAMA (HEADER & KONTROL) ---
+    if (t.jenis == TOKEN_HEADER) {
+        ASTNode* node = buat_node(AST_DEKLARASI_DATANG);
+        maju(p); // lewati 'datang'
+        return node;
+    }
+    
+    if (t.jenis == TOKEN_PRAGMA) {
+        ASTNode* node = buat_node(AST_PRAGMA_MEMORI);
+        node->nilai_teks = strdup(t.isi); // Simpan info apakah dinamis/statis
+        maju(p); 
+        return node;
+    }
+    
+    if (t.jenis == TOKEN_KONTROL && strcmp(t.isi, "pergi") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_PERGI);
+        maju(p); // lewati 'pergi'
+        return node;
+    }
+
     // 1. Apakah ini perintah KETIK? (ketik("Halo"))
     if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "ketik") == 0) {
         ASTNode* node = buat_node(AST_PERINTAH_KETIK);
@@ -129,6 +157,55 @@ ASTNode* parse_pernyataan(Parser* p) {
         
         // Simpan nilai di simpul Kanan
         node->kanan = parse_ekspresi(p);
+        return node;
+    }
+
+    // 3. Apakah ini HUKUM KARMA? (jika ... maka ... lain ... putus)
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        ASTNode* node = buat_node(AST_HUKUM_KARMA);
+        maju(p); // lewati kata 'jika'
+
+        // A. Tangkap Syarat
+        node->syarat = buat_node(AST_KONDISI);
+        node->syarat->kiri = parse_ekspresi(p); // Sisi kiri (misal: umur)
+        
+        Token t_pembanding = token_sekarang(p);
+        if (t_pembanding.jenis == TOKEN_PEMBANDING) {
+            node->syarat->pembanding = strdup(t_pembanding.isi);
+            maju(p); // lewati simbol '=='
+            node->syarat->kanan = parse_ekspresi(p); // Sisi kanan (misal: 10)
+        }
+
+        // B. Lewati kata 'maka'
+        Token t_maka = token_sekarang(p);
+        if (t_maka.jenis == TOKEN_KARMA && strcmp(t_maka.isi, "maka") == 0) maju(p);
+
+        // C. Tangkap isi blok MAKA
+        node->blok_maka = buat_node(AST_PROGRAM);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            if (t_cek.jenis == TOKEN_KARMA && (strcmp(t_cek.isi, "lain") == 0 || strcmp(t_cek.isi, "putus") == 0)) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_maka, stmt);
+        }
+
+        // D. Cek apakah ada blok LAIN
+        Token t_lain = token_sekarang(p);
+        if (t_lain.jenis == TOKEN_KARMA && strcmp(t_lain.isi, "lain") == 0) {
+            maju(p); // lewati kata 'lain'
+            node->blok_lain = buat_node(AST_PROGRAM);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node->blok_lain, stmt);
+            }
+        }
+
+        // E. Lewati kata 'putus'
+        Token t_putus = token_sekarang(p);
+        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
+
         return node;
     }
 

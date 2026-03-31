@@ -127,6 +127,29 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     return strdup("");
 }
 
+// Fungsi Internal: Mengevaluasi Syarat Hukum Karma
+int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
+    if (!kondisi || !kondisi->pembanding) return 0;
+    
+    char* kiri = evaluasi_ekspresi(kondisi->kiri, ram);
+    char* kanan = evaluasi_ekspresi(kondisi->kanan, ram);
+    int hasil_sah = 0;
+
+    double num_kiri = atof(kiri);
+    double num_kanan = atof(kanan);
+
+    // Evaluasi Angka vs Angka dan Teks vs Teks
+    if (strcmp(kondisi->pembanding, "==") == 0) hasil_sah = (strcmp(kiri, kanan) == 0);
+    else if (strcmp(kondisi->pembanding, "!=") == 0) hasil_sah = (strcmp(kiri, kanan) != 0);
+    else if (strcmp(kondisi->pembanding, ">") == 0) hasil_sah = (num_kiri > num_kanan);
+    else if (strcmp(kondisi->pembanding, "<") == 0) hasil_sah = (num_kiri < num_kanan);
+    else if (strcmp(kondisi->pembanding, ">=") == 0) hasil_sah = (num_kiri >= num_kanan);
+    else if (strcmp(kondisi->pembanding, "<=") == 0) hasil_sah = (num_kiri <= num_kanan);
+
+    free(kiri); free(kanan);
+    return hasil_sah; // 1 (True) atau 0 (False)
+}
+
 // --- 3. EKSEKUSI NODE (MENJALANKAN PERINTAH) ---
 void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     if (!node) return;
@@ -145,6 +168,33 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         
         simpan_ke_ram(ram, nama_variabel, hasil_kanan);
         free(hasil_kanan);
+    }
+
+    // 3. Eksekusi HUKUM KARMA (Percabangan)
+    else if (node->jenis == AST_HUKUM_KARMA) {
+        int sah = evaluasi_kondisi(node->syarat, ram);
+        
+        if (sah) {
+            // Jika syarat terpenuhi, jalankan blok MAKA
+            eksekusi_program(node->blok_maka, ram);
+        } else if (node->blok_lain) {
+            // Jika gagal, dan ada blok LAIN, jalankan blok LAIN
+            eksekusi_program(node->blok_lain, ram);
+        }
+    }
+
+    // 4. Eksekusi KONTROL & TATA KRAMA
+    else if (node->jenis == AST_PERINTAH_PERGI) {
+        // PERGI = Membunuh proses OS secara langsung dengan damai (Return Code 0)
+        exit(0); 
+    }
+    else if (node->jenis == AST_DEKLARASI_DATANG) {
+        // [Opsional] Bisa diam saja, atau cetak log rahasia
+        // printf("[SISTEM] Pintu masuk alam semesta dibuka...\n");
+    }
+    else if (node->jenis == AST_PRAGMA_MEMORI) {
+        // [Persiapan] Nanti kita gunakan untuk mengubah mode RAM (.ko / .ku)
+        // printf("[SISTEM] Mode Memori: %s\n", node->nilai_teks);
     }
 }
 

@@ -129,10 +129,24 @@ TokenArray enki_lexer(const char* kode_sumber) {
             continue;
         }
 
-        // 4.6 Tangkap Operator Matematika & Assignment
-        if (c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
-            char op_str[2] = {c, '\0'};
-            TokenJenis tj = (c == '=') ? TOKEN_ASSIGN : TOKEN_OPERATOR;
+        // 4.6 Tangkap Operator Matematika, Logika & Assignment (Lebih Cerdas)
+        if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
+            char op_str[3] = {c, '\0', '\0'};
+            
+            // Cek apakah ini operator 2 karakter (==, !=, >=, <=)
+            if ((c == '=' || c == '!' || c == '>' || c == '<') && kode_sumber[i+1] == '=') {
+                op_str[1] = '=';
+                tambah_token(&token_list, TOKEN_PEMBANDING, op_str, baris, kolom);
+                i += 2; kolom += 2;
+                continue;
+            }
+            
+            // Jika hanya 1 karakter
+            TokenJenis tj;
+            if (c == '=') tj = TOKEN_ASSIGN;
+            else if (c == '>' || c == '<') tj = TOKEN_PEMBANDING;
+            else tj = TOKEN_OPERATOR;
+
             tambah_token(&token_list, tj, op_str, baris, kolom);
             i++; kolom++;
             continue;

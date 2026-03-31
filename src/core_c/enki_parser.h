@@ -17,7 +17,12 @@ typedef enum {
     AST_LITERAL_TEKS,     // "Sebuah Teks"
     AST_IDENTITAS,        // nama_variabel
     AST_TIDAK_DIKENAL,     // Node kosong/error
-    AST_OPERASI_MATEMATIKA // AST Matematika Dasar
+    AST_OPERASI_MATEMATIKA, // AST Matematika Dasar
+    AST_HUKUM_KARMA,      // Blok jika...maka...lain...putus
+    AST_KONDISI,          // Kondisi (misal: umur > 10)
+    AST_DEKLARASI_DATANG, // datang
+    AST_PRAGMA_MEMORI,    // untuk array.dinamis / .statis
+    AST_PERINTAH_PERGI    // pergi
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
@@ -37,6 +42,11 @@ typedef struct ASTNode {
     // --- Cabang untuk Deklarasi (Kiri = Kanan) atau Panggilan Fungsi ---
     struct ASTNode* kiri;       // Contoh: Menunjuk ke node identitas (nama_user)
     struct ASTNode* kanan;      // Contoh: Menunjuk ke nilai (dengar())
+
+    struct ASTNode* syarat;     // Menunjuk ke AST_KONDISI
+    struct ASTNode* blok_maka;  // Menunjuk ke blok perintah jika SAH
+    struct ASTNode* blok_lain;  // Menunjuk ke blok perintah jika GAGAL (else)
+    char* pembanding;           // Teks operator, misal "==" atau ">"
 
 } ASTNode;
 
