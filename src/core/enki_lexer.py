@@ -60,7 +60,7 @@ def enki_lexer(source_code):
         if kind == 'SPASI' or kind == 'KOMENTAR':
             continue
         elif kind == 'MISMATCH':
-            print(f"Hukum dilanggar! Karakter asing: {value}")
+            raise SyntaxError(f"🚨 KERNEL PANIC (Lexer)! Karakter asing tidak diakui oleh Enlil: '{value}'")
         else:
             tokens.append((kind, value))
     return tokens

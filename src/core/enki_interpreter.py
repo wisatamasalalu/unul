@@ -268,7 +268,8 @@ class EnkiInterpreter:
                         resp = r.read().decode('utf-8')
                         try: return json.loads(resp)
                         except: return resp
-                except Exception as e: return f"🚨 Gagal Ambil: {e}"
+                except Exception as e:
+                    raise ConnectionError(f"🚨 KERNEL PANIC! Gagal Ambil data dari Awan: {e}")
 
             elif nama == 'setor':
                 import urllib.request, json
@@ -280,7 +281,8 @@ class EnkiInterpreter:
                         resp = r.read().decode('utf-8')
                         try: return json.loads(resp)
                         except: return resp
-                except Exception as e: return f"🚨 Gagal Setor: {e}"
+                except Exception as e:
+                    raise ConnectionError(f"🚨 KERNEL PANIC! Gagal Setor data ke Awan: {e}")
 
             # --- PUSTAKA ANGKA & BASIS MESIN (TRANSMUTASI MATRIX) ---
             elif nama == 'bulatkan':
@@ -334,7 +336,7 @@ class EnkiInterpreter:
                     # 3. Jalankan hasilnya menggunakan Interpreter yang sedang berjalan
                     return self.evaluasi_nilai(sub_ast_node)
                 except Exception as e:
-                    return f"🚨 Gagal Evaluasi: {e}"
+                    raise RuntimeError(f"🚨 KERNEL PANIC! Gagal Evaluasi sintaks dinamis: {e}")
             # ------------------------------------------------------
 
             # Jika tidak ada di mana-mana
@@ -439,18 +441,17 @@ class EnkiInterpreter:
             
             # ATURAN ARSITEK: Leluhur harus di-define dulu!
             if nama_root not in self.memory:
-                print(f"🚨 KERNEL PANIC! Domain leluhur '{nama_root}' belum diciptakan!")
-                print(f"Gunakan 'takdir.soft {nama_root} = {{}}' terlebih dahulu.")
-                import sys; sys.exit(1)
+                # 🛠️ UBAH JADI EXCEPTION: NameError
+                raise NameError(f"🚨 KERNEL PANIC! Domain leluhur '{nama_root}' belum diciptakan! Gunakan 'takdir.soft {nama_root} = {{}}' terlebih dahulu.")
                 
             if self.memory[nama_root].get('sifat') == 'TETAP':
-                print(f"🚨 KERNEL PANIC! Domain '{nama_root}' bersifat TETAP (Hard). Silsilahnya tidak bisa diubah!")
-                import sys; sys.exit(1)
+                # 🛠️ UBAH JADI EXCEPTION: RuntimeError
+                raise RuntimeError(f"🚨 KERNEL PANIC! Domain '{nama_root}' bersifat TETAP (Hard). Silsilahnya tidak bisa diubah!")
                 
             # --- SUNTIKAN DEEPCOPY UNTUK MENYIMPAN RIWAYAT (OPSI A & B) ---
-            # Sebelum memodifikasi nilai saat ini, fotokopi dulu seluruh isi root ke riwayat!
             if 'riwayat' not in self.memory[nama_root]:
                 self.memory[nama_root]['riwayat'] = []
+            import copy
             self.memory[nama_root]['riwayat'].append(copy.deepcopy(self.memory[nama_root]['isi']))
             # -------------------------------------------------------------
                 
@@ -464,8 +465,8 @@ class EnkiInterpreter:
                 
                 # Cek apakah root-nya benar-benar Wujud (Objek/Dictionary)
                 if not isinstance(current, dict):
-                    print(f"🚨 KERNEL PANIC! '{nama_root}' bukan sebuah wujud/objek, tidak bisa memiliki sub-domain!")
-                    import sys; sys.exit(1)
+                    # 🛠️ UBAH JADI EXCEPTION: TypeError
+                    raise TypeError(f"🚨 KERNEL PANIC! '{nama_root}' bukan sebuah wujud/objek, tidak bisa memiliki sub-domain!")
                     
                 # Menelusuri rantai dan MENCIPTAKAN ANAK secara gaib jika belum ada
                 for prop in rantai[1:-1]:
@@ -524,8 +525,7 @@ class EnkiInterpreter:
             # --- KALIBRASI: Menggunakan 'riwayat' dan 'isi' sesuai strukturmu ---
             riwayat = self.memory[root_var].get('riwayat', [])
             if len(riwayat) == 0:
-                print(f"🚨 Peringatan: Takdir '{'.'.join(target_chain)}' tidak memiliki masa lalu!")
-                return
+                raise ValueError(f"🚨 KERNEL PANIC! Takdir '{'.'.join(target_chain)}' tidak memiliki masa lalu!")
 
             # OPSI A: DEEP UNDO (Balikan Total Induk)
             if len(target_chain) == 1:
@@ -542,8 +542,7 @@ class EnkiInterpreter:
                     for part in target_chain[1:]:
                         nilai_lama = nilai_lama[part]
                 except (KeyError, TypeError):
-                    print(f"🚨 Peringatan: Sub-domain '{'.'.join(target_chain)}' belum ada di masa lalu!")
-                    return
+                    raise ValueError(f"🚨 KERNEL PANIC! Sub-domain '{'.'.join(target_chain)}' belum ada di masa lalu!")
                 
                 # 2. Cari posisi di MASA KINI untuk ditimpa
                 kini = self.memory[root_var]['isi']
