@@ -50,6 +50,7 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
     
     ram->kavling[ram->jumlah].nama = strdup(nama);
     ram->kavling[ram->jumlah].nilai_teks = strdup(nilai);
+    ram->kavling[ram->jumlah].simpul_fungsi = NULL;
     ram->jumlah++;
 }
 
@@ -224,6 +225,53 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         int indeks = atoi(teks_indeks);
         free(teks_indeks);
         return ambil_elemen_array(mem_arr, indeks);
+    }
+
+    // --- PENANGKAP PANGGILAN FUNGSI ---
+    if (node->jenis == AST_PANGGILAN_FUNGSI) {
+        // 1. Cari apakah fungsi ini ada di RAM Utama
+        ASTNode* func_node = NULL;
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                func_node = ram->kavling[i].simpul_fungsi;
+                break;
+            }
+        }
+        if (func_node == NULL) {
+            char pesan_err[128];
+            snprintf(pesan_err, sizeof(pesan_err), "Fungsi gaib '%s' tidak ditemukan!", node->nilai_teks);
+            pemicu_kernel_panic(ram, pesan_err);
+        }
+
+        // 2. MENCIPTAKAN RAM SEMENTARA (LOCAL SCOPE DINAMIS)
+        EnkiRAM ram_lokal = inisialisasi_ram();
+        ram_lokal.butuh_anu_aktif = ram->butuh_anu_aktif;
+        
+        // Kloning memori global agar fungsi tahu variabel luar & fungsi lain
+        for (int i = 0; i < ram->jumlah; i++) {
+            simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+            ram_lokal.kavling[ram_lokal.jumlah - 1].simpul_fungsi = ram->kavling[i].simpul_fungsi;
+        }
+
+        // 3. TRANSFER NILAI PARAMETER KE RAM LOKAL
+        // func_node->anak_anak = NAMA parameter (x)
+        // node->anak_anak = NILAI kiriman (10)
+        for (int i = 0; i < func_node->jumlah_anak && i < node->jumlah_anak; i++) {
+            char* nilai_argumen = evaluasi_ekspresi(node->anak_anak[i], ram);
+            simpan_ke_ram(&ram_lokal, func_node->anak_anak[i]->nilai_teks, nilai_argumen);
+            free(nilai_argumen);
+        }
+
+        // 4. JALANKAN MESIN!
+        eksekusi_program(func_node->blok_maka, &ram_lokal);
+
+        // 5. AMBIL HASIL KEMBALIAN
+        char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+
+        // 6. HANCURKAN RAM SEMENTARA (Garbage Collection Manual C)
+        bebaskan_ram(&ram_lokal);
+
+        return hasil_akhir;
     }
 
     return strdup(""); // Default return yang HALAL (berada di dalam fungsi)
@@ -481,6 +529,37 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         memcpy(ram->titik_kembali, titik_kembali_lama, sizeof(jmp_buf));
         // --------------------------------------------
     }
+
+    // --- PENANGKAP PENCIPTAAN FUNGSI ---
+    if (node->jenis == AST_DEKLARASI_FUNGSI) {
+        simpan_ke_ram(ram, node->nilai_teks, "<fungsi_kustom>");
+        // Cari indeksnya dan tanamkan cetak birunya
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                ram->kavling[i].simpul_fungsi = node;
+                break;
+            }
+        }
+        return;
+    }
+
+    // --- PENANGKAP PERINTAH PULANG (RETURN) ---
+    else if (node->jenis == AST_PULANG) {
+        if (node->kiri) {
+            char* hasil = evaluasi_ekspresi(node->kiri, ram);
+            if (hasil) {
+                strncpy(ram->nilai_kembalian, hasil, sizeof(ram->nilai_kembalian) - 1);
+                ram->nilai_kembalian[sizeof(ram->nilai_kembalian) - 1] = '\0';
+                free(hasil);
+            }
+        } else {
+            strcpy(ram->nilai_kembalian, "KOSONG");
+        }
+        ram->status_pulang = 1; 
+        return;
+    }
+
+    
 }
 
 // --- 4. EKSEKUSI PROGRAM UTAMA ---
@@ -489,5 +568,12 @@ void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
     
     for (int i = 0; i < program->jumlah_anak; i++) {
         eksekusi_node(program->anak_anak[i], ram);
+
+        // 2. --- REM DARURAT (PULANG) ---
+        // Jika fungsi memanggil perintah 'pulang', langsung hentikan perulangan (break)!
+        // Jangan lanjutkan mengeksekusi baris-baris di bawahnya!
+        if (ram->status_pulang == 1) {
+            break; 
+        }
     }
 }

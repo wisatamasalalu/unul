@@ -8,6 +8,7 @@
 typedef struct {
     char* nama;
     char* nilai_teks;
+    ASTNode* simpul_fungsi;
 } KavlingMemori;
 
 // 2. RAM UTAMA SISTEM OPERASI
@@ -18,9 +19,13 @@ typedef struct {
     int butuh_anu_aktif;         // Bendera file .anu
     
     // --- SARAF HUKUM TABU ---
-    int dalam_mode_coba;         // 1 jika sedang di dalam blok coba
-    jmp_buf titik_kembali;       // Kordinat mesin waktu untuk longjmp
-    char pesan_error_tabu[1024]; // Menyimpan pesan error agar tidak hilang
+    int dalam_mode_coba;         
+    jmp_buf titik_kembali;       
+    char pesan_error_tabu[1024]; 
+
+    // --- SUNTIKAN BARU: SARAF PULANG (RETURN) ---
+    int status_pulang;           
+    char nilai_kembalian[256];   
 } EnkiRAM;
 
 // 3. DEKLARASI FUNGSI UTAMA

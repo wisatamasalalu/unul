@@ -91,6 +91,7 @@ ASTNode* parse_ekspresi(Parser* p) {
         simpul_kiri->nilai_teks = strdup(t.isi);
         maju(p);
     }
+
     // 2. Tangkap Identitas (Nama Variabel atau Fungsi)
     else if (t.jenis == TOKEN_IDENTITAS) {
         if (strcmp(t.isi, "dengar") == 0) {
@@ -101,8 +102,19 @@ ASTNode* parse_ekspresi(Parser* p) {
             simpul_kiri->nilai_teks = strdup(t.isi);
             maju(p); // lewati nama variabel
             
+            // --- SUNTIKAN BARU: CEK PANGGILAN FUNGSI (Contoh: sapa_dunia("Enki")) ---
+            if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
+                simpul_kiri->jenis = AST_PANGGILAN_FUNGSI; // Ubah jenisnya jadi panggilan
+                maju(p); // lewati '('
+                while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                    ASTNode* arg = parse_ekspresi(p); // Tangkap argumen (bisa angka/teks/variabel)
+                    if (arg) tambah_anak(simpul_kiri, arg); // Simpan argumen ke perut anak_anak
+                    if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+                }
+                maju(p); // lewati ')'
+            }
             // --- CEK AKSES ARRAY (Contoh: daftar_dewa[0]) ---
-            if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+            else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
                 ASTNode* node_akses = buat_node(AST_AKSES_ARRAY);
                 node_akses->kiri = simpul_kiri; // Simpan nama variabel
                 maju(p); // lewati '['
@@ -112,6 +124,7 @@ ASTNode* parse_ekspresi(Parser* p) {
             }
         }
     }
+
     // 3. Tangkap Pembuatan Array Baru (Contoh: [1, 2, 3])
     else if (t.jenis == TOKEN_KURUNG_S_B) {
         simpul_kiri = buat_node(AST_STRUKTUR_ARRAY);
@@ -270,6 +283,76 @@ ASTNode* parse_pernyataan(Parser* p) {
         if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
 
         return node;
+    }
+
+    // --- PENANGKAP PENCIPTAAN FUNGSI ---
+    // Sintaksis: ciptakan fungsi nama(x, y) maka ... putus
+    if (t.jenis == TOKEN_CIPTAKAN) {
+        maju(p); // lewati 'ciptakan'
+        if (token_sekarang(p).jenis == TOKEN_FUNGSI) maju(p); // lewati 'fungsi'
+
+        ASTNode* node = buat_node(AST_DEKLARASI_FUNGSI);
+        
+        // Tangkap nama fungsi
+        if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+            node->nilai_teks = strdup(token_sekarang(p).isi);
+            maju(p);
+        }
+
+        // Tangkap Parameter: (x, y)
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
+            maju(p); // lewati '('
+            while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+                    ASTNode* param = buat_node(AST_IDENTITAS);
+                    param->nilai_teks = strdup(token_sekarang(p).isi);
+                    tambah_anak(node, param); // Simpan daftar parameter ke anak_anak
+                    maju(p);
+                }
+                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+            }
+            maju(p); // lewati ')'
+        }
+
+        // Lewati 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+        // Tangkap isi blok fungsi (Tubuh Fungsi)
+        node->blok_maka = buat_node(AST_PROGRAM);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_maka, stmt);
+        }
+
+        // Lewati 'putus'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) maju(p);
+
+        return node;
+    }
+
+    // --- PENANGKAP PERINTAH PULANG (RETURN) ---
+    // Sintaksis: pulang "Sukses"
+    if (t.jenis == TOKEN_PULANG) {
+        ASTNode* node = buat_node(AST_PULANG);
+        maju(p); // lewati 'pulang'
+        
+        // Tangkap nilai yang dikembalikan dan simpan di ranting kiri
+        node->kiri = parse_ekspresi(p);
+        
+        return node;
+    }
+
+    // --- PENANGKAP PANGGILAN FUNGSI BERDIRI SENDIRI ---
+    // Contoh: jika user menulis sapa_dunia() tanpa ditampung ke variabel
+    if (t.jenis == TOKEN_IDENTITAS) {
+        // Intip ke depan 1 langkah
+        Token t_next = p->tokens.data[p->kursor + 1];
+        if (t_next.jenis == TOKEN_KURUNG_B) {
+            // Jika ada kurung, ini mutlak panggilan fungsi! Lempar ke parse_ekspresi
+            return parse_ekspresi(p);
+        }
     }
 
     // ATM DARI BLUEPRINT: elif token[0] == 'SOWAN':

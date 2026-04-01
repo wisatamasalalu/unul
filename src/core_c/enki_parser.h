@@ -27,7 +27,10 @@ typedef enum {
     AST_STRUKTUR_ARRAY,    // buat array.dinamis
     AST_AKSES_ARRAY,       // Akses data array
     AST_PERINTAH_SOWAN ,    // Seperti import atau include, kata kunci pemanggilan file
-    AST_COBA_TABU           // Ranting hukum tabu
+    AST_COBA_TABU,           // Ranting hukum tabu
+    AST_DEKLARASI_FUNGSI, // Untuk: ciptakan fungsi nama(x) maka ... putus
+    AST_PANGGILAN_FUNGSI, // Untuk: nama(10)
+    AST_PULANG            // Untuk: pulang x
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)

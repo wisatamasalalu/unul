@@ -1,0 +1,16 @@
+^^ tes_pulang.unul
+datang
+untuk array.statis
+
+ciptakan fungsi kalkulator() maka
+    ketik("Baris 1: Mulai menghitung...")
+    pulang 50  ^^ <--- FUNGSI HARUS BERHENTI DI SINI!
+    ketik("Baris 3: Teks ini tidak boleh dieksekusi!")
+putus
+
+^^ PANGGIL FUNGSI DI SINI:
+takdir.soft uji_coba = kalkulator()
+ketik("Hasil kepulangan:")
+ketik(uji_coba)
+
+pergi

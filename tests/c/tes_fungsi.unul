@@ -1,0 +1,17 @@
+^^ tes_fungsi.unul
+datang
+untuk array.dinamis
+
+ciptakan fungsi kalkulator_sakti(angka1, angka2) maka
+    takdir.soft hasil = angka1 * angka2
+    ketik("Menghitung di dalam RAM Lokal...")
+    pulang hasil
+    ketik("TEKS INI TIDAK BOLEH TERCETAK KARENA SUDAH PULANG!")
+putus
+
+ketik("=== MENGUJI FUNGSI NATIVE C ===") ^^ Pembatasan memori yang kaku untuk .ku (Statis) baru akan kita kunci mati nanti di Fase 7, khusus untuk penulisan driver LinuxDNC.
+takdir.soft jawaban = kalkulator_sakti(10, 5)
+ketik("Hasil perkalian:")
+ketik(jawaban)
+
+pergi

@@ -197,9 +197,15 @@ TokenArray enki_lexer(const char* kode_sumber) {
             else if (strcmp(kata, "melanggar") == 0) tambah_token(&token_list, TOKEN_MELANGGAR, kata, baris, kolom - panjang);
             else if (strcmp(kata, "tebus") == 0) tambah_token(&token_list, TOKEN_TEBUS, kata, baris, kolom - panjang);
             else if (strcmp(kata, "pasrah") == 0) tambah_token(&token_list, TOKEN_PASRAH, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "ciptakan") == 0 || strcmp(kata, "fungsi") == 0) tambah_token(&token_list, TOKEN_PENCIPTAAN, kata, baris, kolom - panjang);
+            
+            // --- INI YANG DIPISAH ---
+            else if (strcmp(kata, "ciptakan") == 0) tambah_token(&token_list, TOKEN_CIPTAKAN, kata, baris, kolom - panjang);
+            else if (strcmp(kata, "fungsi") == 0) tambah_token(&token_list, TOKEN_FUNGSI, kata, baris, kolom - panjang);
+            else if (strcmp(kata, "pulang") == 0) tambah_token(&token_list, TOKEN_PULANG, kata, baris, kolom - panjang);
+            
+            // --- SISA KONTROL YANG LAMA ---
             else if (strcmp(kata, "sowan") == 0) tambah_token(&token_list, TOKEN_SOWAN, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "pulang") == 0 || strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, kolom - panjang);
+            else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, kolom - panjang);
             // Jika tidak ada yang cocok, berarti ini Variabel atau Nama Fungsi buatan user!
             else tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, kolom - panjang);
 

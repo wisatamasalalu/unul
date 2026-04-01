@@ -11,11 +11,16 @@ typedef enum {
     TOKEN_HEADER,        // datang
     TOKEN_PRAGMA,        // untuk array.dinamis, untuk array.statis, butuh .anu
     TOKEN_TAKDIR,        // takdir.soft, takdir.hard
-    TOKEN_FUNGSI,        // ketik, dengar, tunggu, jeda
+    TOKEN_FUNGSI,        // ketik, dengar, tunggu, jeda, (dan juga kata 'fungsi')
     TOKEN_KARMA,         // jika, maka, lain, putus
     TOKEN_SIKLUS,        // effort, kali
-    TOKEN_PENCIPTAAN,    // ciptakan, fungsi (konteks deklarasi)
-    TOKEN_KONTROL,       // henti, pergi, pulang, balikan
+    
+    TOKEN_PENCIPTAAN,    // (Cadangan)
+    TOKEN_CIPTAKAN,      // ciptakan <-- BARU DITAMBAHKAN DI SINI
+    
+    TOKEN_KONTROL,       // henti, pergi, balikan
+    TOKEN_PULANG,        // pulang   <-- BARU DITAMBAHKAN DI SINI
+    
     TOKEN_SOWAN,         // sowan
     
     // Hukum Tabu (Error Handling)
@@ -39,7 +44,7 @@ typedef enum {
     // Tanda Baca (Kavling & Domain)
     TOKEN_TITIK,         // .
     TOKEN_TITIK_DUA,     // :
-    TOKEN_KOMA,          // ,
+    TOKEN_KOMA,          // ,  <-- INI SUDAH ADA DARI AWAL
     TOKEN_KURUNG_B,      // (
     TOKEN_KURUNG_T,      // )
     TOKEN_KURUNG_S_B,    // [
