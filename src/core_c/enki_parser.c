@@ -77,78 +77,138 @@ void maju(Parser* p) {
 }
 
 // --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
-// Deklarasi awal agar fungsi saling kenal
-ASTNode* parse_ekspresi(Parser* p);
 
-// Mengurai Nilai (Sisi Kanan) -> Teks, Variabel, atau Panggilan Fungsi
-ASTNode* parse_ekspresi(Parser* p) {
+// Deklarasi Hierarki Matematika Mutlak
+ASTNode* parse_ekspresi(Parser* p);
+ASTNode* parse_faktor(Parser* p);
+ASTNode* parse_nilai_dasar(Parser* p);
+
+// ==========================================================
+// TINGKAT 1: Menangkap Nilai Murni & Kurung ()
+// ==========================================================
+ASTNode* parse_nilai_dasar(Parser* p) {
     Token t = token_sekarang(p);
     ASTNode* simpul_kiri = NULL;
+
+    // [MISI 1] PRIORITAS KURUNG MATEMATIKA
+    if (t.jenis == TOKEN_KURUNG_B) {
+        maju(p); // Lewati '('
+        simpul_kiri = parse_ekspresi(p); // Selam dimensi dalam kurung!
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_T) {
+            maju(p); // Lewati ')'
+        } else {
+            printf("🚨 Bencana Sintaksis: Kurung buka '(' kehilangan pasangan penutupnya ')'!\n");
+            exit(1);
+        }
+        return simpul_kiri;
+    }
     
     // 1. Tangkap Teks atau Angka Murni
-    if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA) {
+    else if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA) {
         simpul_kiri = buat_node(AST_LITERAL_TEKS);
         simpul_kiri->nilai_teks = strdup(t.isi);
         maju(p);
+        return simpul_kiri;
     }
 
-    // 2. Tangkap Identitas (Nama Variabel atau Fungsi)
+    // 2. Tangkap Identitas (Variabel, Fungsi, dengar)
     else if (t.jenis == TOKEN_IDENTITAS) {
         if (strcmp(t.isi, "dengar") == 0) {
             simpul_kiri = buat_node(AST_FUNGSI_DENGAR);
-            maju(p); maju(p); maju(p); // Lewati dengar, (, )
+            maju(p); maju(p); maju(p); 
         } else {
             simpul_kiri = buat_node(AST_IDENTITAS);
             simpul_kiri->nilai_teks = strdup(t.isi);
-            maju(p); // lewati nama variabel
+            maju(p); 
             
-            // --- SUNTIKAN BARU: CEK PANGGILAN FUNGSI (Contoh: sapa_dunia("Enki")) ---
+            // Cek Panggilan Fungsi
             if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
-                simpul_kiri->jenis = AST_PANGGILAN_FUNGSI; // Ubah jenisnya jadi panggilan
-                maju(p); // lewati '('
+                simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
+                maju(p); 
                 while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
-                    ASTNode* arg = parse_ekspresi(p); // Tangkap argumen (bisa angka/teks/variabel)
-                    if (arg) tambah_anak(simpul_kiri, arg); // Simpan argumen ke perut anak_anak
-                    if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+                    ASTNode* arg = parse_ekspresi(p); 
+                    if (arg) tambah_anak(simpul_kiri, arg); 
+                    if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
                 }
-                maju(p); // lewati ')'
+                maju(p); 
             }
-            // --- CEK AKSES ARRAY (Contoh: daftar_dewa[0]) ---
+            // Cek Akses Array
             else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
                 ASTNode* node_akses = buat_node(AST_AKSES_ARRAY);
-                node_akses->kiri = simpul_kiri; // Simpan nama variabel
-                maju(p); // lewati '['
-                node_akses->indeks_array = parse_ekspresi(p); // Tangkap indeks (0)
-                maju(p); // lewati ']'
-                simpul_kiri = node_akses; // Timpa menjadi node akses array
+                node_akses->kiri = simpul_kiri;
+                maju(p);
+                node_akses->indeks_array = parse_ekspresi(p);
+                maju(p);
+                simpul_kiri = node_akses;
             }
         }
+        return simpul_kiri;
     }
 
-    // 3. Tangkap Pembuatan Array Baru (Contoh: [1, 2, 3])
+    // 3. Tangkap Pembuatan Array Baru
     else if (t.jenis == TOKEN_KURUNG_S_B) {
         simpul_kiri = buat_node(AST_STRUKTUR_ARRAY);
-        maju(p); // lewati '['
-        
+        maju(p);
         while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
             ASTNode* elemen = parse_ekspresi(p); 
             if (elemen) tambah_anak(simpul_kiri, elemen); 
-            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
         }
-        maju(p); // lewati ']'
+        maju(p); 
+        return simpul_kiri;
     }
 
-    // 4. Cek Operasi Matematika / Penggabungan Teks (Contoh: + atau -)
-    Token t_next = token_sekarang(p);
-    if (t_next.jenis == TOKEN_OPERATOR) {
+    return NULL;
+}
+
+// ==========================================================
+// TINGKAT 2: Kasta Kuat (*, /, :, //, %)
+// ==========================================================
+ASTNode* parse_faktor(Parser* p) {
+    ASTNode* simpul_kiri = parse_nilai_dasar(p);
+    
+    // Hitung Kiri ke Kanan selama menemukan operator kuat
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+          (strcmp(token_sekarang(p).isi, "*") == 0 || 
+           strcmp(token_sekarang(p).isi, "/") == 0 ||
+           strcmp(token_sekarang(p).isi, ":") == 0 ||
+           strcmp(token_sekarang(p).isi, "//") == 0 ||
+           strcmp(token_sekarang(p).isi, "%") == 0)) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); 
+        
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
-        simpul_matematika->operator_math = strdup(t_next.isi);
-        simpul_matematika->kiri = simpul_kiri; 
-        maju(p); // Lewati lambang '+'
-        simpul_matematika->kanan = parse_ekspresi(p); 
-        return simpul_matematika;
+        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->kiri = simpul_kiri;
+        simpul_matematika->kanan = parse_nilai_dasar(p); 
+        
+        simpul_kiri = simpul_matematika; 
     }
+    return simpul_kiri;
+}
 
+// ==========================================================
+// TINGKAT 3: Kasta Lemah (+, -) -> FUNGSI UTAMA
+// ==========================================================
+ASTNode* parse_ekspresi(Parser* p) {
+    ASTNode* simpul_kiri = parse_faktor(p); // Panggil kasta kuat dulu!
+    
+    // Hitung Kiri ke Kanan selama menemukan + atau -
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+          (strcmp(token_sekarang(p).isi, "+") == 0 || 
+           strcmp(token_sekarang(p).isi, "-") == 0)) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); 
+        
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
+        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->kiri = simpul_kiri;
+        simpul_matematika->kanan = parse_faktor(p); 
+        
+        simpul_kiri = simpul_matematika;
+    }
     return simpul_kiri;
 }
 
