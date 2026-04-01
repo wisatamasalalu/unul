@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -142,21 +143,62 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         char* hasil_akhir = (char*)malloc(1024);
         memset(hasil_akhir, 0, 1024);
 
-        if (node->operator_math && strcmp(node->operator_math, "+") == 0) {
+        if (node->operator_math) {
             double angka_kiri = atof(hasil_kiri);
             double angka_kanan = atof(hasil_kanan);
 
-            if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
-                (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
-                snprintf(hasil_akhir, 1024, "%s%s", hasil_kiri, hasil_kanan);
-            } else {
-                snprintf(hasil_akhir, 1024, "%g", angka_kiri + angka_kanan);
+            // 1. TAMBAH (+) : Punya sihir penggabungan teks
+            if (strcmp(node->operator_math, "+") == 0) {
+                if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
+                    (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
+                    snprintf(hasil_akhir, 1024, "%s%s", hasil_kiri, hasil_kanan);
+                } else {
+                    snprintf(hasil_akhir, 1024, "%g", angka_kiri + angka_kanan);
+                }
+            }
+            // 2. KURANG (-) : Tolak teks (Validasi Tipe Data)
+            else if (strcmp(node->operator_math, "-") == 0) {
+                if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
+                    (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
+                    pemicu_kernel_panic(ram, "Pelanggaran Tipe: Operasi kurang (-) tidak berlaku untuk kata/teks!");
+                } else {
+                    snprintf(hasil_akhir, 1024, "%g", angka_kiri - angka_kanan);
+                }
+            }
+            // 3. KALI (*)
+            else if (strcmp(node->operator_math, "*") == 0) {
+                snprintf(hasil_akhir, 1024, "%g", angka_kiri * angka_kanan);
+            }
+            // 4. BAGI PRESISI (/ atau :)
+            else if (strcmp(node->operator_math, "/") == 0 || strcmp(node->operator_math, ":") == 0) {
+                // --- HUKUM ENLIL (Cegah Pembagian 0) ---
+                if (angka_kanan == 0) {
+                    pemicu_kernel_panic(ram, "Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
+                } else {
+                    snprintf(hasil_akhir, 1024, "%g", angka_kiri / angka_kanan);
+                }
+            }
+            // 5. BAGI BULAT/FLOOR (//)
+            else if (strcmp(node->operator_math, "//") == 0) {
+                if (angka_kanan == 0) {
+                    pemicu_kernel_panic(ram, "Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
+                } else {
+                    snprintf(hasil_akhir, 1024, "%.0f", floor(angka_kiri / angka_kanan));
+                }
+            }
+            // 6. MODULUS/SISA BAGI (%)
+            else if (strcmp(node->operator_math, "%") == 0) {
+                if (angka_kanan == 0) {
+                    pemicu_kernel_panic(ram, "Kehancuran Dimensi: Modulus dengan nol (0) dilarang oleh Hukum Enlil!");
+                } else {
+                    snprintf(hasil_akhir, 1024, "%g", fmod(angka_kiri, angka_kanan));
+                }
             }
         }
         free(hasil_kiri); free(hasil_kanan);
         return hasil_akhir;
     }
-
+    
     // 5. Struktur Array [a, b, c]
     if (node->jenis == AST_STRUKTUR_ARRAY) {
         char buffer[2048] = "[";

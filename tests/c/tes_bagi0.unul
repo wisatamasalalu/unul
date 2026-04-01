@@ -1,0 +1,6 @@
+ketik("=== TES HUKUM ENLIL & MATEMATIKA ===")
+ketik("Hasil 5 * 2 = ")
+ketik(5 * 2)
+
+ketik("Uji Hukum Enlil (Bagi Nol):")
+ketik(10 / 0)
