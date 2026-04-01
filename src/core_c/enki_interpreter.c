@@ -458,36 +458,36 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
 
     // 7. HUKUM TABU (Try-Catch / setjmp)
     else if (node->jenis == AST_COBA_TABU) {
-        // 1. Simpan state perisai sebelumnya (mendukung coba di dalam coba)
         int status_coba_lama = ram->dalam_mode_coba;
         
-        // 2. Aktifkan perisai Hukum Tabu
+        // --- SUNTIKAN ANTI-TIMPA: Backup titik_kembali yang lama ---
+        jmp_buf titik_kembali_lama;
+        memcpy(titik_kembali_lama, ram->titik_kembali, sizeof(jmp_buf));
+        // -------------------------------------------------------------
+
         ram->dalam_mode_coba = 1;
         
-        // 3. Tancapkan titik kordinat mesin waktu (Checkpoint)!
+        // Tancapkan titik kordinat mesin waktu (Checkpoint)!
         int lontaran = setjmp(ram->titik_kembali);
         
         if (lontaran == 0) {
             // [STATUS NORMAL]
-            // Mesin baru saja lewat sini, eksekusi blok 'coba' (kiri)
-            if (node->kiri) {
-                eksekusi_program(node->kiri, ram); // eksekusi_program karena isinya kumpulan perintah
-            }
+            if (node->kiri) eksekusi_program(node->kiri, ram); 
         } else {
-            // [STATUS TERLONTAR]
-            // Terjadi Kernel Panic! Mesin dilempar kembali ke sini membawa kode 'lontaran = 1'
+            // [STATUS TERLONTAR (KERNEL PANIC)]
             
-            // Bersihkan error string yang tersangkut (Opsional: agar UNUL bisa baca alasannya)
-            // simpan_ke_ram(ram, "ALASAN_TABU", ram->pesan_error_tabu);
-            
-            // Eksekusi blok 'tabu' (kanan) sebagai penebusan dosa
-            if (node->kanan) {
-                eksekusi_program(node->kanan, ram);
+            // (Opsional) Masukkan pesan error ke dalam wadah variabel UNUL
+            if (node->nilai_teks != NULL) {
+                simpan_ke_ram(ram, node->nilai_teks, ram->pesan_error_tabu);
             }
+
+            if (node->kanan) eksekusi_program(node->kanan, ram);
         }
         
-        // 4. Matikan perisai, kembalikan ke state semula
+        // --- RESTORE PERISAI & TITIK KEMBALI LAMA ---
         ram->dalam_mode_coba = status_coba_lama;
+        memcpy(ram->titik_kembali, titik_kembali_lama, sizeof(jmp_buf));
+        // --------------------------------------------
     }
 }
 

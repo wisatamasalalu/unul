@@ -290,6 +290,52 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
+    // 5. Apakah ini HUKUM TABU? (coba maka ... tabu melanggar ... pasrah)
+    if (t.jenis == TOKEN_COBA) {
+        ASTNode* node = buat_node(AST_COBA_TABU);
+        maju(p); // lewati kata 'coba'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+        // A. Tangkap isi blok COBA (simpan di node->kiri)
+        node->kiri = buat_node(AST_PROGRAM);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            if (t_cek.jenis == TOKEN_TABU || t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->kiri, stmt);
+        }
+
+        // B. Cek apakah ada blok TABU MELANGGAR
+        if (token_sekarang(p).jenis == TOKEN_TABU) {
+            maju(p); // lewati 'tabu'
+            if (token_sekarang(p).jenis == TOKEN_MELANGGAR) {
+                maju(p); // lewati 'melanggar'
+                // Tangkap wadah error (misal: pesan_kiamat)
+                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+                    node->nilai_teks = strdup(token_sekarang(p).isi);
+                    maju(p);
+                }
+            }
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+            // Tangkap isi blok TABU (simpan di node->kanan)
+            node->kanan = buat_node(AST_PROGRAM);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                if (t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node->kanan, stmt);
+            }
+        }
+
+        // (Opsional) Tambahkan penangkap untuk blok TEBUS jika diperlukan
+
+        // C. Lewati kata 'pasrah'
+        if (token_sekarang(p).jenis == TOKEN_PASRAH) maju(p);
+
+        return node;
+    }
+
     // Jika bukan apa-apa (misal karakter asing/sisa baris kosong), maju 1 langkah agar tidak infinite loop
     maju(p);
     return NULL;
