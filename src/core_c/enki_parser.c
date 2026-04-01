@@ -230,10 +230,23 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
     
-    if (t.jenis == TOKEN_KONTROL && strcmp(t.isi, "pergi") == 0) {
-        ASTNode* node = buat_node(AST_PERINTAH_PERGI);
-        maju(p); // lewati 'pergi'
-        return node;
+    // --- PENANGKAP KONTROL (pergi, henti, terus) ---
+    if (t.jenis == TOKEN_KONTROL) {
+        if (strcmp(t.isi, "pergi") == 0) {
+            ASTNode* node = buat_node(AST_PERINTAH_PERGI);
+            maju(p); return node;
+        }
+        else if (strcmp(t.isi, "henti") == 0) {
+            // Kita buat node khusus untuk HENTI (Break) jika belum ada, 
+            // atau sementara gunakan AST_TIDAK_DIKENAL dengan nilai "henti"
+            ASTNode* node = buat_node(AST_TIDAK_DIKENAL); 
+            node->nilai_teks = strdup("henti");
+            maju(p); return node;
+        }
+        else if (strcmp(t.isi, "terus") == 0) {
+            ASTNode* node = buat_node(AST_PERINTAH_TERUS);
+            maju(p); return node;
+        }
     }
 
     // 1. Apakah ini perintah KETIK? (ketik("Halo"))

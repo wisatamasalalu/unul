@@ -1,0 +1,16 @@
+datang
+ketik("Mulai berhitung 1 sampai 5...")
+
+takdir.soft angka = 0
+effort 5 kali maka
+    takdir.soft angka = angka + 1
+    jika angka == 3 maka
+        ketik("Angka 3 dilewati!")
+        terus
+    putus
+    
+    ketik("Angka saat ini:")
+    ketik(angka)
+putus
+
+pergi

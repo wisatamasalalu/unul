@@ -23,9 +23,11 @@ typedef struct {
     jmp_buf titik_kembali;       
     char pesan_error_tabu[1024]; 
 
-    // --- SUNTIKAN BARU: SARAF PULANG (RETURN) ---
+    // --- SUNTIKAN BARU: SARAF PULANG & TERUS ---
     int status_pulang;           
     char nilai_kembalian[256];   
+    int status_terus; // <--- lompat ke putaran berikutnya)
+    int status_henti; // <--- hancurkan loop sepenuhnya  
 } EnkiRAM;
 
 // 3. DEKLARASI FUNGSI UTAMA

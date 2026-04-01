@@ -549,6 +549,13 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         // PERGI = Membunuh proses OS secara langsung dengan damai (Return Code 0)
         exit(0); 
     }
+
+    // Terus = continue di bahasa pemrograman umum
+    else if (node->jenis == AST_PERINTAH_TERUS) {
+        ram->status_terus = 1; // Nyalakan alarm lompat!
+        return;
+    }
+
     else if (node->jenis == AST_DEKLARASI_DATANG) {
         // [Opsional] Bisa diam saja, atau cetak log rahasia
         // printf("[SISTEM] Pintu masuk alam semesta dibuka...\n");
@@ -570,12 +577,20 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     // 5. Eksekusi HUKUM SIKLUS (Perulangan)
     else if (node->jenis == AST_HUKUM_SIKLUS) {
         char* nilai_batas = evaluasi_ekspresi(node->batas_loop, ram);
-        int batas = atoi(nilai_batas); // Transmutasi teks/memori ke angka murni (Integer)
-        free(nilai_batas); // Buang sampah agar memori aman
+        int batas = atoi(nilai_batas);
+        free(nilai_batas);
 
-        // Perulangan ala C (Kecepatan Cahaya)
         for (int i = 0; i < batas; i++) {
+            ram->status_terus = 0; // Matikan alarm sebelum putaran dimulai
+            
+            // Eksekusi isi blok
             eksekusi_program(node->blok_siklus, ram);
+            
+            // Jika ada sinyal HENTI (Break), hancurkan loop di sini (Opsional)
+            if (ram->status_henti == 1) {
+                ram->status_henti = 0;
+                break;
+            }
         }
     }
 
@@ -688,11 +703,11 @@ void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
     for (int i = 0; i < program->jumlah_anak; i++) {
         eksekusi_node(program->anak_anak[i], ram);
 
-        // 2. --- REM DARURAT (PULANG) ---
-        // Jika fungsi memanggil perintah 'pulang', langsung hentikan perulangan (break)!
-        // Jangan lanjutkan mengeksekusi baris-baris di bawahnya!
-        if (ram->status_pulang == 1) {
-            break; 
-        }
+        // --- REM DARURAT ---
+        if (ram->status_pulang == 1) break; 
+        
+        // JIKA ALARM TERUS MENYALA, hentikan eksekusi baris bawahnya,
+        // lalu kembalikan kendali ke pemanggil (Hukum Siklus)
+        if (ram->status_terus == 1) break; 
     }
 }

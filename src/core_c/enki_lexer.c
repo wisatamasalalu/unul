@@ -205,7 +205,8 @@ TokenArray enki_lexer(const char* kode_sumber) {
             
             // --- SISA KONTROL YANG LAMA ---
             else if (strcmp(kata, "sowan") == 0) tambah_token(&token_list, TOKEN_SOWAN, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, kolom - panjang);
+            // --->> PERUBAHAN HANYA DI BARIS INI (Tambahkan "terus" di ujungnya):
+            else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0 || strcmp(kata, "terus") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, kolom - panjang);
             // Jika tidak ada yang cocok, berarti ini Variabel atau Nama Fungsi buatan user!
             else tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, kolom - panjang);
 
