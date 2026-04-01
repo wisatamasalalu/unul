@@ -237,12 +237,10 @@ ASTNode* parse_pernyataan(Parser* p) {
             maju(p); return node;
         }
         else if (strcmp(t.isi, "henti") == 0) {
-            // Kita buat node khusus untuk HENTI (Break) jika belum ada, 
-            // atau sementara gunakan AST_TIDAK_DIKENAL dengan nilai "henti"
-            ASTNode* node = buat_node(AST_TIDAK_DIKENAL); 
-            node->nilai_teks = strdup("henti");
+            ASTNode* node = buat_node(AST_PERINTAH_HENTI); 
             maju(p); return node;
         }
+        
         else if (strcmp(t.isi, "terus") == 0) {
             ASTNode* node = buat_node(AST_PERINTAH_TERUS);
             maju(p); return node;

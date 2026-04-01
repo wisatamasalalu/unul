@@ -16,9 +16,12 @@
 // --- 1. MANAJEMEN RAM UTAMA (ENKI RAM) ---
 EnkiRAM inisialisasi_ram() {
     EnkiRAM ram;
-    ram.kapasitas = 64; // Ruang awal 64 variabel
-    ram.jumlah = 0;
-    ram.butuh_anu_aktif = 0; // <--- Mulai dengan kondisi tenang (off)
+    
+    // KEAJAIBAN MUTLAK C: Sapu bersih semua hantu memori dengan angka 0!
+    memset(&ram, 0, sizeof(EnkiRAM)); 
+    
+    ram.kapasitas = 64; 
+    // ram.jumlah dan ram.butuh_anu_aktif kini otomatis = 0 berkat memset
     ram.kavling = (KavlingMemori*)malloc(ram.kapasitas * sizeof(KavlingMemori));
     return ram;
 }
@@ -556,6 +559,12 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         return;
     }
 
+    // Henti = break di bahasa pemrograman umum
+    else if (node->jenis == AST_PERINTAH_HENTI) {
+        ram->status_henti = 1; // Nyalakan alarm hancurkan putaran!
+        return;
+    }
+
     else if (node->jenis == AST_DEKLARASI_DATANG) {
         // [Opsional] Bisa diam saja, atau cetak log rahasia
         // printf("[SISTEM] Pintu masuk alam semesta dibuka...\n");
@@ -709,5 +718,6 @@ void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
         // JIKA ALARM TERUS MENYALA, hentikan eksekusi baris bawahnya,
         // lalu kembalikan kendali ke pemanggil (Hukum Siklus)
         if (ram->status_terus == 1) break; 
+        if (ram->status_henti == 1) break;
     }
 }
