@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -13,6 +14,7 @@ EnkiRAM inisialisasi_ram() {
     EnkiRAM ram;
     ram.kapasitas = 64; // Ruang awal 64 variabel
     ram.jumlah = 0;
+    ram.butuh_anu_aktif = 0; // <--- Mulai dengan kondisi tenang (off)
     ram.kavling = (KavlingMemori*)malloc(ram.kapasitas * sizeof(KavlingMemori));
     return ram;
 }
@@ -98,22 +100,31 @@ char* ambil_elemen_array(const char* teks_array, int target_indeks) {
 }
 
 // --- 2. LOGIKA EVALUASI NILAI ---
+// --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
     
+    // 1. Literal Teks/Angka
     if (node->jenis == AST_LITERAL_TEKS) {
         char* teks_bersih = strdup(node->nilai_teks);
-        bersihkan_kutip(teks_bersih); // Hapus kutip sebelum masuk memori!
+        bersihkan_kutip(teks_bersih);
         return teks_bersih;
     }
     
+    // 2. Identitas (Variabel)
     if (node->jenis == AST_IDENTITAS) {
         const char* memori = baca_dari_ram(ram, node->nilai_teks);
         if (memori) return strdup(memori);
-        printf("🚨 KERNEL PANIC! Takdir '%s' belum diciptakan!\n", node->nilai_teks);
-        exit(1);
+        
+        char pesan_error[256];
+        snprintf(pesan_error, sizeof(pesan_error), "Takdir '%s' belum diciptakan!", node->nilai_teks);
+        
+        // Panggil dengan ram dan pesan
+        pemicu_kernel_panic(ram, pesan_error); 
+        return strdup(""); 
     }
     
+    // 3. Fungsi Dengar (Input)
     if (node->jenis == AST_FUNGSI_DENGAR) {
         char buffer[1024] = {0};
         printf("> ");
@@ -124,12 +135,10 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         return strdup("");
     }
 
-    // --- KEAJAIBAN BARU: OPERASI MATEMATIKA & GABUNG TEKS ---
+    // 4. Operasi Matematika
     if (node->jenis == AST_OPERASI_MATEMATIKA) {
         char* hasil_kiri = evaluasi_ekspresi(node->kiri, ram);
         char* hasil_kanan = evaluasi_ekspresi(node->kanan, ram);
-        
-        // C kaku! Kita harus pesan memori bersih dan kosong untuk hasilnya
         char* hasil_akhir = (char*)malloc(1024);
         memset(hasil_akhir, 0, 1024);
 
@@ -137,57 +146,45 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             double angka_kiri = atof(hasil_kiri);
             double angka_kanan = atof(hasil_kanan);
 
-            // Deteksi cerdas: Apakah ini teks murni?
             if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
                 (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
-                // Ada teks, gabungkan string!
                 snprintf(hasil_akhir, 1024, "%s%s", hasil_kiri, hasil_kanan);
             } else {
-                // Keduanya angka murni, jumlahkan!
                 snprintf(hasil_akhir, 1024, "%g", angka_kiri + angka_kanan);
             }
         }
-        
         free(hasil_kiri); free(hasil_kanan);
         return hasil_akhir;
     }
 
-    // --- BACA ARRAY MENJADI TEKS BERDERET ---
+    // 5. Struktur Array [a, b, c]
     if (node->jenis == AST_STRUKTUR_ARRAY) {
         char buffer[2048] = "[";
         for (int i = 0; i < node->jumlah_anak; i++) {
             char* isi_elemen = evaluasi_ekspresi(node->anak_anak[i], ram);
-            
             strncat(buffer, isi_elemen, 2048 - strlen(buffer) - 1);
-            free(isi_elemen); // Jangan biarkan memori bocor!
-            
-            if (i < node->jumlah_anak - 1) {
-                strncat(buffer, ", ", 2048 - strlen(buffer) - 1);
-            }
+            free(isi_elemen);
+            if (i < node->jumlah_anak - 1) strncat(buffer, ", ", 2048 - strlen(buffer) - 1);
         }
         strncat(buffer, "]", 2048 - strlen(buffer) - 1);
         return strdup(buffer);
     }
 
-    // --- EVALUASI AKSES ARRAY (daftar_nama[1]) ---
+    // 6. Akses Array (daftar[0])
     if (node->jenis == AST_AKSES_ARRAY) {
-        // 1. Ambil teks utuh array dari RAM
-        const char* memori_array = baca_dari_ram(ram, node->kiri->nilai_teks);
-        if (!memori_array) {
-            printf("🚨 KERNEL PANIC! Array '%s' belum diciptakan!\n", node->kiri->nilai_teks);
-            exit(1);
+        const char* mem_arr = baca_dari_ram(ram, node->kiri->nilai_teks);
+        if (!mem_arr) {
+            char p[256];
+            snprintf(p, sizeof(p), "Array '%s' belum diciptakan!", node->kiri->nilai_teks);
+            pemicu_kernel_panic(ram, p);
         }
-        
-        // 2. Evaluasi angka indeksnya (bisa angka murni atau variabel)
         char* teks_indeks = evaluasi_ekspresi(node->indeks_array, ram);
         int indeks = atoi(teks_indeks);
         free(teks_indeks);
-        
-        // 3. Potong dan ambil!
-        return ambil_elemen_array(memori_array, indeks);
+        return ambil_elemen_array(mem_arr, indeks);
     }
-    
-    return strdup("");
+
+    return strdup(""); // Default return yang HALAL (berada di dalam fungsi)
 }
 
 // Fungsi Internal: Mengevaluasi Syarat Hukum Karma
@@ -211,6 +208,85 @@ int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
 
     free(kiri); free(kanan);
     return hasil_sah; // 1 (True) atau 0 (False)
+}
+
+// FUNGSI PENCATAT BUKU HARIAN (DIARY LOGGING)
+void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
+    // 1. Deteksi Mode (Default 0 jika pragma butuh .anu tidak ada)
+    const char* mode_debug = "0";
+    if (ram->butuh_anu_aktif == 1) {
+        const char* val = baca_dari_ram(ram, "MODE_DEBUG");
+        if (val) mode_debug = val;
+    }
+
+    printf("🚨 KERNEL PANIC! %s\n", pesan);
+
+    // 2. Tulis ke Diary dengan Gaya Arsitek
+    FILE *log = fopen("enki_sistem.diary", "a");
+    if (log) {
+        time_t t = time(NULL);
+        struct tm *tm = localtime(&t);
+        
+        fprintf(log, "=== [TABU DILANGGAR] ===\n");
+        fprintf(log, "Waktu Kejadian : %04d-%02d-%02d %02d:%02d:%02d\n",
+                tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                tm->tm_hour, tm->tm_min, tm->tm_sec);
+        fprintf(log, "Pesan Alam     : %s\n", pesan);
+        
+        // --- JEJAK MEMORI (RAM DUMP) ---
+        if (strcmp(mode_debug, "1") == 0) {
+            fprintf(log, "Status         : MODE DEBUG AKTIF\n");
+            fprintf(log, "Isi RAM Saat Ini (%d variabel):\n", ram->jumlah);
+            for (int i = 0; i < ram->jumlah; i++) {
+                fprintf(log, "  -> %s = %s\n", ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+            }
+        } else {
+            fprintf(log, "Status         : MODE PRODUKSI (Minimal Log)\n");
+        }
+        
+        fprintf(log, "========================\n\n");
+        fclose(log);
+    }
+    exit(1);
+}
+
+// Fungsi bantuan: Menghapus spasi (seperti .strip() di Python)
+char* trim_spasi(char* str) {
+    while(*str == ' ' || *str == '\t') str++;
+    if(*str == 0) return str;
+    char* ujung = str + strlen(str) - 1;
+    while(ujung > str && (*ujung == ' ' || *ujung == '\t' || *ujung == '\r' || *ujung == '\n')) ujung--;
+    ujung[1] = '\0';
+    return str;
+}
+
+// MESIN PEMUAT RAHASIA (.anu)
+void muat_anu(EnkiRAM* ram) {
+    FILE *file = fopen(".anu", "r");
+    if (!file) {
+        return; // Jika tidak ada, diam saja.
+    }
+
+    // --- TINGGALKAN JEJAK GAIB ---
+    simpan_ke_ram(ram, "__STATUS_ANU__", "ADA");
+
+    char baris[512];
+    while (fgets(baris, sizeof(baris), file)) {
+        char* teks = trim_spasi(baris);
+        
+        if (strlen(teks) == 0 || teks[0] == '#' || (teks[0] == '^' && teks[1] == '^')) continue;
+
+        char* pemisah = strchr(teks, '=');
+        if (pemisah) {
+            *pemisah = '\0'; 
+            char* kunci = trim_spasi(teks);
+            char* nilai = trim_spasi(pemisah + 1);
+            bersihkan_kutip(nilai); 
+            simpan_ke_ram(ram, kunci, nilai);
+        }
+    }
+    fclose(file);
+    printf("🛡️ [SISTEM] Kitab rahasia .anu berhasil merasuk ke memori!\n");
 }
 
 // --- 3. EKSEKUSI NODE (MENJALANKAN PERINTAH) ---
@@ -255,9 +331,18 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         // [Opsional] Bisa diam saja, atau cetak log rahasia
         // printf("[SISTEM] Pintu masuk alam semesta dibuka...\n");
     }
+    // --- EVALUASI PRAGMA (ATURAN MESIN) ---
     else if (node->jenis == AST_PRAGMA_MEMORI) {
-        // [Persiapan] Nanti kita gunakan untuk mengubah mode RAM (.ko / .ku)
-        // printf("[SISTEM] Mode Memori: %s\n", node->nilai_teks);
+        if (strcmp(node->nilai_teks, "butuh .anu") == 0) {
+            // Aktifkan flag pengawasan
+            ram->butuh_anu_aktif = 1; 
+
+            // Cek apakah file .anu benar-benar sudah masuk RAM
+            const char* status = baca_dari_ram(ram, "__STATUS_ANU__");
+            if (status == NULL) {
+                pemicu_kernel_panic(ram, "Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan!");
+            }
+        }
     }
 
     // 5. Eksekusi HUKUM SIKLUS (Perulangan)

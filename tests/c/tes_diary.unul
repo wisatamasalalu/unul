@@ -1,0 +1,11 @@
+datang
+butuh .anu
+
+ketik("Mengakses brankas rahasia...")
+ketik("Nama OS: " + NAMA_SISTEM)
+ketik("Token Kunci: " + TOKEN_API)
+
+^^ SENGAJA MEMICU KERNEL PANIC
+ketik("Mencari takdir yang hilang: " + TAKDIR_PALSU)
+
+pergi

@@ -31,8 +31,17 @@ int main(int argc, char** argv) {
     
     // 3. INTERPRETER (Eksekusi Nyata)
     printf("\n=== EKSEKUSI NATIVE C (LINUXDNC) ===\n");
-    EnkiRAM ram = inisialisasi_ram();
+    
+    // A. Siapkan Wadah RAM
+    EnkiRAM ram = inisialisasi_ram(); 
+    
+    // B. Suntikkan Rahasia .anu ke dalam RAM yang baru dibuat
+    // Gunakan '&' untuk mengirim ALAMAT memori variabel ram
+    muat_anu(&ram); 
+    
+    // C. Jalankan Program
     eksekusi_program(pohon_utama, &ram);
+    
     printf("====================================\n");
 
     // 4. KEMBALIKAN MEMORI

@@ -3,38 +3,39 @@
 
 #include "enki_parser.h"
 
-// =================================================================
-// KITAB EKSEKUSI (INTERPRETER C)
-// Mesin yang menjalankan Pohon Logika dan mengatur RAM Alam Semesta
-// =================================================================
-
 // 1. WUJUD KAVLING MEMORI
-// Menyimpan variabel (takdir) yang diciptakan user.
 typedef struct {
-    char* nama;         // Nama identitas (misal: "nama_user")
-    char* nilai_teks;   // Isi dari memori (misal: "Nabhan")
+    char* nama;
+    char* nilai_teks;
 } KavlingMemori;
 
-// 2. RAM UTAMA SISTEM OPERASI (Memori Global)
-// Pengganti `self.memory = {}` dari versi Python
+// 2. RAM UTAMA SISTEM OPERASI
 typedef struct {
-    KavlingMemori* kavling; // Deretan kavling memori dinamis
+    KavlingMemori* kavling;
     int jumlah;
     int kapasitas;
+    int butuh_anu_aktif; // 0 = Off, 1 = On (Flag Pragma)
 } EnkiRAM;
 
-// 3. DEKLARASI FUNGSI-FUNGSI EKSEKUSI UTAMA
-// Menyalakan dan mematikan RAM
+// 3. DEKLARASI FUNGSI UTAMA
 EnkiRAM inisialisasi_ram();
 void bebaskan_ram(EnkiRAM* ram);
 
-// Mengambil nilai dari variabel atau teks literal
+// Manajemen Memori
+void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai);
+const char* baca_dari_ram(EnkiRAM* ram, const char* nama);
+
+// Mesin Eksekusi
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram);
-
-// Pengeksekusi setiap cabang dari Pohon Logika
 void eksekusi_node(ASTNode* node, EnkiRAM* ram);
-
-// Pintu masuk eksekusi seluruh program
 void eksekusi_program(ASTNode* program, EnkiRAM* ram);
+
+// --- SISTEM KEAMANAN & RAHASIA ---
+
+// Fungsi Panic dengan Diary (HANYA SATU VERSI!)
+void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan);
+
+// Pemuat rahasia
+void muat_anu(EnkiRAM* ram);
 
 #endif // ENKI_INTERPRETER_H

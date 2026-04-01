@@ -154,15 +154,38 @@ TokenArray enki_lexer(const char* kode_sumber) {
 
         // 5. Tangkap Kata (Identitas, Keyword, Fungsi)
         if (isalpha(c) || c == '_') {
-            int awal = i;
-            while (is_identitas(kode_sumber[i])) {
-                i++; kolom++;
-            }
-            int panjang = i - awal;
-            char* kata = (char*)malloc(panjang + 1);
-            strncpy(kata, &kode_sumber[awal], panjang);
-            kata[panjang] = '\0';
+    int awal = i;
+    while (is_identitas(kode_sumber[i])) {
+        i++; kolom++;
+    }
+    int panjang = i - awal;
+    char* kata = (char*)malloc(panjang + 1);
+    strncpy(kata, &kode_sumber[awal], panjang);
+    kata[panjang] = '\0';
 
+    // --- SIHIR INTIP (LOOKAHEAD) DIMULAI DI SINI ---
+
+    // 1. Cek Mantra "butuh .anu"
+    if (strcmp(kata, "butuh") == 0) {
+        // Intip apakah 5 karakter kedepan adalah " .anu"
+        if (strncmp(&kode_sumber[i], " .anu", 5) == 0) {
+            tambah_token(&token_list, TOKEN_PRAGMA, "butuh .anu", baris, kolom - panjang);
+            i += 5; // Loncat melewati " .anu"
+            kolom += 5;
+            free(kata); continue;
+        }
+    }
+    
+    // 2. Cek Mantra "untuk array.dinamis"
+    if (strcmp(kata, "untuk") == 0) {
+        // Intip apakah setelahnya adalah " array.dinamis"
+        if (strncmp(&kode_sumber[i], " array.dinamis", 14) == 0) {
+            tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.dinamis", baris, kolom - panjang);
+            i += 14; // Loncat melewati " array.dinamis"
+            kolom += 14;
+            free(kata); continue;
+        }
+    }
             // Cek Manual Keyword (Ganti Regex)
             if (strcmp(kata, "datang") == 0) tambah_token(&token_list, TOKEN_HEADER, kata, baris, kolom - panjang);
             else if (strcmp(kata, "untuk array.dinamis") == 0 || strcmp(kata, "butuh .anu") == 0) tambah_token(&token_list, TOKEN_PRAGMA, kata, baris, kolom - panjang);

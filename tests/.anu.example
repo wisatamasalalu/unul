@@ -1,0 +1,4 @@
+^^ Konfigurasi Rahasia Sistem Operasi
+NAMA_BOS = "LinuxDNC"
+SANDI_DATABASE = 777999
+SERVER_AKTIF = 1
