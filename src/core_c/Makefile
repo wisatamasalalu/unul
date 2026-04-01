@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -g
 
 # Target eksekusi akan langsung diletakkan di folder bin!
-TARGET = ../../bin/unul -lm
+TARGET = ../../bin/unul -lm -lreadline
 
 # Semua file dapur mesin C kita
 SRCS = main.c enki_lexer.c enki_parser.c enki_interpreter.c

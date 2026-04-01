@@ -1,0 +1,16 @@
+^^ tes_bawaan.unul
+datang
+untuk array.statis
+
+ketik("=== MENGUJI TABLET OF DESTINIES (NATIVE C) ===")
+
+takdir.soft nama_os = "LinuxDNC"
+takdir.soft ukuran = panjang(nama_os)
+ketik("Panjang huruf dari LinuxDNC adalah:")
+ketik(ukuran)
+
+ketik("Mengambil angka nasib antara 1 sampai 100:")
+takdir.soft gacha = acak(1, 100)
+ketik(gacha)
+
+pergi

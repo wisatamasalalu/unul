@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "enki_lexer.h"
 #include "enki_parser.h"
 #include "enki_interpreter.h" // <--- Sowan ke Jantung Eksekusi
@@ -15,6 +16,8 @@ char* baca_kitab(const char* path) {
 }
 
 int main(int argc, char** argv) {
+    // Bangkitkan benih acak berdasarkan waktu OS
+    srand(time(NULL));
     if (argc < 2) {
         printf("🚨 Peringatan: Kamu lupa memasukkan kitab takdir!\n");
         return 1;

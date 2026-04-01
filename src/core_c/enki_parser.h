@@ -57,7 +57,7 @@ typedef struct ASTNode {
 
     struct ASTNode* batas_loop;  // Menunjuk ke node jumlah perulangan
     struct ASTNode* blok_siklus; // Menunjuk ke blok perintah yang diulang
-    struct ASTNode* indeks_array;
+    struct ASTNode* indeks_array; // Buat memetakan index memori
 
     char* pembanding;           // Teks operator, misal "==" atau ">"
 
@@ -72,6 +72,10 @@ typedef struct {
 // 4. FUNGSI-FUNGSI PARSER UTAMA
 Parser inisialisasi_parser(TokenArray tokens);
 ASTNode* parse_program(Parser* parser);
+
+// --- SUNTIKAN BARU UNTUK SIHIR EVALUASI ---
+ASTNode* parse_ekspresi(Parser* parser);
+// ------------------------------------------
 
 // Fungsi Wajib untuk membuang Pohon dari RAM saat program selesai
 void bebaskan_ast(ASTNode* node);

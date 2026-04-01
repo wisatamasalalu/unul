@@ -1,0 +1,5 @@
+datang
+takdir.soft nama = tanya("Masukkan namamu Arsitek: ")
+ketik("Selamat datang, ")
+ketik(nama)
+pergi

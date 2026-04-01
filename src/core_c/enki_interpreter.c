@@ -3,6 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
+#include <readline/readline.h>
+#include <readline/history.h>  // <--- UNTUK MENGINGAT HISTORY PANAH ATAS
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -128,11 +131,10 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     
     // 3. Fungsi Dengar (Input)
     if (node->jenis == AST_FUNGSI_DENGAR) {
-        char buffer[1024] = {0};
-        printf("> ");
-        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-            buffer[strcspn(buffer, "\n")] = '\0';
-            return strdup(buffer);
+        char* input = readline("> ");
+        if (input) {
+            if (*input) add_history(input); // Ingat ketikan ini agar panah atas berfungsi
+            return input; // readline menggunakan malloc, jadi aman langsung direturn
         }
         return strdup("");
     }
@@ -229,7 +231,124 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
     // --- PENANGKAP PANGGILAN FUNGSI ---
     if (node->jenis == AST_PANGGILAN_FUNGSI) {
-        // 1. Cari apakah fungsi ini ada di RAM Utama
+        
+        // =======================================================
+        // 1. [TABLET OF DESTINIES] CEK FUNGSI BAWAAN (NATIVE) DULU!
+        // =======================================================
+        
+        // A. Fungsi acak(min, max)
+        if (strcmp(node->nilai_teks, "acak") == 0) {
+            char* str_min = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* str_max = evaluasi_ekspresi(node->anak_anak[1], ram);
+            int min = atoi(str_min);
+            int max = atoi(str_max);
+            free(str_min); free(str_max);
+            
+            int hasil = min + (rand() % (max - min + 1));
+            
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d", hasil);
+            return strdup(buffer);
+        }
+        
+        // B. Fungsi panjang(teks)
+        if (strcmp(node->nilai_teks, "panjang") == 0) {
+            char* isi_teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int panjang_karakter = strlen(isi_teks);
+            free(isi_teks);
+            
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d", panjang_karakter);
+            return strdup(buffer);
+        }
+
+        // C. Fungsi waktu_sekarang()
+        if (strcmp(node->nilai_teks, "waktu_sekarang") == 0) {
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%ld", (long)time(NULL));
+            return strdup(buffer);
+        }
+
+        // D. Fungsi huruf_besar(teks) dan huruf_kecil(teks)
+        if (strcmp(node->nilai_teks, "huruf_besar") == 0 || strcmp(node->nilai_teks, "huruf_kecil") == 0) {
+            char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int is_upper = (strcmp(node->nilai_teks, "huruf_besar") == 0);
+            for(int i = 0; teks[i]; i++) {
+                teks[i] = is_upper ? toupper(teks[i]) : tolower(teks[i]);
+            }
+            return teks; // Teks sudah di-malloc, kita langsung kembalikan
+        }
+
+        // E. Transmutasi Basis Matriks (ke_hex, ke_oktal)
+        if (strcmp(node->nilai_teks, "ke_hex") == 0) {
+            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int angka = atoi(angka_str); free(angka_str);
+            char buffer[32]; snprintf(buffer, sizeof(buffer), "0x%X", angka);
+            return strdup(buffer);
+        }
+        if (strcmp(node->nilai_teks, "ke_oktal") == 0) {
+            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int angka = atoi(angka_str); free(angka_str);
+            char buffer[32]; snprintf(buffer, sizeof(buffer), "0o%o", angka);
+            return strdup(buffer);
+        }
+
+        // F. Transmutasi ASCII (ke_ascii, dari_ascii)
+        if (strcmp(node->nilai_teks, "ke_ascii") == 0) {
+            char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d", teks[0] != '\0' ? teks[0] : 0);
+            free(teks);
+            return strdup(buffer);
+        }
+        if (strcmp(node->nilai_teks, "dari_ascii") == 0 || strcmp(node->nilai_teks, "ke_karakter") == 0) {
+            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int kode = atoi(angka_str); free(angka_str);
+            char buffer[2] = {(char)kode, '\0'};
+            return strdup(buffer);
+        }
+
+        // G. SIHIR TERTINGGI: evaluasi(teks) - RECURSIVE DYNAMIC EVALUATION
+        if (strcmp(node->nilai_teks, "evaluasi") == 0) {
+            char* teks_kode = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            // 1. Panggil Pemindai (Lexer) khusus untuk teks ini
+            TokenArray token_eval = enki_lexer(teks_kode);
+            
+            // 2. Panggil Pohon Logika (Parser)
+            Parser parser_eval = inisialisasi_parser(token_eval);
+            
+            // 3. Baca hanya sebagai Ekspresi (bukan program utuh)
+            ASTNode* ast_eval = parse_ekspresi(&parser_eval);
+            
+            // 4. Eksekusi hasilnya!
+            char* hasil_eval = evaluasi_ekspresi(ast_eval, ram);
+            
+            // 5. Bersihkan sampah dimensi
+            bebaskan_ast(ast_eval);
+            bebaskan_token_array(&token_eval);
+            free(teks_kode);
+            
+            return hasil_eval;
+        }
+
+        // H. Fungsi tanya(teks) - Meminta input dengan pesan kustom
+        if (strcmp(node->nilai_teks, "tanya") == 0) {
+            char* teks_prompt = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* input = readline(teks_prompt);
+            free(teks_prompt); // Bebaskan teks prompt dari RAM
+            
+            if (input) {
+                if (*input) add_history(input); // Ingat ketikan
+                return input;
+            }
+            return strdup("");
+        }
+
+        // =======================================================
+        // 2. JIKA BUKAN FUNGSI BAWAAN, CARI DI RAM (FUNGSI KUSTOM)
+        // =======================================================
+        
         ASTNode* func_node = NULL;
         for (int i = 0; i < ram->jumlah; i++) {
             if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
@@ -237,38 +356,38 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 break;
             }
         }
+        
+        // Jika di RAM juga tidak ada, BARU KITA PANIK!
         if (func_node == NULL) {
             char pesan_err[128];
             snprintf(pesan_err, sizeof(pesan_err), "Fungsi gaib '%s' tidak ditemukan!", node->nilai_teks);
             pemicu_kernel_panic(ram, pesan_err);
         }
 
-        // 2. MENCIPTAKAN RAM SEMENTARA (LOCAL SCOPE DINAMIS)
+        // 3. MENCIPTAKAN RAM SEMENTARA (LOCAL SCOPE DINAMIS)
         EnkiRAM ram_lokal = inisialisasi_ram();
         ram_lokal.butuh_anu_aktif = ram->butuh_anu_aktif;
         
-        // Kloning memori global agar fungsi tahu variabel luar & fungsi lain
+        // Kloning memori global
         for (int i = 0; i < ram->jumlah; i++) {
             simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
             ram_lokal.kavling[ram_lokal.jumlah - 1].simpul_fungsi = ram->kavling[i].simpul_fungsi;
         }
 
-        // 3. TRANSFER NILAI PARAMETER KE RAM LOKAL
-        // func_node->anak_anak = NAMA parameter (x)
-        // node->anak_anak = NILAI kiriman (10)
+        // 4. TRANSFER NILAI PARAMETER KE RAM LOKAL
         for (int i = 0; i < func_node->jumlah_anak && i < node->jumlah_anak; i++) {
             char* nilai_argumen = evaluasi_ekspresi(node->anak_anak[i], ram);
             simpan_ke_ram(&ram_lokal, func_node->anak_anak[i]->nilai_teks, nilai_argumen);
             free(nilai_argumen);
         }
 
-        // 4. JALANKAN MESIN!
+        // 5. JALANKAN MESIN!
         eksekusi_program(func_node->blok_maka, &ram_lokal);
 
-        // 5. AMBIL HASIL KEMBALIAN
+        // 6. AMBIL HASIL KEMBALIAN
         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
 
-        // 6. HANCURKAN RAM SEMENTARA (Garbage Collection Manual C)
+        // 7. HANCURKAN RAM SEMENTARA
         bebaskan_ram(&ram_lokal);
 
         return hasil_akhir;
@@ -309,8 +428,8 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
         if (val) mode_debug = val;
     }
 
-    // 2. Catat ke enki_sistem.diary dengan Waktu dan Detail RAM
-    FILE *log = fopen("enki_sistem.diary", "a");
+    // 2. Catat ke unul.diary dengan Waktu dan Detail RAM
+    FILE *log = fopen("unul.diary", "a");
     if (log) {
         time_t t = time(NULL);
         struct tm *tm = localtime(&t);
