@@ -254,7 +254,26 @@ int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
 
 // FUNGSI PENCATAT BUKU HARIAN (DIARY LOGGING)
 void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
-    // 1. Deteksi Mode (Default 0 jika pragma butuh .anu tidak ada)
+    
+    // =======================================================
+    // 1. PENYELAMATAN HUKUM TABU (CEGAT SEBELUM KIAMAT!)
+    // =======================================================
+    // Jika kita meledak di dalam blok 'coba', REDAM ERROR!
+    // Jangan cetak Kernel Panic, jangan tulis ke Diary!
+    if (ram->dalam_mode_coba == 1) {
+        // Simpan pesan error ke kotak P3K
+        strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
+        ram->pesan_error_tabu[sizeof(ram->pesan_error_tabu) - 1] = '\0'; // Pastikan aman
+        
+        // Langsung lontarkan kembali ke titik setjmp!
+        longjmp(ram->titik_kembali, 1); 
+    }
+
+    // =======================================================
+    // 2. JIKA SAMPAI KE SINI, BERARTI OS BENAR-BENAR HANCUR
+    // =======================================================
+    
+    // Deteksi Mode (Default 0)
     const char* mode_debug = "0";
     if (ram->butuh_anu_aktif == 1) {
         const char* val = baca_dari_ram(ram, "MODE_DEBUG");
@@ -263,7 +282,7 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
 
     printf("🚨 KERNEL PANIC! %s\n", pesan);
 
-    // 2. Tulis ke Diary dengan Gaya Arsitek
+    // Tulis ke Diary dengan Gaya Arsitek
     FILE *log = fopen("enki_sistem.diary", "a");
     if (log) {
         time_t t = time(NULL);
@@ -290,17 +309,7 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
         fclose(log);
     }
 
-        // --- PENYELAMATAN HUKUM TABU ---
-        // Jika kita meledak di dalam blok 'coba', JANGAN MATI!
-        if (ram->dalam_mode_coba == 1) {
-            // 1. Simpan pesan error ke kotak P3K
-            strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
-        
-            // 2. Lemparkan kesadaran kembali ke titik setjmp (bawa kode 1)
-            longjmp(ram->titik_kembali, 1); 
-        }
-
-    // Jika di luar blok 'coba', biarkan OS meledak seperti biasa
+    // Mati total
     exit(1);
 }
 
