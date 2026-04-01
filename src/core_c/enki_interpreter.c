@@ -173,7 +173,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             else if (strcmp(node->operator_math, "/") == 0 || strcmp(node->operator_math, ":") == 0) {
                 // --- HUKUM ENLIL (Cegah Pembagian 0) ---
                 if (angka_kanan == 0) {
-                    pemicu_kernel_panic(ram, "Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
+                    pemicu_kernel_panic(ram, "🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
                 } else {
                     snprintf(hasil_akhir, 1024, "%g", angka_kiri / angka_kanan);
                 }
@@ -254,35 +254,14 @@ int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
 
 // FUNGSI PENCATAT BUKU HARIAN (DIARY LOGGING)
 void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
-    
-    // =======================================================
-    // 1. PENYELAMATAN HUKUM TABU (CEGAT SEBELUM KIAMAT!)
-    // =======================================================
-    // Jika kita meledak di dalam blok 'coba', REDAM ERROR!
-    // Jangan cetak Kernel Panic, jangan tulis ke Diary!
-    if (ram->dalam_mode_coba == 1) {
-        // Simpan pesan error ke kotak P3K
-        strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
-        ram->pesan_error_tabu[sizeof(ram->pesan_error_tabu) - 1] = '\0'; // Pastikan aman
-        
-        // Langsung lontarkan kembali ke titik setjmp!
-        longjmp(ram->titik_kembali, 1); 
-    }
-
-    // =======================================================
-    // 2. JIKA SAMPAI KE SINI, BERARTI OS BENAR-BENAR HANCUR
-    // =======================================================
-    
-    // Deteksi Mode (Default 0)
+    // 1. Tentukan Mode Debug Terlebih Dahulu
     const char* mode_debug = "0";
     if (ram->butuh_anu_aktif == 1) {
         const char* val = baca_dari_ram(ram, "MODE_DEBUG");
         if (val) mode_debug = val;
     }
 
-    printf("🚨 KERNEL PANIC! %s\n", pesan);
-
-    // Tulis ke Diary dengan Gaya Arsitek
+    // 2. Catat ke enki_sistem.diary dengan Waktu dan Detail RAM
     FILE *log = fopen("enki_sistem.diary", "a");
     if (log) {
         time_t t = time(NULL);
@@ -294,7 +273,7 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
                 tm->tm_hour, tm->tm_min, tm->tm_sec);
         fprintf(log, "Pesan Alam     : %s\n", pesan);
         
-        // --- JEJAK MEMORI (RAM DUMP) ---
+        // Catat isi memori jika sedang mode Debug (Untuk analisis post-mortem)
         if (strcmp(mode_debug, "1") == 0) {
             fprintf(log, "Status         : MODE DEBUG AKTIF\n");
             fprintf(log, "Isi RAM Saat Ini (%d variabel):\n", ram->jumlah);
@@ -309,7 +288,20 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
         fclose(log);
     }
 
-    // Mati total
+    // 3. Tampilkan log tambahan di terminal jika .anu (MODE_DEBUG=1) aktif
+    if (strcmp(mode_debug, "1") == 0) {
+        printf("[DEBUG-ANOMALI] Kernel Panic terdeteksi: %s\n", pesan);
+    }
+
+    // 4. CEK PERISAI HUKUM TABU (Try-Catch / setjmp)
+    if (ram->dalam_mode_coba == 1) {
+        strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
+        ram->pesan_error_tabu[sizeof(ram->pesan_error_tabu) - 1] = '\0';
+        longjmp(ram->titik_kembali, 1); 
+    }
+
+    // 5. JIKA TIDAK ADA PERISAI, MATIKAN OS/PROGRAM!
+    printf("🚨 KERNEL PANIC! %s\n", pesan);
     exit(1);
 }
 

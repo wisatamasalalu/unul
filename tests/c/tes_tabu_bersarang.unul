@@ -1,0 +1,38 @@
+^^ tes_tabu_bersarang.unul
+datang
+untuk array.dinamis
+
+ketik("=== MENGUJI PERISAI HUKUM TABU BERSARANG ===")
+ketik("Membuka Lapisan Memori...")
+
+coba maka
+    ketik("  [+] Berada di zona Perisai Luar")
+    
+    ^^ Membuka zona baru di dalam zona berbahaya
+    coba maka
+        ketik("    [++] Masuk ke zona Perisai Dalam")
+        ketik("    [++] Memicu Kiamat Pertama...")
+        
+        takdir.soft ledakan_dalam = 10 / 0  ^^ Memicu Kernel Panic (Dalam)
+        
+        ketik("    [--] GAGAL: Teks ini tidak boleh tercetak (Dalam)!")
+    tabu melanggar pesan_dalam maka
+        ketik("    [!!] PERISAI DALAM BERHASIL MENAHAN LEDAKAN:")
+        ketik(pesan_dalam)
+    pasrah
+
+    ketik("  [+] Keluar dari Perisai Dalam dengan selamat.")
+    ketik("  [+] Menguji apakah kordinat Perisai Luar masih utuh...")
+    ketik("  [+] Memicu Kiamat Kedua...")
+    
+    takdir.soft ledakan_luar = 99 / 0 ^^ Memicu Kernel Panic (Luar)
+    
+    ketik("  [--] GAGAL: Teks ini tidak boleh tercetak (Luar)!")
+
+tabu melanggar pesan_luar maka
+    ketik("  [!!] PERISAI LUAR BERHASIL MENAHAN LEDAKAN:")
+    ketik(pesan_luar)
+pasrah
+
+ketik("=== SEMUA PERISAI BERFUNGSI SEMPURNA ===")
+pergi
