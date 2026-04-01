@@ -1,0 +1,11 @@
+ketik("=== MENGUJI PERISAI HUKUM TABU ===")
+
+coba
+    ketik("Memasuki zona berbahaya...")
+    ketik(10 / 0)  // Harusnya memicu Hukum Enlil
+    ketik("Ini tidak akan pernah tercetak!")
+tabu
+    ketik("Perisai Tabu aktif! OS berhasil diselamatkan dari kiamat.")
+    ketik("Sistem dapat melanjutkan operasi dengan aman.")
+
+ketik("Program selesai dengan selamat!")

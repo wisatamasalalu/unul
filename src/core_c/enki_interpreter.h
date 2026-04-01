@@ -2,6 +2,7 @@
 #define ENKI_INTERPRETER_H
 
 #include "enki_parser.h"
+#include <setjmp.h>
 
 // 1. WUJUD KAVLING MEMORI
 typedef struct {
@@ -11,10 +12,15 @@ typedef struct {
 
 // 2. RAM UTAMA SISTEM OPERASI
 typedef struct {
-    KavlingMemori* kavling;
-    int jumlah;
-    int kapasitas;
-    int butuh_anu_aktif; // 0 = Off, 1 = On (Flag Pragma)
+    KavlingMemori* kavling;      // Pointer dinamis untuk variabel
+    int kapasitas;               // Batas ruang saat ini
+    int jumlah;                  // Jumlah variabel terisi
+    int butuh_anu_aktif;         // Bendera file .anu
+    
+    // --- SARAF HUKUM TABU ---
+    int dalam_mode_coba;         // 1 jika sedang di dalam blok coba
+    jmp_buf titik_kembali;       // Kordinat mesin waktu untuk longjmp
+    char pesan_error_tabu[1024]; // Menyimpan pesan error agar tidak hilang
 } EnkiRAM;
 
 // 3. DEKLARASI FUNGSI UTAMA

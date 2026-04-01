@@ -198,7 +198,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         free(hasil_kiri); free(hasil_kanan);
         return hasil_akhir;
     }
-    
+
     // 5. Struktur Array [a, b, c]
     if (node->jenis == AST_STRUKTUR_ARRAY) {
         char buffer[2048] = "[";
@@ -289,6 +289,18 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
         fprintf(log, "========================\n\n");
         fclose(log);
     }
+
+        // --- PENYELAMATAN HUKUM TABU ---
+        // Jika kita meledak di dalam blok 'coba', JANGAN MATI!
+        if (ram->dalam_mode_coba == 1) {
+            // 1. Simpan pesan error ke kotak P3K
+            strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
+        
+            // 2. Lemparkan kesadaran kembali ke titik setjmp (bawa kode 1)
+            longjmp(ram->titik_kembali, 1); 
+        }
+
+    // Jika di luar blok 'coba', biarkan OS meledak seperti biasa
     exit(1);
 }
 
@@ -433,6 +445,40 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         bebaskan_token_array(&token_list_sowan);
         free(kode_sowan);
         free(target_file);
+    }
+
+    // 7. HUKUM TABU (Try-Catch / setjmp)
+    else if (node->jenis == AST_COBA_TABU) {
+        // 1. Simpan state perisai sebelumnya (mendukung coba di dalam coba)
+        int status_coba_lama = ram->dalam_mode_coba;
+        
+        // 2. Aktifkan perisai Hukum Tabu
+        ram->dalam_mode_coba = 1;
+        
+        // 3. Tancapkan titik kordinat mesin waktu (Checkpoint)!
+        int lontaran = setjmp(ram->titik_kembali);
+        
+        if (lontaran == 0) {
+            // [STATUS NORMAL]
+            // Mesin baru saja lewat sini, eksekusi blok 'coba' (kiri)
+            if (node->kiri) {
+                eksekusi_program(node->kiri, ram); // eksekusi_program karena isinya kumpulan perintah
+            }
+        } else {
+            // [STATUS TERLONTAR]
+            // Terjadi Kernel Panic! Mesin dilempar kembali ke sini membawa kode 'lontaran = 1'
+            
+            // Bersihkan error string yang tersangkut (Opsional: agar UNUL bisa baca alasannya)
+            // simpan_ke_ram(ram, "ALASAN_TABU", ram->pesan_error_tabu);
+            
+            // Eksekusi blok 'tabu' (kanan) sebagai penebusan dosa
+            if (node->kanan) {
+                eksekusi_program(node->kanan, ram);
+            }
+        }
+        
+        // 4. Matikan perisai, kembalikan ke state semula
+        ram->dalam_mode_coba = status_coba_lama;
     }
 }
 
