@@ -272,7 +272,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // ATM DARI BLUEPRINT: elif node['tipe'] == 'PERINTAH_SOWAN'
+    // 6. Sowan - ATM DARI BLUEPRINT: elif node['tipe'] == 'PERINTAH_SOWAN'
     else if (node->jenis == AST_PERINTAH_SOWAN) {
         char* target_file = strdup(node->nilai_teks);
         bersihkan_kutip(target_file); // Membuang tanda kutip " "
@@ -294,22 +294,16 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         fclose(file);
         
         // 2. Lexer -> Parser -> Eksekusi (Recursive Injection)
-        // ⚠️ CATATAN ARSITEK: Ganti pemanggilan fungsi ini 
-        // dengan nama fungsi Lexer & Parser yang biasa Anda panggil di main.c!
-        
-        Token* token_list_sowan = NULL; 
-        jalankan_lexer(kode_sowan, &token_list_sowan); // Tiru cara main.c memanggil Lexer
-        
-        Parser parser_sowan;
-        inisialisasi_parser(&parser_sowan, token_list_sowan); // Tiru cara main.c memanggil Parser
-        
+        TokenArray token_list_sowan = enki_lexer(kode_sowan); 
+        Parser parser_sowan = inisialisasi_parser(token_list_sowan); 
         ASTNode* ast_sowan = parse_program(&parser_sowan);
         
-        // 3. for node_sowan in ast_sowan: self.eksekusi_node()
-        // Kita cukup panggil eksekusi_program karena RAM-nya DIPAKAI BERSAMA (pointer ram yang sama)!
+        // 3. Gabungkan dan Eksekusi dengan RAM yang sama!
         eksekusi_program(ast_sowan, ram); 
         
-        // Bersihkan memori file setelah disuntikkan
+        // 4. Bersihkan jejak setelah ilmu dari pustaka terserap ke RAM utama
+        bebaskan_ast(ast_sowan);
+        bebaskan_token_array(&token_list_sowan);
         free(kode_sowan);
         free(target_file);
     }

@@ -274,13 +274,17 @@ ASTNode* parse_pernyataan(Parser* p) {
 
     // ATM DARI BLUEPRINT: elif token[0] == 'SOWAN':
     // (Jika Lexer Anda mendeteksi kata 'sowan' sebagai TOKEN_IDENTITAS)
-    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "sowan") == 0) {
+    // --- PENANGKAP SIHIR SOWAN ---
+    if (t.jenis == TOKEN_SOWAN) { 
+        // printf("📡 [RADAR PARSER] Menangkap mantra SOWAN!\n");
+        
         ASTNode* node = buat_node(AST_PERINTAH_SOWAN);
         maju(p); // lewati kata 'sowan'
         
         Token t_target = token_sekarang(p);
         if (t_target.jenis == TOKEN_TEKS) {
-            node->nilai_teks = strdup(t_target.isi); // Simpan nama file (contoh: "pustaka.unll")
+            node->nilai_teks = strdup(t_target.isi); 
+            // printf("📡 [RADAR PARSER] Target dimensi: %s\n", node->nilai_teks);
             maju(p); // lewati nama file
         }
         return node;
