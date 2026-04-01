@@ -1,0 +1,21 @@
+^^ tes_henti.unul
+datang
+ketik("Mulai berhitung 1 sampai 5, tapi hancurkan putaran di angka 3...")
+
+takdir.soft angka = 0
+effort 5 kali maka
+    takdir.soft angka = angka + 1
+    
+    jika angka == 3 maka
+        ketik("Angka 3 tercapai! HENTIKAN SIKLUS!")
+        henti
+    putus
+    
+    ketik("Angka saat ini:")
+    ketik(angka)
+putus
+
+ketik("Siklus telah dihancurkan secara paksa. Program selesai.")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
