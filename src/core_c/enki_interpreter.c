@@ -748,6 +748,12 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
 
             if (node->kanan) eksekusi_program(node->kanan, ram);
         }
+
+        // BLOK TEBUS (FINALLY)
+        // Ini akan selalu tereksekusi, baik sistem dalam status normal maupun terlontar
+        if (node->blok_tebus) {
+            eksekusi_program(node->blok_tebus, ram);
+        }
         
         // --- RESTORE PERISAI & TITIK KEMBALI LAMA ---
         ram->dalam_mode_coba = status_coba_lama;

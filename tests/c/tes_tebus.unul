@@ -1,0 +1,21 @@
+^^ tes_tebus.unul
+datang
+
+takdir.soft nama_anda = tanya("Siapakah namamu, pengembara? ")
+ketik("Selamat datang, ")
+ketik(nama_anda)
+
+ketik("=== MENGUJI HUKUM TABU & TEBUS ===")
+coba maka
+    ketik("Ini di dalam coba. Mencari masalah...")
+    ^^ Sengaja panggil pembolehubah ghaib untuk cetuskan ralat
+    ketik(variabel_ghaib)
+tabu melanggar ralat maka
+    ketik("Berjaya menangkap kiamat sistem!")
+tebus maka
+    ketik("Tebus: Ini sentiasa dieksekusi walau dunia runtuh!")
+pasrah
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
+pergi   
