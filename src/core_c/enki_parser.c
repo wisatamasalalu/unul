@@ -403,6 +403,7 @@ ASTNode* parse_pernyataan(Parser* p) {
     // 2. Apakah ini DEKLARASI? (takdir.soft nama = ...)
     if (t.jenis == TOKEN_TAKDIR) {
         ASTNode* node = buat_node(AST_DEKLARASI_TAKDIR);
+        node->nilai_teks = strdup(t.isi);
         maju(p); // lewati 'takdir.soft'
         
         // Simpan nama variabel di simpul Kiri

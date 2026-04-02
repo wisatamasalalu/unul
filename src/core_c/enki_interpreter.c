@@ -78,11 +78,19 @@ void bebaskan_ram(EnkiRAM* ram) {
 
 // Fungsi Internal: Menyimpan atau menimpa nilai di RAM
 void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
-    // 1. Cari apakah sudah ada di RAM (Timpa nilai lama)
+    // 1. Cari apakah sudah ada di RAM (Cek Hukum Takdir)
     for (int i = 0; i < ram->jumlah; i++) {
         if (strcmp(ram->kavling[i].nama, nama) == 0) {
             
-            // 🔥 SUNTIKAN BARU: Hancurkan memori lama dengan aman sesuai tipenya!
+            // 🔥 CEK HUKUM TAKDIR MUTLAK 🔥
+            if (ram->kavling[i].apakah_konstanta) {
+                char pesan[256];
+                snprintf(pesan, sizeof(pesan), "Pelanggaran Hukum Takdir: Variabel 'hard' (%s) tidak boleh diubah!", nama);
+                pemicu_kernel_panic(ram, pesan);
+                return;
+            }
+
+            // (Lanjutkan proses timpa nilai jika bukan konstanta...)
             if (ram->kavling[i].tipe == TIPE_TEKS && ram->kavling[i].nilai_teks) {
                 free(ram->kavling[i].nilai_teks);
             } 
@@ -93,7 +101,6 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
                 ram->kavling[i].anak_anak = NULL;
             }
 
-            // Masukkan ingatan baru sebagai TEKS biasa
             ram->kavling[i].tipe = TIPE_TEKS;
             ram->kavling[i].nilai_teks = strdup(nilai); 
             return;
@@ -108,13 +115,13 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
     
     // Inisialisasi anatomi kavling baru dengan bersih
     ram->kavling[ram->jumlah].nama = strdup(nama);
-    ram->kavling[ram->jumlah].tipe = TIPE_TEKS;            // Default-nya Teks
+    ram->kavling[ram->jumlah].tipe = TIPE_TEKS;
     ram->kavling[ram->jumlah].nilai_teks = strdup(nilai);
     ram->kavling[ram->jumlah].anak_anak = NULL;            // Wajib NULL agar tidak dianggap objek
     ram->kavling[ram->jumlah].simpul_fungsi = NULL;
+    ram->kavling[ram->jumlah].apakah_konstanta = 0; // 🔥 Default awal adalah soft (0)
     ram->jumlah++;
 }
-
 // Fungsi Internal: Membaca nilai dari RAM
 const char* baca_dari_ram(EnkiRAM* ram, const char* nama) {
     for (int i = 0; i < ram->jumlah; i++) {
@@ -316,6 +323,17 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
             
             if (target) {
+
+                // =======================================================
+                // 🔥 SUNTIKAN HUKUM: Cek apakah target dikunci (takdir.hard)
+                // =======================================================
+                if (target->apakah_konstanta) {
+                    char pesan[256];
+                    snprintf(pesan, sizeof(pesan), "🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (%s) tidak bisa diubah!", target->nama);
+                    pemicu_kernel_panic(ram, pesan);
+                    return strdup(""); 
+                }
+
                 // Hancurkan kenangan lama secara brutal (Cegah Memory Leak)
                 if (target->tipe == TIPE_TEKS && target->nilai_teks) {
                     free(target->nilai_teks);
@@ -511,6 +529,101 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char buffer[32]; snprintf(buffer, sizeof(buffer), "0x%X", angka);
             return strdup(buffer);
         }
+
+        // --- TRANSMUTASI: KE BINER (0b...) ---
+        else if (strcmp(node->nilai_teks, "ke_biner") == 0) {
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            // 🔥 SIHIR PEMBACA HEX/DESIMAL OTOMATIS 🔥
+            // Menggunakan strtol basis 0 agar bisa menelan "15" maupun "0xFF"
+            long angka = 0;
+            if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
+                angka = strtol(arg, NULL, 16);
+            } else {
+                angka = strtol(arg, NULL, 10);
+            }
+            free(arg);
+
+            char buffer[128];
+            buffer[0] = '0';
+            buffer[1] = 'b';
+            int index = 2;
+            
+            if (angka == 0) {
+                buffer[2] = '0';
+                buffer[3] = '\0';
+            } else {
+                long temp = angka;
+                int bits[64];
+                int bit_count = 0;
+                while(temp > 0) {
+                    bits[bit_count++] = temp % 2;
+                    temp /= 2;
+                }
+                for(int i = bit_count - 1; i >= 0; i--) {
+                    buffer[index++] = bits[i] + '0';
+                }
+                buffer[index] = '\0';
+            }
+            return strdup(buffer);
+        }
+
+        // --- TRANSMUTASI: KE DESIMAL (Dari Hex/Biner ke Angka Biasa) ---
+        else if (strcmp(node->nilai_teks, "ke_desimal") == 0) {
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            long angka = 0;
+            
+            // Jika diawali 0b, baca sebagai biner (basis 2)
+            if (strncmp(arg, "0b", 2) == 0 || strncmp(arg, "0B", 2) == 0) {
+                angka = strtol(arg + 2, NULL, 2);
+            } else {
+                // Basis 0 otomatis membaca "0x..." sebagai heksadesimal
+                angka = strtol(arg, NULL, 0); 
+            }
+            free(arg);
+
+            char buffer[64];
+            snprintf(buffer, sizeof(buffer), "%ld", angka);
+            return strdup(buffer);
+        }
+
+        // --- TRANSMUTASI: KE KARAKTER (Sandi Angka -> Huruf) ---
+        else if (strcmp(node->nilai_teks, "ke_karakter") == 0) {
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            int ascii_val = atoi(arg);
+            free(arg);
+            
+            char buffer[2];
+            buffer[0] = (char)ascii_val;
+            buffer[1] = '\0';
+            return strdup(buffer);
+        }
+
+        // --- TRANSMUTASI: BULATKAN ---
+        else if (strcmp(node->nilai_teks, "bulatkan") == 0) {
+            char* arg_angka = evaluasi_ekspresi(node->anak_anak[0], ram);
+            double angka = atof(arg_angka);
+            free(arg_angka);
+
+            int presisi = 0;
+            // Gunakan jumlah_anak, BUKAN jumlah_argumen
+            if (node->jumlah_anak > 1) {
+                char* arg_digit = evaluasi_ekspresi(node->anak_anak[1], ram);
+                presisi = atoi(arg_digit);
+                free(arg_digit);
+            }
+
+            char buffer[64];
+            if (presisi <= 0) {
+                snprintf(buffer, sizeof(buffer), "%.0f", round(angka));
+            } else {
+                char format[16];
+                snprintf(format, sizeof(format), "%%.%df", presisi); 
+                snprintf(buffer, sizeof(buffer), format, angka);
+            }
+            return strdup(buffer);
+        }
+
         if (strcmp(node->nilai_teks, "ke_oktal") == 0) {
             char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
             int angka = atoi(angka_str); free(angka_str);
@@ -806,6 +919,17 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     // 2. DEKLARASI TAKDIR (takdir.soft x = y ATAU takdir.soft dewa = {})
     else if (node->jenis == AST_DEKLARASI_TAKDIR) {
         char* nama = node->kiri->nilai_teks;
+        int adalah_hard = (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0); // 🔥 Cek status hard
+
+        // ... (Logika simpan untuk Objek atau Teks) ...
+        
+        // 🔥 SUNTIKAN: Kunci kavling di RAM setelah disimpan
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                ram->kavling[i].apakah_konstanta = adalah_hard;
+                break;
+            }
+        }
         
         // 🔥 JIKA NILAINYA ADALAH WUJUD OBJEK {}
         if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
@@ -848,6 +972,16 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             char* nilai = evaluasi_ekspresi(node->kanan, ram);
             if (nilai) {
                 simpan_ke_ram(ram, nama, nilai);
+                
+                // 🔥 SUNTIKAN: Set status hard jika keywordnya adalah 'takdir.hard'
+                if (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0) {
+                    for (int i = 0; i < ram->jumlah; i++) {
+                        if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                            ram->kavling[i].apakah_konstanta = 1;
+                            break;
+                        }
+                    }
+                }
                 free(nilai);
             }
         }
@@ -934,6 +1068,15 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         } else {
             strncpy(target_file, target_mentah, sizeof(target_file));
         }
+
+        // Tambahkan Log ke diary saat ada pustaka yang dirasukkan (Optional Debug)
+        if (ram->butuh_anu_aktif) {
+            FILE *log = fopen("unul.diary", "a");
+            if (log) {
+                fprintf(log, "[INFO] Memanggil kasta '%s' ke dalam memori.\n", target_file);
+                fclose(log);
+            }
+        }
         
         // 2. RADAR LOKAL: Cari di folder tempat user berada saat ini
         FILE *file = fopen(target_file, "r");
@@ -986,6 +1129,46 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         
         // KITA MEMBERSIHKAN TARGET MENTAH (Bukan target_file karena target_file bukan hasil malloc)
         free(target_mentah); 
+    }
+
+    // --- 8. PEMBEBASAN MEMORI (pasrah) ---
+    else if (node->jenis == AST_PERINTAH_PASRAH) {
+        // Nama variabel bisa berada di kiri (jika formatnya 'pasrah x')
+        char* target_nama = NULL;
+        if (node->kiri && node->kiri->jenis == AST_IDENTITAS) {
+            target_nama = node->kiri->nilai_teks;
+        } else if (node->nilai_teks) {
+            target_nama = node->nilai_teks;
+        }
+
+        if (target_nama) {
+            for (int i = 0; i < ram->jumlah; i++) {
+                if (strcmp(ram->kavling[i].nama, target_nama) == 0) {
+                    
+                    // 🔥 CEK HUKUM: Variabel 'hard' abadi, tidak bisa dipasrahkan!
+                    if (ram->kavling[i].apakah_konstanta) {
+                        char pesan[256];
+                        snprintf(pesan, sizeof(pesan), "🚨 KIAMAT! Variabel 'hard' (%s) abadi, tidak bisa di-pasrah-kan!", target_nama);
+                        pemicu_kernel_panic(ram, pesan);
+                        return;
+                    }
+
+                    // Hancurkan Isi Memorinya (Garbage Collection Manual)
+                    if (ram->kavling[i].tipe == TIPE_TEKS && ram->kavling[i].nilai_teks) {
+                        free(ram->kavling[i].nilai_teks);
+                    } else if (ram->kavling[i].tipe == TIPE_OBJEK && ram->kavling[i].anak_anak) {
+                        bebaskan_ram(ram->kavling[i].anak_anak);
+                        free(ram->kavling[i].anak_anak);
+                        ram->kavling[i].anak_anak = NULL;
+                    }
+                    
+                    // Kembalikan wujudnya ke ketiadaan
+                    ram->kavling[i].tipe = TIPE_TEKS;
+                    ram->kavling[i].nilai_teks = strdup("KOSONG");
+                    break;
+                }
+            }
+        }
     }
 
     // 7. HUKUM TABU (Try-Catch / setjmp)

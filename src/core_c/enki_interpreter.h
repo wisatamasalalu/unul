@@ -25,6 +25,7 @@ typedef struct {
     EnkiRAM* anak_anak;        // Pointer ke RAM baru (jika tipe == TIPE_OBJEK)
     
     ASTNode* simpul_fungsi;
+    int apakah_konstanta;
 } KavlingMemori;
 
 // 2. RAM UTAMA SISTEM OPERASI

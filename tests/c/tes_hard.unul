@@ -1,0 +1,2 @@
+takdir.hard PHI = 3.14
+PHI = 4 ^^ AKAN MEMICU KERNEL PANIC!

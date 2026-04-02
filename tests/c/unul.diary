@@ -50,3 +50,15 @@ Pesan Alam     : Domain bersarang atau properti tidak ditemukan!
 Status         : MODE PRODUKSI (Minimal Log)
 ========================
 
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-03 01:30:25
+Pesan Alam     : 🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (PHI) tidak bisa diubah!
+Status         : MODE PRODUKSI (Minimal Log)
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-03 01:54:48
+Pesan Alam     : Fungsi gaib 'cocok_pola' tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+========================
+
