@@ -97,6 +97,7 @@ void maju(Parser* p) {
 
 // Deklarasi Hierarki Matematika Mutlak
 ASTNode* parse_ekspresi(Parser* p);
+ASTNode* parse_penjumlahan(Parser* p);
 ASTNode* parse_faktor(Parser* p);
 ASTNode* parse_nilai_dasar(Parser* p);
 
@@ -250,12 +251,11 @@ ASTNode* parse_faktor(Parser* p) {
 }
 
 // ==========================================================
-// TINGKAT 3: Kasta Lemah (+, -) -> FUNGSI UTAMA
+// TINGKAT 3: Kasta Lemah (+, -) 
 // ==========================================================
-ASTNode* parse_ekspresi(Parser* p) {
-    ASTNode* simpul_kiri = parse_faktor(p); // Panggil kasta kuat dulu!
+ASTNode* parse_penjumlahan(Parser* p) { 
+    ASTNode* simpul_kiri = parse_faktor(p); 
     
-    // Hitung Kiri ke Kanan selama menemukan + atau -
     while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
           (strcmp(token_sekarang(p).isi, "+") == 0 || 
            strcmp(token_sekarang(p).isi, "-") == 0)) {
@@ -267,8 +267,29 @@ ASTNode* parse_ekspresi(Parser* p) {
         simpul_matematika->operator_math = strdup(t_op.isi);
         simpul_matematika->kiri = simpul_kiri;
         simpul_matematika->kanan = parse_faktor(p); 
-        
         simpul_kiri = simpul_matematika;
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// TINGKAT 4: Kasta Mutasi / Penugasan Ulang (=) -> FUNGSI UTAMA
+// ==========================================================
+ASTNode* parse_ekspresi(Parser* p) {
+    ASTNode* simpul_kiri = parse_penjumlahan(p);
+    
+    // Jika menemukan tanda '=' setelah variabel / akses domain
+    if (token_sekarang(p).jenis == TOKEN_ASSIGN || 
+       (token_sekarang(p).jenis == TOKEN_OPERATOR && strcmp(token_sekarang(p).isi, "=") == 0)) {
+        
+        maju(p); // Lewati '=' (kita tidak butuh menyimpan token t_op lagi)
+        
+        ASTNode* simpul_mutasi = buat_node(AST_OPERASI_MATEMATIKA);
+        simpul_mutasi->operator_math = strdup("=");
+        simpul_mutasi->kiri = simpul_kiri; // Target (misal: entitas.level1)
+        simpul_mutasi->kanan = parse_ekspresi(p); // Nilai yang baru (misal: {})
+        
+        return simpul_mutasi;
     }
     return simpul_kiri;
 }
@@ -527,15 +548,10 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
-    // --- PENANGKAP PANGGILAN FUNGSI BERDIRI SENDIRI ---
-    // Contoh: jika user menulis sapa_dunia() tanpa ditampung ke variabel
+    // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI) ---
+    // Mengizinkan: `entitas = {}`, `dewa.nama = "Enki"`, atau `sapa()`
     if (t.jenis == TOKEN_IDENTITAS) {
-        // Intip ke depan 1 langkah
-        Token t_next = p->tokens.data[p->kursor + 1];
-        if (t_next.jenis == TOKEN_KURUNG_B) {
-            // Jika ada kurung, ini mutlak panggilan fungsi! Lempar ke parse_ekspresi
-            return parse_ekspresi(p);
-        }
+        return parse_ekspresi(p);
     }
 
     // --- PENANGKAP PELEPASAN MEMORI BERDIRI SENDIRI (PASRAH VARIABEL) ---

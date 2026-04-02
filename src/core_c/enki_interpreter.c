@@ -164,6 +164,50 @@ KavlingMemori* cari_kavling_domain(ASTNode* node, EnkiRAM* ram) {
     return NULL;
 }
 
+// 🔥 SUNTIKAN MUTASI KEDALAMAN 🔥
+// Menemukan atau menciptakan dimensi di dalam objek (Untuk Reassignment)
+KavlingMemori* temukan_atau_ciptakan_kavling(ASTNode* node, EnkiRAM* ram) {
+    if (!node || !ram) return NULL;
+
+    // 1. Jika ini variabel utama (misal: entitas)
+    if (node->jenis == AST_IDENTITAS) {
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                return &(ram->kavling[i]);
+            }
+        }
+        return NULL; // Induk Utama HARUS sudah ada via takdir.soft
+    }
+
+    // 2. Jika ini penembusan dimensi (misal: entitas.level1)
+    if (node->jenis == AST_AKSES_DOMAIN) {
+        KavlingMemori* induk = temukan_atau_ciptakan_kavling(node->kiri, ram);
+        
+        if (induk) {
+            // JIKA INDUKNYA MASIH TEKS, HANCURKAN DAN PAKSA JADI OBJEK!
+            if (induk->tipe == TIPE_TEKS) {
+                if (induk->nilai_teks) { free(induk->nilai_teks); induk->nilai_teks = NULL; }
+                induk->tipe = TIPE_OBJEK;
+                induk->anak_anak = ciptakan_ram_mini();
+            }
+
+            EnkiRAM* ram_anak = induk->anak_anak;
+            
+            // Cari apakah properti anak ini sudah ada?
+            for (int i = 0; i < ram_anak->jumlah; i++) {
+                if (strcmp(ram_anak->kavling[i].nama, node->nilai_teks) == 0) {
+                    return &(ram_anak->kavling[i]);
+                }
+            }
+
+            // Jika belum ada, Ciptakan Jalan Dimensi Baru!
+            simpan_ke_ram(ram_anak, node->nilai_teks, "[MUTASI]"); 
+            return &(ram_anak->kavling[ram_anak->jumlah - 1]);
+        }
+    }
+    return NULL;
+}
+
 // Fungsi Bantuan: Menghapus kutip ganda/tunggal di ujung teks
 void bersihkan_kutip(char* teks) {
     if (!teks) return; // Pelindung Segfault Mutlak
@@ -257,13 +301,76 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         return strdup("");
     }
 
-    // 4. Operasi Matematika
+    // 4. Operasi Matematika & Penugasan
     if (node->jenis == AST_OPERASI_MATEMATIKA) {
+        
+        // ==========================================================
+        // 🔥 SUNTIKAN MUTASI BRUTAL (TANDA '=') HARUS DI SINI! 🔥
+        // Mencegat mesin sebelum ia mencoba membaca sisi kiri (L-Value)
+        // ==========================================================
+        if (node->operator_math && strcmp(node->operator_math, "=") == 0) {
+            char* hasil_akhir = (char*)malloc(1024);
+            memset(hasil_akhir, 0, 1024);
+
+            // Cari atau ciptakan kavlingnya HANYA sebagai target (tanpa membacanya)
+            KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+            
+            if (target) {
+                // Hancurkan kenangan lama secara brutal (Cegah Memory Leak)
+                if (target->tipe == TIPE_TEKS && target->nilai_teks) {
+                    free(target->nilai_teks);
+                    target->nilai_teks = NULL;
+                } else if (target->tipe == TIPE_OBJEK && target->anak_anak) {
+                    bebaskan_ram(target->anak_anak);
+                    free(target->anak_anak);
+                    target->anak_anak = NULL;
+                }
+
+                // A. JIKA DIA DITIMPA MENJADI OBJEK {}
+                if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
+                    target->tipe = TIPE_OBJEK;
+                    target->anak_anak = ciptakan_ram_mini();
+                    
+                    for (int i = 0; i < node->kanan->jumlah_anak; i++) {
+                        ASTNode* pasangan = node->kanan->anak_anak[i];
+                        if (!pasangan || !pasangan->pembanding) continue;
+
+                        char* kunci = strdup(pasangan->pembanding);
+                        bersihkan_kutip(kunci);
+                        
+                        char* nilai_anak = evaluasi_ekspresi(pasangan->kiri, ram);
+                        if (nilai_anak) {
+                            simpan_ke_ram(target->anak_anak, kunci, nilai_anak);
+                            free(nilai_anak);
+                        }
+                        free(kunci);
+                    }
+                    snprintf(hasil_akhir, 1024, "[Wujud Objek / Domain Bersarang]");
+                } 
+                // B. JIKA DIA DITIMPA MENJADI TEKS/ANGKA BIASA
+                else {
+                    // Evaluasi nilai kanan SAJA!
+                    char* nilai_baru = evaluasi_ekspresi(node->kanan, ram);
+                    target->tipe = TIPE_TEKS;
+                    target->nilai_teks = nilai_baru ? strdup(nilai_baru) : strdup("");
+                    snprintf(hasil_akhir, 1024, "%s", target->nilai_teks);
+                    if (nilai_baru) free(nilai_baru);
+                }
+            } else {
+                pemicu_kernel_panic(ram, "Gagal memutasi memori. Variabel induk belum ditakdirkan!");
+            }
+            return hasil_akhir; // Langsung pulang!
+        }
+        // ==========================================================
+
+        // JIKA BUKAN PENUGASAN '=' (Melainkan +, -, *, /)
+        // Baru kita evaluasi kedua sisinya sebagai angka/teks!
         char* hasil_kiri = evaluasi_ekspresi(node->kiri, ram);
         char* hasil_kanan = evaluasi_ekspresi(node->kanan, ram);
         char* hasil_akhir = (char*)malloc(1024);
         memset(hasil_akhir, 0, 1024);
 
+        // Konversi angka HANYA dilakukan JIKA operatornya bukan '='
         if (node->operator_math) {
             double angka_kiri = atof(hasil_kiri);
             double angka_kanan = atof(hasil_kanan);
@@ -745,7 +852,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             }
         }
     }
-    
+
     // 3. Eksekusi HUKUM KARMA (Percabangan)
     else if (node->jenis == AST_HUKUM_KARMA) {
         int sah = evaluasi_kondisi(node->syarat, ram);
@@ -957,6 +1064,13 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         
         ram->status_pulang = 1; 
         return;
+    }
+
+    // EKSEKUTOR MUTASI BEBAS
+    // Memaksa mesin mengeksekusi x = y atau pemanggilan fungsi yang berdiri sendiri
+    else if (node->jenis == AST_OPERASI_MATEMATIKA || node->jenis == AST_PANGGILAN_FUNGSI) {
+        char* hasil_mutasi = evaluasi_ekspresi(node, ram);
+        if (hasil_mutasi) free(hasil_mutasi); // Eksekusi lalu buang sisa teksnya (karena ini operasi diam)
     }
 
     
