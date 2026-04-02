@@ -212,6 +212,47 @@ ASTNode* parse_ekspresi(Parser* p) {
     return simpul_kiri;
 }
 
+// ==========================================================
+// [FASE 1] PENANGKAP LOGIKA MAJEMUK (dan, atau)
+// ==========================================================
+ASTNode* parse_syarat_logika(Parser* p) {
+    // 1. Tangkap kondisi sebelah kiri (misal: umur > 18)
+    ASTNode* simpul_kiri = buat_node(AST_KONDISI);
+    simpul_kiri->kiri = parse_ekspresi(p); 
+    
+    if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+        simpul_kiri->pembanding = strdup(token_sekarang(p).isi);
+        maju(p); // lewati '==' atau '>'
+        simpul_kiri->kanan = parse_ekspresi(p);
+    }
+
+    // 2. Cek apakah ada kata 'dan' atau 'atau' setelahnya!
+    while (token_sekarang(p).jenis == TOKEN_LOGIKA && 
+          (strcmp(token_sekarang(p).isi, "dan") == 0 || strcmp(token_sekarang(p).isi, "atau") == 0)) {
+        
+        Token t_logika = token_sekarang(p);
+        maju(p); // Lewati kata 'dan' / 'atau'
+        
+        ASTNode* simpul_logika = buat_node(AST_OPERASI_LOGIKA);
+        simpul_logika->pembanding = strdup(t_logika.isi); // Simpan "dan" / "atau"
+        simpul_logika->kiri = simpul_kiri; // Kiri adalah kondisi sebelumnya
+        
+        // Kanan adalah kondisi berikutnya (misal: uang > 100)
+        ASTNode* kondisi_kanan = buat_node(AST_KONDISI);
+        kondisi_kanan->kiri = parse_ekspresi(p);
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            kondisi_kanan->pembanding = strdup(token_sekarang(p).isi);
+            maju(p);
+            kondisi_kanan->kanan = parse_ekspresi(p);
+        }
+        simpul_logika->kanan = kondisi_kanan;
+        
+        simpul_kiri = simpul_logika; // Timpa untuk mendukung rantai panjang (A dan B atau C)
+    }
+    
+    return simpul_kiri;
+}
+
 // Mengurai Satu Baris Perintah Penuh (Statement)
 ASTNode* parse_pernyataan(Parser* p) {
     Token t = token_sekarang(p);
@@ -240,7 +281,7 @@ ASTNode* parse_pernyataan(Parser* p) {
             ASTNode* node = buat_node(AST_PERINTAH_HENTI); 
             maju(p); return node;
         }
-        
+
         else if (strcmp(t.isi, "terus") == 0) {
             ASTNode* node = buat_node(AST_PERINTAH_TERUS);
             maju(p); return node;
@@ -283,15 +324,7 @@ ASTNode* parse_pernyataan(Parser* p) {
         maju(p); // lewati kata 'jika'
 
         // A. Tangkap Syarat
-        node->syarat = buat_node(AST_KONDISI);
-        node->syarat->kiri = parse_ekspresi(p); // Sisi kiri (misal: umur)
-        
-        Token t_pembanding = token_sekarang(p);
-        if (t_pembanding.jenis == TOKEN_PEMBANDING) {
-            node->syarat->pembanding = strdup(t_pembanding.isi);
-            maju(p); // lewati simbol '=='
-            node->syarat->kanan = parse_ekspresi(p); // Sisi kanan (misal: 10)
-        }
+        node->syarat = parse_syarat_logika(p);
 
         // B. Lewati kata 'maka'
         Token t_maka = token_sekarang(p);

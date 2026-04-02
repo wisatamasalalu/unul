@@ -399,18 +399,34 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     return strdup(""); // Default return yang HALAL (berada di dalam fungsi)
 }
 
-// Fungsi Internal: Mengevaluasi Syarat Hukum Karma
+// Fungsi Internal: Mengevaluasi Syarat Hukum Karma & Logika
 int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
-    if (!kondisi || !kondisi->pembanding) return 0;
+    if (!kondisi) return 0;
+
+    // --- SUNTIKAN BARU: JIKA INI ADALAH LOGIKA MAJEMUK (dan / atau) ---
+    if (kondisi->jenis == AST_OPERASI_LOGIKA) {
+        int hasil_kiri = evaluasi_kondisi(kondisi->kiri, ram);
+        
+        // Logika Short-Circuit ala C untuk optimasi performa!
+        if (strcmp(kondisi->pembanding, "dan") == 0) {
+            if (hasil_kiri == 0) return 0; // Kiri salah, pasti salah semua!
+            return evaluasi_kondisi(kondisi->kanan, ram);
+        } 
+        else if (strcmp(kondisi->pembanding, "atau") == 0) {
+            if (hasil_kiri == 1) return 1; // Kiri benar, pasti benar semua!
+            return evaluasi_kondisi(kondisi->kanan, ram);
+        }
+    }
+
+    // --- LOGIKA KONDISI DASAR (A == B, dst) ---
+    if (!kondisi->pembanding) return 0;
     
     char* kiri = evaluasi_ekspresi(kondisi->kiri, ram);
     char* kanan = evaluasi_ekspresi(kondisi->kanan, ram);
     int hasil_sah = 0;
 
-    double num_kiri = atof(kiri);
-    double num_kanan = atof(kanan);
+    double num_kiri = atof(kiri); double num_kanan = atof(kanan);
 
-    // Evaluasi Angka vs Angka dan Teks vs Teks
     if (strcmp(kondisi->pembanding, "==") == 0) hasil_sah = (strcmp(kiri, kanan) == 0);
     else if (strcmp(kondisi->pembanding, "!=") == 0) hasil_sah = (strcmp(kiri, kanan) != 0);
     else if (strcmp(kondisi->pembanding, ">") == 0) hasil_sah = (num_kiri > num_kanan);
@@ -418,8 +434,11 @@ int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
     else if (strcmp(kondisi->pembanding, ">=") == 0) hasil_sah = (num_kiri >= num_kanan);
     else if (strcmp(kondisi->pembanding, "<=") == 0) hasil_sah = (num_kiri <= num_kanan);
 
+    // --- SUNTIKAN RADAR DEBUG ---
+    // printf("[RADAR LOGIKA] Kiri: '%s' (%g) | Pembanding: '%s' | Kanan: '%s' (%g) | Hasil: %d\n", kiri, num_kiri, kondisi->pembanding, kanan, num_kanan, hasil_sah);
+
     free(kiri); free(kanan);
-    return hasil_sah; // 1 (True) atau 0 (False)
+    return hasil_sah; 
 }
 
 // FUNGSI PENCATAT BUKU HARIAN (DIARY LOGGING)

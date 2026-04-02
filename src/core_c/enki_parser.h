@@ -20,6 +20,7 @@ typedef enum {
     AST_OPERASI_MATEMATIKA, // AST Matematika Dasar
     AST_HUKUM_KARMA,      // Blok jika...maka...lain...putus
     AST_KONDISI,          // Kondisi (misal: umur > 10)
+    AST_OPERASI_LOGIKA,   // Gabungan kondisi (A dan B)
     AST_DEKLARASI_DATANG, // datang
     AST_PRAGMA_MEMORI,    // untuk array.dinamis / .statis
     AST_PERINTAH_PERGI,    // pergi

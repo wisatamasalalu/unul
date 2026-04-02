@@ -192,6 +192,8 @@ TokenArray enki_lexer(const char* kode_sumber) {
             else if (strcmp(kata, "takdir.soft") == 0 || strcmp(kata, "takdir.hard") == 0) tambah_token(&token_list, TOKEN_TAKDIR, kata, baris, kolom - panjang);
             else if (strcmp(kata, "jika") == 0 || strcmp(kata, "maka") == 0 || strcmp(kata, "lain") == 0 || strcmp(kata, "putus") == 0) tambah_token(&token_list, TOKEN_KARMA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "effort") == 0 || strcmp(kata, "kali") == 0) tambah_token(&token_list, TOKEN_SIKLUS, kata, baris, kolom - panjang);
+            else if (strcmp(kata, "dan") == 0 || strcmp(kata, "atau") == 0 || strcmp(kata, "bukan") == 0) 
+                tambah_token(&token_list, TOKEN_LOGIKA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "coba") == 0) tambah_token(&token_list, TOKEN_COBA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "tabu") == 0) tambah_token(&token_list, TOKEN_TABU, kata, baris, kolom - panjang);
             else if (strcmp(kata, "melanggar") == 0) tambah_token(&token_list, TOKEN_MELANGGAR, kata, baris, kolom - panjang);

@@ -1,0 +1,23 @@
+datang
+
+takdir.soft umur = 20
+takdir.soft uang = 500
+
+ketik("=== MENGUJI LOGIKA 'DAN' ===")
+jika umur >= 18 dan uang > 100 maka
+    ketik("Kamu boleh masuk dan membeli item!")
+lain
+    ketik("Akses ditolak!")
+putus
+
+ketik("=== MENGUJI LOGIKA 'ATAU' ===")
+takdir.soft vip = "Tidak"
+jika uang > 1000 atau vip == "Iya" maka
+    ketik("Selamat datang Tuan Besar!")
+lain
+    ketik("Kamu hanya rakyat jelata.")
+putus
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
