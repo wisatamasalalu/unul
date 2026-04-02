@@ -1,0 +1,9 @@
+^^ tes_sowan.unul (Folder Lokal)
+datang
+sowan matematika
+takdir.soft nama_pustaka = "matematika.unll"
+
+ketik("Hasil dari fungsi pustaka sistem:")
+ketik(kuadrat(5))
+bisik("Masukkan token : ")
+pergi

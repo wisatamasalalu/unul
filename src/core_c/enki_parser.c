@@ -463,17 +463,21 @@ ASTNode* parse_pernyataan(Parser* p) {
     // (Jika Lexer Anda mendeteksi kata 'sowan' sebagai TOKEN_IDENTITAS)
     // --- PENANGKAP SIHIR SOWAN ---
     if (t.jenis == TOKEN_SOWAN) { 
-        // printf("📡 [RADAR PARSER] Menangkap mantra SOWAN!\n");
-        
         ASTNode* node = buat_node(AST_PERINTAH_SOWAN);
         maju(p); // lewati kata 'sowan'
         
         Token t_target = token_sekarang(p);
-        if (t_target.jenis == TOKEN_TEKS) {
-            node->nilai_teks = strdup(t_target.isi); 
-            // printf("📡 [RADAR PARSER] Target dimensi: %s\n", node->nilai_teks);
-            maju(p); // lewati nama file
+        if (t_target.jenis == TOKEN_IDENTITAS) {
+            // KEAJAIBAN KHUSUS SOWAN: Jika diketik tanpa kutip (misal: sowan matematika)
+            // Paksa mesin membacanya sebagai teks literal agar tidak memicu Kernel Panic
+            node->kiri = buat_node(AST_LITERAL_TEKS);
+            node->kiri->nilai_teks = strdup(t_target.isi);
+            maju(p);
+        } else {
+            // Jika menggunakan kutip ("matematika") atau ekspresi lain
+            node->kiri = parse_ekspresi(p); 
         }
+        
         return node;
     }
 

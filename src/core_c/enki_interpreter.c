@@ -6,6 +6,8 @@
 #include <ctype.h>
 #include <readline/readline.h>
 #include <readline/history.h>  // <--- UNTUK MENGINGAT HISTORY PANAH ATAS
+#include <termios.h>
+#include <unistd.h>
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -348,6 +350,37 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return strdup("");
         }
 
+        // --- SUNTIKAN BARU: TABLET OF DESTINIES: FUNGSI BISIK ---
+    else if (node->jenis == AST_IDENTITAS && strcmp(node->nilai_teks, "bisik") == 0) {
+        // 1. Jika ada argumen teks (seperti tanya), cetak teksnya dulu
+        if (node->kiri) { 
+            char* pesan = evaluasi_ekspresi(node->kiri, ram);
+            printf("%s", pesan);
+            fflush(stdout); // Paksa terminal mencetak tanpa menunggu Enter
+            free(pesan);
+        }
+        
+        char buffer[256];
+        struct termios terminal_lama, terminal_baru;
+        
+        // 2. MATIKAN ECHO TERMINAL (Sihir Gaib)
+        tcgetattr(STDIN_FILENO, &terminal_lama);
+        terminal_baru = terminal_lama;
+        terminal_baru.c_lflag &= ~(ECHO); // Hapus bendera ECHO
+        tcsetattr(STDIN_FILENO, TCSANOW, &terminal_baru);
+        
+        // 3. Baca masukan dari keyboard
+        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+            buffer[strcspn(buffer, "\n")] = 0; // Bersihkan \n
+        }
+        
+        // 4. NYALAKAN LAGI ECHO (Sangat penting agar terminal Linux Anda tidak rusak!)
+        tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);
+        printf("\n"); // Turun baris secara manual karena user menekan enter secara gaib
+        
+        return strdup(buffer);
+    }
+
         // =======================================================
         // 2. JIKA BUKAN FUNGSI BAWAAN, CARI DI RAM (FUNGSI KUSTOM)
         // =======================================================
@@ -622,19 +655,47 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // 6. Sowan - ATM DARI BLUEPRINT: elif node['tipe'] == 'PERINTAH_SOWAN'
+    // 6. Sowan (Pemanggilan Dimensi / Import)
     else if (node->jenis == AST_PERINTAH_SOWAN) {
-        char* target_file = strdup(node->nilai_teks);
-        bersihkan_kutip(target_file); // Membuang tanda kutip " "
+        // 1. Dapatkan nama file mentah (entah dari teks "..." atau dari variabel)
+        char* target_mentah = evaluasi_ekspresi(node->kiri, ram);
+        char target_file[512];
         
-        // 1. with open(target_file, "r")
-        FILE *file = fopen(target_file, "r");
-        if (!file) {
-            printf("🚨 Bencana Sowan! Kitab '%s' tidak ditemukan.\n", target_file);
-            exit(1);
+        // [SIHIR IMBUHAN OTOMATIS] Jika user mengetik 'sowan aljabar', otomatis jadi 'aljabar.unll'
+        if (strstr(target_mentah, ".") == NULL) {
+            snprintf(target_file, sizeof(target_file), "%s.unll", target_mentah);
+        } else {
+            strncpy(target_file, target_mentah, sizeof(target_file));
         }
         
-        // Baca seluruh isi file ke memori (kode_sowan = f.read())
+        // 2. RADAR LOKAL: Cari di folder tempat user berada saat ini
+        FILE *file = fopen(target_file, "r");
+        
+        // 3. RADAR SISTEM: Jika di lokal tidak ada, cari di Pustaka OS LinuxDNC!
+        if (!file) {
+            char path_sistem[1024];
+            
+            // Simulasi 1: Folder 'lib/' yang berdampingan dengan program (untuk masa development)
+            snprintf(path_sistem, sizeof(path_sistem), "lib/%s", target_file);
+            file = fopen(path_sistem, "r");
+            
+            // Simulasi 2: Folder absolut OS (nanti jika sudah rilis di Arch via yay/apt)
+            if (!file) {
+                snprintf(path_sistem, sizeof(path_sistem), "/usr/lib/unul/%s", target_file);
+                file = fopen(path_sistem, "r");
+            }
+            
+            // 4. KIAMAT: Jika di seluruh sistem tidak ada, hancurkan program!
+            if (!file) {
+                char pesan_kiamat[1024];
+                snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Bencana Sowan! Kitab pustaka '%s' tidak ditemukan di lokal maupun direktori sistem OS.", target_file);
+                pemicu_kernel_panic(ram, pesan_kiamat);
+                free(target_mentah);
+                return;
+            }
+        }
+        
+        // Baca seluruh isi pustaka ke dalam memori
         fseek(file, 0, SEEK_END);
         long fsize = ftell(file);
         fseek(file, 0, SEEK_SET);
@@ -643,19 +704,21 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         kode_sowan[fsize] = '\0';
         fclose(file);
         
-        // 2. Lexer -> Parser -> Eksekusi (Recursive Injection)
+        // [SIHIR REKURSIF] Panggil Lexer dan Parser untuk mengeksekusi isi pustaka ini!
         TokenArray token_list_sowan = enki_lexer(kode_sowan); 
         Parser parser_sowan = inisialisasi_parser(token_list_sowan); 
         ASTNode* ast_sowan = parse_program(&parser_sowan);
         
-        // 3. Gabungkan dan Eksekusi dengan RAM yang sama!
+        // Eksekusi Pustaka! (Fungsi-fungsinya akan tersimpan abadi di dalam EnkiRAM)
         eksekusi_program(ast_sowan, ram); 
         
-        // 4. Bersihkan jejak setelah ilmu dari pustaka terserap ke RAM utama
-        bebaskan_ast(ast_sowan);
+        // Bersihkan sampah memori
+        // bebaskan_ast(ast_sowan); -> DIMATIKAN AGAR FUNGSI TIDAK HILANG (Mencegah SegFault)
         bebaskan_token_array(&token_list_sowan);
         free(kode_sowan);
-        free(target_file);
+        
+        // KITA MEMBERSIHKAN TARGET MENTAH (Bukan target_file karena target_file bukan hasil malloc)
+        free(target_mentah); 
     }
 
     // 7. HUKUM TABU (Try-Catch / setjmp)
