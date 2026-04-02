@@ -15,28 +15,65 @@
 // Jantung LinuxDNC yang memompa Pohon Logika menjadi kenyataan!
 // =================================================================
 
-// --- 1. MANAJEMEN RAM UTAMA (ENKI RAM) ---
+// Membangkitkan RAM Induk (OS Utama)
 EnkiRAM inisialisasi_ram() {
     EnkiRAM ram;
-    
-    // KEAJAIBAN MUTLAK C: Sapu bersih semua hantu memori dengan angka 0!
-    memset(&ram, 0, sizeof(EnkiRAM)); 
-    
-    ram.kapasitas = 64; 
-    // ram.jumlah dan ram.butuh_anu_aktif kini otomatis = 0 berkat memset
+    ram.kapasitas = 10;
+    ram.jumlah = 0;
     ram.kavling = (KavlingMemori*)malloc(ram.kapasitas * sizeof(KavlingMemori));
+    ram.butuh_anu_aktif = 0;
+    ram.dalam_mode_coba = 0;
+    ram.status_pulang = 0;
+    ram.status_terus = 0;
+    ram.status_henti = 0;
+    
+    // --- SUNTIKAN UNLIMITED ---
+    ram.nilai_kembalian = NULL;  
+    ram.pesan_error_tabu = NULL; 
     return ram;
 }
 
+// Membangkitkan RAM Mini (Untuk Objek Bersarang)
+EnkiRAM* ciptakan_ram_mini() {
+    EnkiRAM* ram_baru = (EnkiRAM*)malloc(sizeof(EnkiRAM));
+    ram_baru->kapasitas = 10;
+    ram_baru->jumlah = 0;
+    ram_baru->kavling = (KavlingMemori*)malloc(10 * sizeof(KavlingMemori));
+    ram_baru->butuh_anu_aktif = 0;
+    ram_baru->dalam_mode_coba = 0;
+    ram_baru->status_pulang = 0;
+    ram_baru->status_terus = 0;
+    ram_baru->status_henti = 0;
+    
+    ram_baru->nilai_kembalian = NULL;
+    ram_baru->pesan_error_tabu = NULL;
+    return ram_baru;
+}
+
+// Menghancurkan RAM secara REKURSIF (Anti Kebocoran Memori)
 void bebaskan_ram(EnkiRAM* ram) {
+    if (!ram) return;
     for (int i = 0; i < ram->jumlah; i++) {
         if (ram->kavling[i].nama) free(ram->kavling[i].nama);
-        if (ram->kavling[i].nilai_teks) free(ram->kavling[i].nilai_teks);
+        
+        // Hancurkan teks biasa
+        if (ram->kavling[i].tipe == TIPE_TEKS && ram->kavling[i].nilai_teks) {
+            free(ram->kavling[i].nilai_teks);
+        }
+        
+        // 🔥 Hancurkan Dimensi Objek Bersarang! 🔥
+        if (ram->kavling[i].tipe == TIPE_OBJEK && ram->kavling[i].anak_anak) {
+            bebaskan_ram(ram->kavling[i].anak_anak); // Panggil diri sendiri untuk bersihkan isinya
+            free(ram->kavling[i].anak_anak);         // Hancurkan pointer RAM-nya
+        }
     }
-    free(ram->kavling);
-    ram->kavling = NULL;
-    ram->jumlah = 0;
-    ram->kapasitas = 0;
+    
+    // Bebaskan wadah string unlimited
+    if (ram->pesan_error_tabu) free(ram->pesan_error_tabu);
+    if (ram->nilai_kembalian) free(ram->nilai_kembalian);
+    
+    if (ram->kavling) free(ram->kavling);
+    // (JANGAN memanggil free(ram) di sini karena struct awal bukan pointer yang di-malloc)
 }
 
 // Fungsi Internal: Menyimpan atau menimpa nilai di RAM
@@ -44,8 +81,21 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
     // 1. Cari apakah sudah ada di RAM (Timpa nilai lama)
     for (int i = 0; i < ram->jumlah; i++) {
         if (strcmp(ram->kavling[i].nama, nama) == 0) {
-            free(ram->kavling[i].nilai_teks); // Buang ingatan lama
-            ram->kavling[i].nilai_teks = strdup(nilai); // Masukkan ingatan baru
+            
+            // 🔥 SUNTIKAN BARU: Hancurkan memori lama dengan aman sesuai tipenya!
+            if (ram->kavling[i].tipe == TIPE_TEKS && ram->kavling[i].nilai_teks) {
+                free(ram->kavling[i].nilai_teks);
+            } 
+            else if (ram->kavling[i].tipe == TIPE_OBJEK && ram->kavling[i].anak_anak) {
+                // Jika variabel ini asalnya objek, hancurkan dimensi anaknya!
+                bebaskan_ram(ram->kavling[i].anak_anak);
+                free(ram->kavling[i].anak_anak);
+                ram->kavling[i].anak_anak = NULL;
+            }
+
+            // Masukkan ingatan baru sebagai TEKS biasa
+            ram->kavling[i].tipe = TIPE_TEKS;
+            ram->kavling[i].nilai_teks = strdup(nilai); 
             return;
         }
     }
@@ -56,8 +106,11 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
         ram->kavling = (KavlingMemori*)realloc(ram->kavling, ram->kapasitas * sizeof(KavlingMemori));
     }
     
+    // Inisialisasi anatomi kavling baru dengan bersih
     ram->kavling[ram->jumlah].nama = strdup(nama);
+    ram->kavling[ram->jumlah].tipe = TIPE_TEKS;            // Default-nya Teks
     ram->kavling[ram->jumlah].nilai_teks = strdup(nilai);
+    ram->kavling[ram->jumlah].anak_anak = NULL;            // Wajib NULL agar tidak dianggap objek
     ram->kavling[ram->jumlah].simpul_fungsi = NULL;
     ram->jumlah++;
 }
@@ -66,14 +119,54 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
 const char* baca_dari_ram(EnkiRAM* ram, const char* nama) {
     for (int i = 0; i < ram->jumlah; i++) {
         if (strcmp(ram->kavling[i].nama, nama) == 0) {
+            
+            // 🔥 SUNTIKAN BARU: Jika yang dipanggil adalah Objek Utuh
+            if (ram->kavling[i].tipe == TIPE_OBJEK) {
+                return "[Wujud Objek / Domain Bersarang]";
+            }
+            
+            // Jika teks biasa
             return ram->kavling[i].nilai_teks;
         }
     }
     return NULL; 
 }
 
-// Fungsi Bantuan: Menghapus kutip ganda/tunggal di ujung teks (seperti .strip() di Python)
+// Penjelajah Dimensi Objek Bersarang (Tak Terbatas)
+KavlingMemori* cari_kavling_domain(ASTNode* node, EnkiRAM* ram) {
+    if (!node || !ram) return NULL;
+    
+    // 1. Jika ini adalah Induk Utama (misal: dewa)
+    if (node->jenis == AST_IDENTITAS) {
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                return &(ram->kavling[i]); // Kembalikan alamat kavlingnya
+            }
+        }
+        return NULL;
+    }
+    
+    // 2. Jika ini adalah Akses Bersarang (misal: dewa.elemen)
+    if (node->jenis == AST_AKSES_DOMAIN) {
+        // Cari induknya terlebih dahulu (rekursif ke dalam)
+        KavlingMemori* induk = cari_kavling_domain(node->kiri, ram);
+        
+        // Jika induknya ketemu dan wujudnya adalah OBJEK
+        if (induk && induk->tipe == TIPE_OBJEK && induk->anak_anak) {
+            // Cari properti anak di dalam RAM si Induk
+            for (int i = 0; i < induk->anak_anak->jumlah; i++) {
+                if (strcmp(induk->anak_anak->kavling[i].nama, node->nilai_teks) == 0) {
+                    return &(induk->anak_anak->kavling[i]);
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
+// Fungsi Bantuan: Menghapus kutip ganda/tunggal di ujung teks
 void bersihkan_kutip(char* teks) {
+    if (!teks) return; // Pelindung Segfault Mutlak
     int len = strlen(teks);
     if (len >= 2 && (teks[0] == '"' || teks[0] == '\'') && (teks[len-1] == '"' || teks[len-1] == '\'')) {
         memmove(teks, teks + 1, len - 2);
@@ -132,6 +225,26 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // Panggil dengan ram dan pesan
         pemicu_kernel_panic(ram, pesan_error); 
         return strdup(""); 
+    }
+
+    // 3.1 EVALUASI AKSES DOMAIN (TITIK) ---
+    else if (node->jenis == AST_AKSES_DOMAIN) {
+        KavlingMemori* target = cari_kavling_domain(node, ram);
+        
+        if (target) {
+            // Jika yang dipanggil ternyata objek lagi (misal: ketik(dewa.senjata) dan senjata itu objek)
+            if (target->tipe == TIPE_OBJEK) {
+                return strdup("[Wujud Objek / Domain Bersarang]");
+            }
+            // Jika teks biasa
+            if (target->nilai_teks) {
+                return strdup(target->nilai_teks);
+            }
+        }
+        
+        // Jika properti gaib / tidak ada
+        pemicu_kernel_panic(ram, "Domain bersarang atau properti tidak ditemukan!");
+        return strdup("");
     }
     
     // 3. Fungsi Dengar (Input)
@@ -517,8 +630,14 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
 
     // 4. CEK PERISAI HUKUM TABU (Try-Catch / setjmp)
     if (ram->dalam_mode_coba == 1) {
-        strncpy(ram->pesan_error_tabu, pesan, sizeof(ram->pesan_error_tabu) - 1);
-        ram->pesan_error_tabu[sizeof(ram->pesan_error_tabu) - 1] = '\0';
+        // Bebaskan kotak error lama (jika ada) untuk mencegah memory leak
+        if (ram->pesan_error_tabu) {
+            free(ram->pesan_error_tabu);
+        }
+        
+        // Cetak memori baru tanpa batasan ukuran
+        ram->pesan_error_tabu = strdup(pesan);
+        
         longjmp(ram->titik_kembali, 1); 
     }
 
@@ -577,15 +696,56 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         free(hasil); // Selalu bersihkan memori sementara
     }
     
-    // 2. Eksekusi DEKLARASI TAKDIR (Input ke RAM)
+    // 2. DEKLARASI TAKDIR (takdir.soft x = y ATAU takdir.soft dewa = {})
     else if (node->jenis == AST_DEKLARASI_TAKDIR) {
-        char* nama_variabel = node->kiri->nilai_teks;
-        char* hasil_kanan = evaluasi_ekspresi(node->kanan, ram);
+        char* nama = node->kiri->nilai_teks;
         
-        simpan_ke_ram(ram, nama_variabel, hasil_kanan);
-        free(hasil_kanan);
-    }
+        // 🔥 JIKA NILAINYA ADALAH WUJUD OBJEK {}
+        if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
+            simpan_ke_ram(ram, nama, "[Proses Penciptaan Objek]"); 
+            
+            // Penguncian Indeks Statis (Mencegah Dangling Pointer saat realloc)
+            int id_target = -1;
+            for (int i = 0; i < ram->jumlah; i++) {
+                if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                    id_target = i;
+                    break;
+                }
+            }
+            
+            if (id_target != -1) {
+                ram->kavling[id_target].tipe = TIPE_OBJEK;               
+                ram->kavling[id_target].anak_anak = ciptakan_ram_mini(); 
+                
+                EnkiRAM* ram_anak = ram->kavling[id_target].anak_anak;
 
+                // Masukkan semua pasangan "kunci": nilai ke dalam RAM anak
+                for (int i = 0; i < node->kanan->jumlah_anak; i++) {
+                    ASTNode* pasangan = node->kanan->anak_anak[i];
+                    if (!pasangan || !pasangan->pembanding) continue; // Pelindung Segfault
+
+                    char* kunci = strdup(pasangan->pembanding); 
+                    bersihkan_kutip(kunci); // Melepas kutipan gaya JSON
+                    
+                    char* nilai_anak = evaluasi_ekspresi(pasangan->kiri, ram);
+                    if (nilai_anak) {
+                        simpan_ke_ram(ram_anak, kunci, nilai_anak);
+                        free(nilai_anak);
+                    }
+                    free(kunci);
+                }
+            }
+        } 
+        // 💧 JIKA NILAINYA ADALAH TEKS/ANGKA BIASA
+        else {
+            char* nilai = evaluasi_ekspresi(node->kanan, ram);
+            if (nilai) {
+                simpan_ke_ram(ram, nama, nilai);
+                free(nilai);
+            }
+        }
+    }
+    
     // 3. Eksekusi HUKUM KARMA (Percabangan)
     else if (node->jenis == AST_HUKUM_KARMA) {
         int sah = evaluasi_kondisi(node->syarat, ram);
@@ -777,16 +937,24 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
 
     // --- PENANGKAP PERINTAH PULANG (RETURN) ---
     else if (node->jenis == AST_PULANG) {
+        
+        // Hancurkan memori nilai kembalian bekas sebelumnya (jika ada)
+        if (ram->nilai_kembalian) {
+            free(ram->nilai_kembalian);
+            ram->nilai_kembalian = NULL;
+        }
+
         if (node->kiri) {
             char* hasil = evaluasi_ekspresi(node->kiri, ram);
             if (hasil) {
-                strncpy(ram->nilai_kembalian, hasil, sizeof(ram->nilai_kembalian) - 1);
-                ram->nilai_kembalian[sizeof(ram->nilai_kembalian) - 1] = '\0';
+                ram->nilai_kembalian = strdup(hasil); // Duplikasi tanpa batas
                 free(hasil);
             }
         } else {
-            strcpy(ram->nilai_kembalian, "KOSONG");
+            // Jika pulang tanpa membawa apa-apa
+            ram->nilai_kembalian = strdup("KOSONG");
         }
+        
         ram->status_pulang = 1; 
         return;
     }

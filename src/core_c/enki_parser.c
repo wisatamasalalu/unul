@@ -138,6 +138,20 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             simpul_kiri->nilai_teks = strdup(t.isi);
             maju(p); 
             
+            // 🔥 SUNTIKAN BARU: Cek Akses Domain Bersarang (Titik) 🔥
+            // Memungkinkan pembacaan dewa.nama atau bahkan dewa.nama.depan
+            while (token_sekarang(p).jenis == TOKEN_TITIK) {
+                maju(p); // Lewati titik '.'
+                Token t_anak = token_sekarang(p);
+                if (t_anak.jenis == TOKEN_IDENTITAS) {
+                    ASTNode* akses = buat_node(AST_AKSES_DOMAIN);
+                    akses->kiri = simpul_kiri;              // Induknya (misal: dewa)
+                    akses->nilai_teks = strdup(t_anak.isi); // Anaknya (misal: nama)
+                    simpul_kiri = akses;
+                    maju(p);
+                }
+            }
+            
             // Cek Panggilan Fungsi
             if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
                 simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
@@ -172,6 +186,36 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
         }
         maju(p); 
+        return simpul_kiri;
+    }
+
+    // --- SUNTIKAN BARU: Tangkap Pembuatan Objek JSON {} ---
+    else if (t.jenis == TOKEN_KURUNG_K_B) {
+        simpul_kiri = buat_node(AST_STRUKTUR_OBJEK);
+        maju(p); // Lewati '{'
+        
+        while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
+            Token t_kunci = token_sekarang(p);
+            
+            // Kunci objek bisa berupa TEKS ("nama") atau IDENTITAS (nama)
+            if (t_kunci.jenis == TOKEN_TEKS || t_kunci.jenis == TOKEN_IDENTITAS) {
+                ASTNode* pasangan = buat_node(AST_PASANGAN_KUNCI_NILAI);
+                pasangan->pembanding = strdup(t_kunci.isi); // Pinjam 'pembanding' untuk simpan nama kunci
+                maju(p); // Lewati kunci
+                
+                if (token_sekarang(p).jenis == TOKEN_TITIK_DUA) {
+                    maju(p); // Lewati ':'
+                } else {
+                    kiamat_sintaksis("Wujud objek kehilangan titik dua ':' !");
+                }
+                
+                pasangan->kiri = parse_ekspresi(p); // Tangkap nilainya
+                tambah_anak(simpul_kiri, pasangan);
+            }
+            
+            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // Lewati koma antar properti
+        }
+        maju(p); // Lewati '}'
         return simpul_kiri;
     }
 

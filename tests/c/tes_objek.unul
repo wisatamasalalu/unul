@@ -1,0 +1,19 @@
+^^ tes_objek.unul
+datang
+
+ketik("=== MENGUJI PENCIPTAAN DOMAIN BERSARANG (OBJEK) ===")
+
+takdir.soft dewa = {
+    "nama": "Enki",
+    "elemen": "Pengetahuan",
+    "level": 99
+}
+
+ketik("Mencetak objek utuh (Harus muncul label informatif):")
+ketik(dewa)
+
+ketik("Mencetak properti menggunakan titik:")
+ketik(dewa.nama)
+ketik(dewa.elemen)
+
+pergi

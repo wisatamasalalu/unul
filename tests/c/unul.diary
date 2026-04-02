@@ -4,3 +4,31 @@ Pesan Alam     : Takdir 'variabel_ghaib' belum diciptakan!
 Status         : MODE PRODUKSI (Minimal Log)
 ========================
 
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-02 21:27:05
+Pesan Alam     : Takdir 'dewa.nama' belum diciptakan!
+Status         : MODE PRODUKSI (Minimal Log)
+========================
+
+=== [KIAMAT SINTAKSIS] ===
+Pesan Alam     : Wujud objek kehilangan titik dua ':' !
+Status         : GAGAL MERAKIT POHON LOGIKA (PARSER TERHENTI)
+========================
+
+=== [KIAMAT SINTAKSIS] ===
+Pesan Alam     : Wujud objek kehilangan titik dua ':' !
+Status         : GAGAL MERAKIT POHON LOGIKA (PARSER TERHENTI)
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-02 22:14:26
+Pesan Alam     : Takdir 'dewa.nama' belum diciptakan!
+Status         : MODE PRODUKSI (Minimal Log)
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-02 22:49:46
+Pesan Alam     : Domain bersarang atau properti tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+========================
+

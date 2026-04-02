@@ -12,23 +12,19 @@
 
 // Fungsi internal untuk memesan RAM awal
 void inisialisasi_array(TokenArray* array) {
-    array->kapasitas = 64; // Mulai dengan pesanan 64 kavling token
+    array->kapasitas = 64; 
     array->jumlah = 0;
-    // Ini dia kerumitan C: Memesan RAM manual (malloc)
     array->data = (Token*)malloc(array->kapasitas * sizeof(Token));
 }
 
 // Fungsi internal untuk menambah token dan melebarkan RAM jika penuh
 void tambah_token(TokenArray* array, TokenJenis jenis, const char* teks_isi, int baris, int kolom) {
     if (array->jumlah >= array->kapasitas) {
-        array->kapasitas *= 2; // Gandakan kapasitas kavling
-        // Minta OS untuk memperbesar ukuran RAM (realloc)
+        array->kapasitas *= 2; 
         array->data = (Token*)realloc(array->data, array->kapasitas * sizeof(Token));
     }
-    
     Token* t = &array->data[array->jumlah++];
     t->jenis = jenis;
-    // Menyalin teks asli ke dalam memori token (strdup)
     t->isi = teks_isi ? strdup(teks_isi) : NULL; 
     t->baris = baris;
     t->kolom = kolom;
@@ -38,17 +34,19 @@ void tambah_token(TokenArray* array, TokenJenis jenis, const char* teks_isi, int
 void bebaskan_token_array(TokenArray* array) {
     for (int i = 0; i < array->jumlah; i++) {
         if (array->data[i].isi != NULL) {
-            free(array->data[i].isi); // Bebaskan teks
+            free(array->data[i].isi); 
         }
     }
-    free(array->data); // Bebaskan array-nya
+    free(array->data); 
     array->data = NULL;
     array->jumlah = array->kapasitas = 0;
 }
 
 // Cek apakah karakter adalah bagian dari nama variabel/fungsi
 bool is_identitas(char c) {
-    return isalnum(c) || c == '_' || c == '.'; // Kita izinkan titik untuk 'takdir.soft' dll
+    // 🔥 TITIK DIHAPUS DARI SINI! 
+    // Sekarang titik ( . ) akan diperlakukan sebagai operator mutlak!
+    return isalnum(c) || c == '_'; 
 }
 
 // ==========================================
@@ -78,10 +76,10 @@ TokenArray enki_lexer(const char* kode_sumber) {
             while (kode_sumber[i] != '\n' && kode_sumber[i] != '\0') {
                 i++;
             }
-            continue; // Ulangi dari baris baru
+            continue; 
         }
 
-        // 3. Tangkap Tanda Baca Dasar (Kavling)
+        // 3. Tangkap Tanda Baca Dasar (Termasuk titik dan kurung kurawal)
         if (c == '(') { tambah_token(&token_list, TOKEN_KURUNG_B, "(", baris, kolom); i++; kolom++; continue; }
         if (c == ')') { tambah_token(&token_list, TOKEN_KURUNG_T, ")", baris, kolom); i++; kolom++; continue; }
         if (c == '{') { tambah_token(&token_list, TOKEN_KURUNG_K_B, "{", baris, kolom); i++; kolom++; continue; }
@@ -89,6 +87,8 @@ TokenArray enki_lexer(const char* kode_sumber) {
         if (c == '[') { tambah_token(&token_list, TOKEN_KURUNG_S_B, "[", baris, kolom); i++; kolom++; continue; }
         if (c == ']') { tambah_token(&token_list, TOKEN_KURUNG_S_T, "]", baris, kolom); i++; kolom++; continue; }
         if (c == ',') { tambah_token(&token_list, TOKEN_KOMA, ",", baris, kolom); i++; kolom++; continue; }
+        if (c == ':') { tambah_token(&token_list, TOKEN_TITIK_DUA, ":", baris, kolom); i++; kolom++; continue; }
+        if (c == '.') { tambah_token(&token_list, TOKEN_TITIK, ".", baris, kolom); i++; kolom++; continue; }
 
         // 4. Tangkap Teks ("..." atau '...')
         if (c == '"' || c == '\'') {
@@ -100,20 +100,17 @@ TokenArray enki_lexer(const char* kode_sumber) {
                 i++; kolom++;
             }
             if (kode_sumber[i] == kutip) {
-                i++; kolom++; // Lewati kutip penutup
+                i++; kolom++; 
             }
-            // Ekstrak string murni (termasuk kutipnya untuk saat ini)
             int panjang = i - awal;
             char* teks_buffer = (char*)malloc(panjang + 1);
             strncpy(teks_buffer, &kode_sumber[awal], panjang);
             teks_buffer[panjang] = '\0';
-            
             tambah_token(&token_list, TOKEN_TEKS, teks_buffer, baris, kolom - panjang);
             free(teks_buffer);
             continue;
         }
 
-        // [TAMBAHKAN INI SEBELUM BLOK 5 (IDENTITAS)]
         // 4.5 Tangkap Angka (Mendukung Desimal sederhana)
         if (isdigit(c)) {
             int awal = i;
@@ -129,19 +126,15 @@ TokenArray enki_lexer(const char* kode_sumber) {
             continue;
         }
 
-        // 4.6 Tangkap Operator Matematika, Logika & Assignment (Lebih Cerdas)
+        // 4.6 Tangkap Operator Matematika, Logika & Assignment
         if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
             char op_str[3] = {c, '\0', '\0'};
-            
-            // Cek apakah ini operator 2 karakter (==, !=, >=, <=)
             if ((c == '=' || c == '!' || c == '>' || c == '<') && kode_sumber[i+1] == '=') {
                 op_str[1] = '=';
                 tambah_token(&token_list, TOKEN_PEMBANDING, op_str, baris, kolom);
                 i += 2; kolom += 2;
                 continue;
             }
-            
-            // Jika hanya 1 karakter
             TokenJenis tj;
             if (c == '=') tj = TOKEN_ASSIGN;
             else if (c == '>' || c == '<') tj = TOKEN_PEMBANDING;
@@ -154,75 +147,73 @@ TokenArray enki_lexer(const char* kode_sumber) {
 
         // 5. Tangkap Kata (Identitas, Keyword, Fungsi)
         if (isalpha(c) || c == '_') {
-    int awal = i;
-    while (is_identitas(kode_sumber[i])) {
-        i++; kolom++;
-    }
-    int panjang = i - awal;
-    char* kata = (char*)malloc(panjang + 1);
-    strncpy(kata, &kode_sumber[awal], panjang);
-    kata[panjang] = '\0';
+            
+            // 🔥 SIHIR LOOKAHEAD: Selamatkan mantra yang memiliki titik di dalamnya!
+            if (strncmp(&kode_sumber[i], "takdir.soft", 11) == 0 && !is_identitas(kode_sumber[i+11])) {
+                tambah_token(&token_list, TOKEN_TAKDIR, "takdir.soft", baris, kolom);
+                i += 11; kolom += 11; continue;
+            }
+            if (strncmp(&kode_sumber[i], "takdir.hard", 11) == 0 && !is_identitas(kode_sumber[i+11])) {
+                tambah_token(&token_list, TOKEN_TAKDIR, "takdir.hard", baris, kolom);
+                i += 11; kolom += 11; continue;
+            }
 
-    // --- SIHIR INTIP (LOOKAHEAD) DIMULAI DI SINI ---
+            int awal = i;
+            while (is_identitas(kode_sumber[i])) {
+                i++; kolom++;
+            }
+            int panjang = i - awal;
+            char* kata = (char*)malloc(panjang + 1);
+            strncpy(kata, &kode_sumber[awal], panjang);
+            kata[panjang] = '\0';
 
-    // 1. Cek Mantra "butuh .anu"
-    if (strcmp(kata, "butuh") == 0) {
-        // Intip apakah 5 karakter kedepan adalah " .anu"
-        if (strncmp(&kode_sumber[i], " .anu", 5) == 0) {
-            tambah_token(&token_list, TOKEN_PRAGMA, "butuh .anu", baris, kolom - panjang);
-            i += 5; // Loncat melewati " .anu"
-            kolom += 5;
-            free(kata); continue;
-        }
-    }
-    
-    // 2. Cek Mantra "untuk array.dinamis"
-    if (strcmp(kata, "untuk") == 0) {
-        // Intip apakah setelahnya adalah " array.dinamis"
-        if (strncmp(&kode_sumber[i], " array.dinamis", 14) == 0) {
-            tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.dinamis", baris, kolom - panjang);
-            i += 14; // Loncat melewati " array.dinamis"
-            kolom += 14;
-            free(kata); continue;
-        }
-    }
-            // Cek Manual Keyword (Ganti Regex)
+            // --- MELANJUTKAN SIHIR LOOKAHEAD UNTUK PRAGMA ---
+            if (strcmp(kata, "butuh") == 0) {
+                if (strncmp(&kode_sumber[i], " .anu", 5) == 0) {
+                    tambah_token(&token_list, TOKEN_PRAGMA, "butuh .anu", baris, kolom - panjang);
+                    i += 5; kolom += 5; free(kata); continue;
+                }
+            }
+            if (strcmp(kata, "untuk") == 0) {
+                if (strncmp(&kode_sumber[i], " array.dinamis", 14) == 0) {
+                    tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.dinamis", baris, kolom - panjang);
+                    i += 14; kolom += 14; free(kata); continue;
+                }
+                if (strncmp(&kode_sumber[i], " array.statis", 13) == 0) {
+                    tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.statis", baris, kolom - panjang);
+                    i += 13; kolom += 13; free(kata); continue;
+                }
+            }
+
+            // Cek Manual Keyword
             if (strcmp(kata, "datang") == 0) tambah_token(&token_list, TOKEN_HEADER, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "untuk array.dinamis") == 0 || strcmp(kata, "butuh .anu") == 0) tambah_token(&token_list, TOKEN_PRAGMA, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "takdir.soft") == 0 || strcmp(kata, "takdir.hard") == 0) tambah_token(&token_list, TOKEN_TAKDIR, kata, baris, kolom - panjang);
             else if (strcmp(kata, "jika") == 0 || strcmp(kata, "maka") == 0 || strcmp(kata, "lain") == 0 || strcmp(kata, "putus") == 0) tambah_token(&token_list, TOKEN_KARMA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "effort") == 0 || strcmp(kata, "kali") == 0) tambah_token(&token_list, TOKEN_SIKLUS, kata, baris, kolom - panjang);
-            else if (strcmp(kata, "dan") == 0 || strcmp(kata, "atau") == 0 || strcmp(kata, "bukan") == 0) 
-                tambah_token(&token_list, TOKEN_LOGIKA, kata, baris, kolom - panjang);
+            else if (strcmp(kata, "dan") == 0 || strcmp(kata, "atau") == 0 || strcmp(kata, "bukan") == 0) tambah_token(&token_list, TOKEN_LOGIKA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "coba") == 0) tambah_token(&token_list, TOKEN_COBA, kata, baris, kolom - panjang);
             else if (strcmp(kata, "tabu") == 0) tambah_token(&token_list, TOKEN_TABU, kata, baris, kolom - panjang);
             else if (strcmp(kata, "melanggar") == 0) tambah_token(&token_list, TOKEN_MELANGGAR, kata, baris, kolom - panjang);
             else if (strcmp(kata, "tebus") == 0) tambah_token(&token_list, TOKEN_TEBUS, kata, baris, kolom - panjang);
             else if (strcmp(kata, "pasrah") == 0) tambah_token(&token_list, TOKEN_PASRAH, kata, baris, kolom - panjang);
-            
-            // --- INI YANG DIPISAH ---
             else if (strcmp(kata, "ciptakan") == 0) tambah_token(&token_list, TOKEN_CIPTAKAN, kata, baris, kolom - panjang);
             else if (strcmp(kata, "fungsi") == 0) tambah_token(&token_list, TOKEN_FUNGSI, kata, baris, kolom - panjang);
             else if (strcmp(kata, "pulang") == 0) tambah_token(&token_list, TOKEN_PULANG, kata, baris, kolom - panjang);
-            
-            // --- SISA KONTROL YANG LAMA ---
             else if (strcmp(kata, "sowan") == 0) tambah_token(&token_list, TOKEN_SOWAN, kata, baris, kolom - panjang);
-            // --->> PERUBAHAN HANYA DI BARIS INI (Tambahkan "terus" di ujungnya):
             else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0 || strcmp(kata, "terus") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, kolom - panjang);
-            // Jika tidak ada yang cocok, berarti ini Variabel atau Nama Fungsi buatan user!
+            
+            // Jika bukan keyword, berarti itu Identitas Murni!
             else tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, kolom - panjang);
 
             free(kata);
             continue;
         }
 
-        // 6. Tangkap Operator yang tertinggal (Kita handle sederhana dulu)
+        // 6. Tangkap Operator yang tertinggal
         char op_str[2] = {c, '\0'};
         tambah_token(&token_list, TOKEN_MISMATCH, op_str, baris, kolom);
         i++; kolom++;
     }
 
-    // Akhir dari file
     tambah_token(&token_list, TOKEN_EOF, "EOF", baris, kolom);
     return token_list;
 }

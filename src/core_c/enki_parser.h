@@ -34,8 +34,12 @@ typedef enum {
     AST_DEKLARASI_FUNGSI, // Untuk: ciptakan fungsi nama(x) maka ... putus
     AST_PANGGILAN_FUNGSI, // Untuk: nama(10)
     AST_PULANG,            // Untuk: pulang x
-    AST_OPERASI_BUKAN,
-    AST_PERINTAH_PASRAH
+    AST_OPERASI_BUKAN,     // Menyimpan logika pembalik // Seperti operasi NOT pada bahasa pemrograman umum
+    AST_PERINTAH_PASRAH,    // Menyimpan perintah eksekusi free()
+    AST_STRUKTUR_OBJEK,        // Menampung kurung kurawal {}
+    AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
+    AST_AKSES_DOMAIN          // Menampung akses titik (misal: dewa.nama)
+
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
