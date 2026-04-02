@@ -3,6 +3,21 @@
 #include <string.h>
 #include "enki_parser.h"
 
+void kiamat_sintaksis(const char* pesan) {
+    printf("🚨 KIAMAT SINTAKSIS: %s\n", pesan);
+    
+    // Abadikan kematian sebelum mati (sesuai tradisi Enki)
+    FILE* file_diary = fopen("unul.diary", "a");
+    if (file_diary) {
+        fprintf(file_diary, "=== [KIAMAT SINTAKSIS] ===\n");
+        fprintf(file_diary, "Pesan Alam     : %s\n", pesan);
+        fprintf(file_diary, "Status         : GAGAL MERAKIT POHON LOGIKA (PARSER TERHENTI)\n");
+        fprintf(file_diary, "========================\n\n");
+        fclose(file_diary);
+    }
+    exit(1); // Tetap exit(1) karena kode tidak mungkin bisa dieksekusi jika cacat ketik
+}
+
 // =================================================================
 // DAPUR MESIN PARSER (POHON LOGIKA)
 // Menyusun token-token acak menjadi Rantai Arsitektur (AST)
@@ -33,6 +48,7 @@ ASTNode* buat_node(ASTJenis jenis) {
     node->pembanding = NULL;
     node->batas_loop = NULL;
     node->blok_siklus = NULL;
+    node->blok_tebus = NULL;
     return node;
 }
 
@@ -62,6 +78,7 @@ void bebaskan_ast(ASTNode* node) {
     if (node->anak_anak) free(node->anak_anak);
     if (node->batas_loop) bebaskan_ast(node->batas_loop);
     if (node->blok_siklus) bebaskan_ast(node->blok_siklus);
+    if (node->blok_tebus) bebaskan_ast(node->blok_tebus);
     
     free(node);
 }
@@ -98,7 +115,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             maju(p); // Lewati ')'
         } else {
             printf("🚨 Bencana Sintaksis: Kurung buka '(' kehilangan pasangan penutupnya ')'!\n");
-            exit(1);
+            kiamat_sintaksis("Blok 'coba' kehilangan penutup 'pasrah'!");
         }
         return simpul_kiri;
     }
@@ -213,20 +230,38 @@ ASTNode* parse_ekspresi(Parser* p) {
 }
 
 // ==========================================================
-// [FASE 1] PENANGKAP LOGIKA MAJEMUK (dan, atau)
+// [FASE 1] PENANGKAP LOGIKA MAJEMUK (dan, atau, bukan)
 // ==========================================================
 ASTNode* parse_syarat_logika(Parser* p) {
-    // 1. Tangkap kondisi sebelah kiri (misal: umur > 18)
-    ASTNode* simpul_kiri = buat_node(AST_KONDISI);
-    simpul_kiri->kiri = parse_ekspresi(p); 
+    ASTNode* simpul_kiri = NULL;
     
-    if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
-        simpul_kiri->pembanding = strdup(token_sekarang(p).isi);
-        maju(p); // lewati '==' atau '>'
-        simpul_kiri->kanan = parse_ekspresi(p);
+    // 1. PENANGKAP SIHIR 'bukan' DI AWAL SYARAT
+    if (token_sekarang(p).jenis == TOKEN_LOGIKA && strcmp(token_sekarang(p).isi, "bukan") == 0) {
+        simpul_kiri = buat_node(AST_OPERASI_BUKAN);
+        maju(p); // lewati kata 'bukan'
+        
+        // Tangkap kondisi setelah kata 'bukan' (misal: x == 2)
+        ASTNode* kondisi = buat_node(AST_KONDISI);
+        kondisi->kiri = parse_ekspresi(p);
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            kondisi->pembanding = strdup(token_sekarang(p).isi);
+            maju(p);
+            kondisi->kanan = parse_ekspresi(p);
+        }
+        simpul_kiri->kiri = kondisi; // Masukkan kondisi ke dalam pelukan 'bukan'
+    } else {
+        // 2. KONDISI NORMAL TANPA BUKAN
+        simpul_kiri = buat_node(AST_KONDISI);
+        simpul_kiri->kiri = parse_ekspresi(p); 
+        
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            simpul_kiri->pembanding = strdup(token_sekarang(p).isi);
+            maju(p); // lewati '==' atau '>'
+            simpul_kiri->kanan = parse_ekspresi(p);
+        }
     }
-
-    // 2. Cek apakah ada kata 'dan' atau 'atau' setelahnya!
+ 
+    // 3. Cek apakah ada kata 'dan' atau 'atau' setelahnya!
     while (token_sekarang(p).jenis == TOKEN_LOGIKA && 
           (strcmp(token_sekarang(p).isi, "dan") == 0 || strcmp(token_sekarang(p).isi, "atau") == 0)) {
         
@@ -459,6 +494,15 @@ ASTNode* parse_pernyataan(Parser* p) {
         }
     }
 
+    // --- PENANGKAP PELEPASAN MEMORI BERDIRI SENDIRI (PASRAH VARIABEL) ---
+    if (t.jenis == TOKEN_PASRAH) {
+        ASTNode* node = buat_node(AST_PERINTAH_PASRAH);
+        maju(p); // lewati kata 'pasrah'
+        
+        node->kiri = parse_ekspresi(p); // Ambil target variabel
+        return node;
+    }
+
     // ATM DARI BLUEPRINT: elif token[0] == 'SOWAN':
     // (Jika Lexer Anda mendeteksi kata 'sowan' sebagai TOKEN_IDENTITAS)
     // --- PENANGKAP SIHIR SOWAN ---
@@ -481,27 +525,28 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
-    // 5. Apakah ini HUKUM TABU? (coba maka ... tabu melanggar ... pasrah)
+    // 5. Apakah ini HUKUM TABU? (coba maka ... tabu melanggar e maka ... tebus maka ... pasrah)
     if (t.jenis == TOKEN_COBA) {
         ASTNode* node = buat_node(AST_COBA_TABU);
         maju(p); // lewati kata 'coba'
         if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
 
-        // A. Tangkap isi blok COBA (simpan di node->kiri)
+        // A. Tangkap isi blok COBA (TRY)
         node->kiri = buat_node(AST_PROGRAM);
         while (token_sekarang(p).jenis != TOKEN_EOF) {
             Token t_cek = token_sekarang(p);
+            // Berhenti jika mulai masuk blok tabu, tebus, atau pasrah
             if (t_cek.jenis == TOKEN_TABU || t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
             ASTNode* stmt = parse_pernyataan(p);
             if (stmt) tambah_anak(node->kiri, stmt);
         }
 
-        // B. Cek apakah ada blok TABU MELANGGAR
+        // B. Cek apakah ada blok TABU MELANGGAR (EXCEPT)
         if (token_sekarang(p).jenis == TOKEN_TABU) {
             maju(p); // lewati 'tabu'
             if (token_sekarang(p).jenis == TOKEN_MELANGGAR) {
                 maju(p); // lewati 'melanggar'
-                // Tangkap wadah error (misal: pesan_kiamat)
+                // Tangkap wadah error (misal nama variabel errornya)
                 if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
                     node->nilai_teks = strdup(token_sekarang(p).isi);
                     maju(p);
@@ -509,20 +554,40 @@ ASTNode* parse_pernyataan(Parser* p) {
             }
             if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
 
-            // Tangkap isi blok TABU (simpan di node->kanan)
+            // Tangkap isi blok TABU
             node->kanan = buat_node(AST_PROGRAM);
             while (token_sekarang(p).jenis != TOKEN_EOF) {
                 Token t_cek = token_sekarang(p);
+                // Berhenti jika mulai masuk blok tebus atau pasrah
                 if (t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
                 ASTNode* stmt = parse_pernyataan(p);
                 if (stmt) tambah_anak(node->kanan, stmt);
             }
         }
 
-        // (Opsional) Tambahkan penangkap untuk blok TEBUS jika diperlukan
+        // C. Cek apakah ada blok TEBUS (FINALLY)
+        if (token_sekarang(p).jenis == TOKEN_TEBUS) {
+            maju(p); // lewati 'tebus'
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
 
-        // C. Lewati kata 'pasrah'
-        if (token_sekarang(p).jenis == TOKEN_PASRAH) maju(p);
+            // Tangkap isi blok TEBUS
+            node->blok_tebus = buat_node(AST_PROGRAM);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                // Berhenti jika bertemu penutup pasrah
+                if (t_cek.jenis == TOKEN_PASRAH) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node->blok_tebus, stmt);
+            }
+        }
+
+        // D. Lewati kata 'pasrah' sebagai PENUTUP MUTLAK blok Hukum Tabu
+        if (token_sekarang(p).jenis == TOKEN_PASRAH) {
+            maju(p); 
+        } else {
+            printf("🚨 Bencana Sintaksis: Blok 'coba' kehilangan penutup 'pasrah'!\n");
+            kiamat_sintaksis("Blok 'coba' kehilangan penutup 'pasrah'!");
+        }
 
         return node;
     }

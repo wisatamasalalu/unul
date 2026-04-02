@@ -33,7 +33,9 @@ typedef enum {
     AST_COBA_TABU,           // Ranting hukum tabu
     AST_DEKLARASI_FUNGSI, // Untuk: ciptakan fungsi nama(x) maka ... putus
     AST_PANGGILAN_FUNGSI, // Untuk: nama(10)
-    AST_PULANG            // Untuk: pulang x
+    AST_PULANG,            // Untuk: pulang x
+    AST_OPERASI_BUKAN,
+    AST_PERINTAH_PASRAH
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
@@ -61,6 +63,7 @@ typedef struct ASTNode {
     struct ASTNode* batas_loop;  // Menunjuk ke node jumlah perulangan
     struct ASTNode* blok_siklus; // Menunjuk ke blok perintah yang diulang
     struct ASTNode* indeks_array; // Buat memetakan index memori
+    struct ASTNode* blok_tebus;   // berfungsi seperti finnaly
 
     char* pembanding;           // Teks operator, misal "==" atau ">"
 

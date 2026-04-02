@@ -753,6 +753,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         ram->dalam_mode_coba = status_coba_lama;
         memcpy(ram->titik_kembali, titik_kembali_lama, sizeof(jmp_buf));
         // --------------------------------------------
+        
     }
 
     // --- PENANGKAP PENCIPTAAN FUNGSI ---

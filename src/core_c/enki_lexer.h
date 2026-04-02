@@ -28,7 +28,8 @@ typedef enum {
     TOKEN_TABU,          // tabu
     TOKEN_MELANGGAR,     // melanggar
     TOKEN_TEBUS,         // tebus
-    TOKEN_PASRAH,        // pasrah
+    TOKEN_BUKAN,     // Untuk sihir negasi logika
+    TOKEN_PASRAH,    // Untuk pelepasan memori manual
 
     // Operator, Logika, & Pembanding
     TOKEN_PEMBANDING,    // ==, !=, >, <, >=, <=, berisi
