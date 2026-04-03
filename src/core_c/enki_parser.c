@@ -550,8 +550,8 @@ ASTNode* parse_pernyataan(Parser* p) {
     }
 
 
-    // --- SIHIR BALIKAN ---
-    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "balikan") == 0) {
+   // --- SIHIR BALIKAN ---
+    if (strcmp(t.isi, "balikan") == 0) { // 🔥 Syarat token dihapus agar tidak terlewat!
         ASTNode* node = buat_node(AST_PERINTAH_BALIKAN);
         maju(p); // lewati kata 'balikan'
         node->kiri = parse_ekspresi(p); // Ambil target yang mau dibalikkan

@@ -373,14 +373,11 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* hasil_akhir = (char*)malloc(1024);
             memset(hasil_akhir, 0, 1024);
 
-            // Cari target dan JUGA INDUKNYA!
-            KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+            // 1. Dapatkan Induk Utama DULU! (Ambil dari wujud murni masa lalu)
             KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 
             
-            if (target && induk) {
-                // =======================================================
-                // 🔥 MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA!
-                // =======================================================
+            // 2. 🔥 MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA (SEBELUM RAM DIMUTASI) 🔥
+            if (induk) {
                 if (induk->jumlah_riwayat >= induk->kapasitas_riwayat) {
                     induk->kapasitas_riwayat = induk->kapasitas_riwayat == 0 ? 4 : induk->kapasitas_riwayat * 2;
                     induk->riwayat = (JejakMasaLalu*)realloc(induk->riwayat, induk->kapasitas_riwayat * sizeof(JejakMasaLalu));
@@ -389,9 +386,15 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 jejak->tipe = induk->tipe;
                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
                 
-                // Salin seluruh wujud semesta dari Induk ini!
+                // Salin seluruh wujud semesta dari Induk saat ini (Masa Lalu Murni)
                 jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
+            }
 
+            // 3. BARU KITA CARI/CIPTAKAN TARGET 
+            // (Fungsi ini akan memutasi memori jika ia menciptakan ranting dimensi baru)
+            KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+            
+            if (target && induk) {
                 // =======================================================
                 // 🔥 SUNTIKAN HUKUM: Cek apakah target dikunci
                 if (target->apakah_konstanta) {
@@ -1040,11 +1043,30 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     
     // 2. DEKLARASI TAKDIR (takdir.soft x = y ATAU takdir.soft dewa = {})
     else if (node->jenis == AST_DEKLARASI_TAKDIR) {
-        char* nama = node->kiri->nilai_teks;
-        int adalah_hard = (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0); // 🔥 Cek status hard
+        // Amankan pengambilan nama dari kelemahan parser
+        char* nama = node->kiri ? node->kiri->nilai_teks : node->nilai_teks;
+        if (!nama) return;
 
-        // ... (Logika simpan untuk Objek atau Teks) ...
-        
+        int adalah_hard = (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0);
+
+        // =======================================================
+        // 🔥 MESIN WAKTU: Simpan masa lalu sebelum variabel ditimpa
+        // =======================================================
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                KavlingMemori* induk = &(ram->kavling[i]);
+                if (induk->jumlah_riwayat >= induk->kapasitas_riwayat) {
+                    induk->kapasitas_riwayat = induk->kapasitas_riwayat == 0 ? 4 : induk->kapasitas_riwayat * 2;
+                    induk->riwayat = (JejakMasaLalu*)realloc(induk->riwayat, induk->kapasitas_riwayat * sizeof(JejakMasaLalu));
+                }
+                JejakMasaLalu* jejak = &induk->riwayat[induk->jumlah_riwayat++];
+                jejak->tipe = induk->tipe;
+                jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+                jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
+                break;
+            }
+        }
+
         // 🔥 SUNTIKAN: Kunci kavling di RAM setelah disimpan
         for (int i = 0; i < ram->jumlah; i++) {
             if (strcmp(ram->kavling[i].nama, nama) == 0) {
@@ -1316,27 +1338,48 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
 
     // --- 9. SIHIR BALIKAN (MESIN WAKTU) ---
     else if (node->jenis == AST_PERINTAH_BALIKAN) {
-        KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
-        KavlingMemori* induk = cari_induk_utama(node->kiri, ram); // 🔥 SUNTIKAN WAJIB
+        KavlingMemori* target = NULL;
+        KavlingMemori* induk = NULL;
         
-        // Kita mundur dari sejarah INDUK, bukan sejarah target!
+        // 1. Mengakali kelemahan Parser (Bisa di node->kiri atau di node->nilai_teks)
+        if (node->kiri) {
+            target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+            induk = cari_induk_utama(node->kiri, ram); 
+        } else if (node->nilai_teks) {
+            // Pelindung jika parser merangkum target sebagai string mentah "a.b.c"
+            char nama_root[256];
+            strncpy(nama_root, node->nilai_teks, 255);
+            nama_root[255] = '\0';
+            
+            char* titik = strchr(nama_root, '.');
+            if (titik) *titik = '\0'; // Potong, ambil Induk Utama-nya saja
+            
+            for (int i = 0; i < ram->jumlah; i++) {
+                if (strcmp(ram->kavling[i].nama, nama_root) == 0) {
+                    induk = &(ram->kavling[i]);
+                    target = induk; // Loloskan pengecekan eksistensi target
+                    break;
+                }
+            }
+        }
+        
+        // 2. Tarik Waktu ke Belakang dari Induk
         if (induk && target && induk->jumlah_riwayat > 0) {
-            // 1. Mundur 1 langkah ke masa lalu
             induk->jumlah_riwayat--;
             JejakMasaLalu* masa_lalu = &induk->riwayat[induk->jumlah_riwayat];
             
-            // 2. Hancurkan wujud masa kini DARI INDUK (Ganti Semesta)
+            // Hancurkan semesta saat ini
             if (induk->tipe == TIPE_TEKS && induk->nilai_teks) free(induk->nilai_teks);
             else if (induk->tipe == TIPE_OBJEK && induk->anak_anak) {
                 bebaskan_ram(induk->anak_anak); free(induk->anak_anak);
             }
             
-            // 3. Bangkitkan wujud masa lalu KE INDUK
+            // Bangkitkan semesta masa lalu
             induk->tipe = masa_lalu->tipe;
             induk->nilai_teks = masa_lalu->nilai_teks ? strdup(masa_lalu->nilai_teks) : NULL;
             induk->anak_anak = masa_lalu->anak_anak ? salin_ram_rekursif(masa_lalu->anak_anak) : NULL;
             
-            // 4. Hapus salinan jejak
+            // Hapus snapshot jejak karena sudah digunakan
             if (masa_lalu->nilai_teks) free(masa_lalu->nilai_teks);
             if (masa_lalu->anak_anak) {
                 bebaskan_ram(masa_lalu->anak_anak); free(masa_lalu->anak_anak);
