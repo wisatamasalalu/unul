@@ -83,16 +83,6 @@ void bebaskan_ast(ASTNode* node) {
     free(node);
 }
 
-// --- 2. FUNGSI BANTUAN KURSOR ---
-Token token_sekarang(Parser* p) {
-    if (p->kursor >= p->tokens.jumlah) return p->tokens.data[p->tokens.jumlah - 1];
-    return p->tokens.data[p->kursor];
-}
-
-void maju(Parser* p) {
-    if (p->kursor < p->tokens.jumlah) p->kursor++;
-}
-
 // --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
 
 // Deklarasi Hierarki Matematika Mutlak
