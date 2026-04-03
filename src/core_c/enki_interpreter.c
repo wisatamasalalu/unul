@@ -366,17 +366,19 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (node->jenis == AST_OPERASI_MATEMATIKA) {
         
         // ==========================================================
-        // 🔥 SUNTIKAN MUTASI BRUTAL (TANDA '=') HARUS DI SINI! 🔥
-        // Mencegat mesin sebelum ia mencoba membaca sisi kiri (L-Value)
+        // 🔥 SUNTIKAN MUTASI BRUTAL (TANDA '=')
         // ==========================================================
         if (node->operator_math && strcmp(node->operator_math, "=") == 0) {
             char* hasil_akhir = (char*)malloc(1024);
             memset(hasil_akhir, 0, 1024);
 
-            // 1. Dapatkan Induk Utama DULU! (Ambil dari wujud murni masa lalu)
+            // 🔥 0. EVALUASI SISI KANAN DULU! (Atasi Paradoks Penugasan Diri)
+            char* hasil_masa_depan = evaluasi_ekspresi(node->kanan, ram);
+
+            // 1. Dapatkan Induk Utama DULU!
             KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 
             
-            // 2. 🔥 MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA (SEBELUM RAM DIMUTASI) 🔥
+            // 2. MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA (SEBELUM RAM DIMUTASI)
             if (induk) {
                 if (induk->jumlah_riwayat >= induk->kapasitas_riwayat) {
                     induk->kapasitas_riwayat = induk->kapasitas_riwayat == 0 ? 4 : induk->kapasitas_riwayat * 2;
@@ -390,17 +392,17 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
             }
 
-            // 3. BARU KITA CARI/CIPTAKAN TARGET 
-            // (Fungsi ini akan memutasi memori jika ia menciptakan ranting dimensi baru)
+            // 3. BARU KITA CARI/CIPTAKAN TARGET
             KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
             
             if (target && induk) {
-                // =======================================================
-                // 🔥 SUNTIKAN HUKUM: Cek apakah target dikunci
+                // SUNTIKAN HUKUM: Cek apakah target dikunci
                 if (target->apakah_konstanta) {
                     char pesan[256];
                     snprintf(pesan, sizeof(pesan), "🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (%s) tidak bisa diubah!", target->nama);
                     pemicu_kernel_panic(ram, pesan);
+                    if (hasil_masa_depan) free(hasil_masa_depan);
+                    free(hasil_akhir);
                     return strdup(""); 
                 }
 
@@ -414,25 +416,22 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     target->anak_anak = NULL;
                 }
 
-                // =======================================================
-                // 🔥 CEK APAKAH INI SIHIR BALIKAN() via Penugasan ( x = balikan(y) )
-                // =======================================================
+                // CEK APAKAH INI SIHIR BALIKAN() via Penugasan ( x = balikan(y) )
                 if (node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
                     KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
                     if (sumber) {
                         target->tipe = sumber->tipe;
                         target->nilai_teks = strdup(sumber->nilai_teks ? sumber->nilai_teks : "KOSONG");
                         
-                        // Fotokopi dimensinya secara brutal!
                         if (sumber->tipe == TIPE_OBJEK && sumber->anak_anak) {
                             target->anak_anak = salin_ram_rekursif(sumber->anak_anak);
                         }
+                        if (hasil_masa_depan) free(hasil_masa_depan);
+                        free(hasil_akhir);
                         return strdup(target->nilai_teks ? target->nilai_teks : "[Wujud Objek]");
                     }
                 }
                 
-                // ... (Biarkan kode di bawahnya A. JIKA DIA DITIMPA MENJADI OBJEK {} tetap seperti aslinya)
-
                 // A. JIKA DIA DITIMPA MENJADI OBJEK {}
                 if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
                     target->tipe = TIPE_OBJEK;
@@ -456,33 +455,29 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 } 
                 // B. JIKA DIA DITIMPA MENJADI TEKS/ANGKA BIASA
                 else {
-                    // Evaluasi nilai kanan SAJA!
-                    char* nilai_baru = evaluasi_ekspresi(node->kanan, ram);
                     target->tipe = TIPE_TEKS;
-                    target->nilai_teks = nilai_baru ? strdup(nilai_baru) : strdup("");
+                    target->nilai_teks = hasil_masa_depan ? strdup(hasil_masa_depan) : strdup("");
                     snprintf(hasil_akhir, 1024, "%s", target->nilai_teks);
-                    if (nilai_baru) free(nilai_baru);
                 }
             } else {
                 pemicu_kernel_panic(ram, "Gagal memutasi memori. Variabel induk belum ditakdirkan!");
             }
+            
+            if (hasil_masa_depan) free(hasil_masa_depan);
             return hasil_akhir; // Langsung pulang!
         }
         // ==========================================================
 
         // JIKA BUKAN PENUGASAN '=' (Melainkan +, -, *, /)
-        // Baru kita evaluasi kedua sisinya sebagai angka/teks!
         char* hasil_kiri = evaluasi_ekspresi(node->kiri, ram);
         char* hasil_kanan = evaluasi_ekspresi(node->kanan, ram);
         char* hasil_akhir = (char*)malloc(1024);
         memset(hasil_akhir, 0, 1024);
 
-        // Konversi angka HANYA dilakukan JIKA operatornya bukan '='
         if (node->operator_math) {
             double angka_kiri = atof(hasil_kiri);
             double angka_kanan = atof(hasil_kanan);
 
-            // 1. TAMBAH (+) : Punya sihir penggabungan teks
             if (strcmp(node->operator_math, "+") == 0) {
                 if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
                     (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
@@ -491,7 +486,6 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     snprintf(hasil_akhir, 1024, "%g", angka_kiri + angka_kanan);
                 }
             }
-            // 2. KURANG (-) : Tolak teks (Validasi Tipe Data)
             else if (strcmp(node->operator_math, "-") == 0) {
                 if ((angka_kiri == 0 && strcmp(hasil_kiri, "0") != 0) || 
                     (angka_kanan == 0 && strcmp(hasil_kanan, "0") != 0)) {
@@ -500,20 +494,19 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     snprintf(hasil_akhir, 1024, "%g", angka_kiri - angka_kanan);
                 }
             }
-            // 3. KALI (*)
             else if (strcmp(node->operator_math, "*") == 0) {
                 snprintf(hasil_akhir, 1024, "%g", angka_kiri * angka_kanan);
             }
-            // 4. BAGI PRESISI (/ atau :)
             else if (strcmp(node->operator_math, "/") == 0 || strcmp(node->operator_math, ":") == 0) {
-                // --- HUKUM ENLIL (Cegah Pembagian 0) ---
                 if (angka_kanan == 0) {
                     pemicu_kernel_panic(ram, "🚨 KERNEL PANIC! Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
                 } else {
                     snprintf(hasil_akhir, 1024, "%g", angka_kiri / angka_kanan);
                 }
             }
-            // 5. BAGI BULAT/FLOOR (//)
+            else if (strcmp(node->operator_math, "^") == 0) {
+                snprintf(hasil_akhir, 1024, "%g", pow(angka_kiri, angka_kanan));
+            }
             else if (strcmp(node->operator_math, "//") == 0) {
                 if (angka_kanan == 0) {
                     pemicu_kernel_panic(ram, "Kehancuran Dimensi: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
@@ -521,7 +514,6 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     snprintf(hasil_akhir, 1024, "%.0f", floor(angka_kiri / angka_kanan));
                 }
             }
-            // 6. MODULUS/SISA BAGI (%)
             else if (strcmp(node->operator_math, "%") == 0) {
                 if (angka_kanan == 0) {
                     pemicu_kernel_panic(ram, "Kehancuran Dimensi: Modulus dengan nol (0) dilarang oleh Hukum Enlil!");

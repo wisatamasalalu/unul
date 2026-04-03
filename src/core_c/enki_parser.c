@@ -99,6 +99,7 @@ void maju(Parser* p) {
 ASTNode* parse_ekspresi(Parser* p);
 ASTNode* parse_penjumlahan(Parser* p);
 ASTNode* parse_faktor(Parser* p);
+ASTNode* parse_pangkat(Parser* p);
 ASTNode* parse_nilai_dasar(Parser* p);
 
 // ==========================================================
@@ -224,10 +225,36 @@ ASTNode* parse_nilai_dasar(Parser* p) {
 }
 
 // ==========================================================
+// TINGKAT 1.5: Kasta Pangkat (^) - Kasta Terkuat di Bawah Kurung
+// ==========================================================
+ASTNode* parse_pangkat(Parser* p) {
+    ASTNode* simpul_kiri = parse_nilai_dasar(p); // Ambil angka/kurung murni
+    
+    // Jika melihat simbol pangkat '^'
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+           strcmp(token_sekarang(p).isi, "^") == 0) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); // Lewati simbol '^'
+        
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
+        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->kiri = simpul_kiri;
+        
+        // Panggil dirinya sendiri (Rekursif) agar pangkat dihitung dari kanan-ke-kiri
+        // Contoh: 2 ^ 3 ^ 2 = 2 ^ (3 ^ 2) = 512
+        simpul_matematika->kanan = parse_pangkat(p); 
+        
+        simpul_kiri = simpul_matematika; 
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
 // TINGKAT 2: Kasta Kuat (*, /, :, //, %)
 // ==========================================================
 ASTNode* parse_faktor(Parser* p) {
-    ASTNode* simpul_kiri = parse_nilai_dasar(p);
+    ASTNode* simpul_kiri = parse_pangkat(p);
     
     // Hitung Kiri ke Kanan selama menemukan operator kuat
     while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
@@ -243,7 +270,7 @@ ASTNode* parse_faktor(Parser* p) {
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA);
         simpul_matematika->operator_math = strdup(t_op.isi);
         simpul_matematika->kiri = simpul_kiri;
-        simpul_matematika->kanan = parse_nilai_dasar(p); 
+        simpul_matematika->kanan = parse_pangkat(p); 
         
         simpul_kiri = simpul_matematika; 
     }

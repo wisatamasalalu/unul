@@ -47,6 +47,12 @@ lain
     ketik("STATUS: Operasi gagal atau menghasilkan nilai tak terduga.")
 putus
 
+^^ --------------------------------------------------------
+^^ BARIS EKSTREM (STRESS TEST PARSER)
+^^ --------------------------------------------------------
+^^ Menambahkan uji coba PANGKAT 2 pada hasil fungsi hitung_pajak!
+takdir.soft hasil_kacau = (data_angka[1] * bos.gaji) / hitung_pajak(10) ^ 2 + acak(1, 5)
+
 pergi
 
 ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
