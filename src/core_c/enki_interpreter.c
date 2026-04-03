@@ -1327,7 +1327,29 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             }
         }
     }
-
+// --- 10. SIHIR JEDA (KENDALI WAKTU) ---
+    else if (node->jenis == AST_PERINTAH_JEDA) {
+        char* waktu_str = evaluasi_ekspresi(node->kiri, ram);
+        if (waktu_str) {
+            double nilai = atof(waktu_str);
+            long long ms = 0; 
+            
+            // Lakukan perkalian sebelum dibulatkan (long long) agar desimal tidak hilang!
+            if (strstr(waktu_str, "s") || strstr(waktu_str, "d")) {
+                ms = (long long)(nilai * 1000.0); // Detik
+            } else if (strstr(waktu_str, "m")) {
+                ms = (long long)(nilai * 60.0 * 1000.0); // Menit
+            } else if (strstr(waktu_str, "h") || strstr(waktu_str, "j")) {
+                ms = (long long)(nilai * 3600.0 * 1000.0); // Jam
+            } else {
+                ms = (long long)nilai; // Default Milidetik
+            }
+            
+            usleep(ms * 1000); // usleep butuh ukuran dalam microsecond
+            free(waktu_str);
+        }
+    }
+    
     // --- 9. SIHIR BALIKAN (MESIN WAKTU) ---
     else if (node->jenis == AST_PERINTAH_BALIKAN) {
         KavlingMemori* target = NULL;

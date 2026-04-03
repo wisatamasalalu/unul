@@ -36,6 +36,7 @@ typedef enum {
     AST_PULANG,            // Untuk: pulang x
     AST_OPERASI_BUKAN,     // Menyimpan logika pembalik // Seperti operasi NOT pada bahasa pemrograman umum
     AST_PERINTAH_PASRAH,    // Menyimpan perintah eksekusi free()
+    AST_PERINTAH_JEDA,      // Fungsi jeda waktu seperti sleep X di bash
     AST_STRUKTUR_OBJEK,        // Menampung kurung kurawal {}
     AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
     AST_AKSES_DOMAIN,          // Menampung akses titik (misal: dewa.nama)

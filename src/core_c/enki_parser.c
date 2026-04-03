@@ -585,6 +585,18 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
+
+    // --- PENANGKAP SIHIR JEDA (WAKTU) ---
+    // (Catatan Penting: Untuk format bersatuan seperti 1s atau 1d, gunakan tanda kutip "1s" agar mesin memandangnya sebagai kesatuan parameter wujud waktu, bukan terpisah sebagai 1 dan s).
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "jeda") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_JEDA);
+        maju(p); // lewati kata 'jeda'
+        
+        // Tangkap ekspresi durasinya (Bisa angka 600, atau teks "1s")
+        node->kiri = parse_ekspresi(p); 
+        return node;
+    }
+
     // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI) ---
     // Mengizinkan: `entitas = {}`, `dewa.nama = "Enki"`, atau `sapa()`
     if (t.jenis == TOKEN_IDENTITAS) {

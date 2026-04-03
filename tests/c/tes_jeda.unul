@@ -1,0 +1,17 @@
+datang
+
+ketik("Menguji Jeda Milidetik (600ms)...")
+jeda 600
+ketik("Selesai 600ms!")
+
+ketik("Menguji Jeda Detik (2s)...")
+^^ Gunakan kutip agar "2s" dibaca utuh sebagai satu teks waktu, 
+^^ karena jika tanpa kutip, Lexer akan memecahnya jadi angka 2 dan variabel s.
+jeda "2s" 
+ketik("Selesai 2 detik!")
+
+ketik("Menguji Jeda Indo (1d)...")
+jeda "1d"
+ketik("Selesai 1 detik (Indo)!")
+
+pergi
