@@ -549,6 +549,15 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
+
+    // --- SIHIR BALIKAN ---
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "balikan") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_BALIKAN);
+        maju(p); // lewati kata 'balikan'
+        node->kiri = parse_ekspresi(p); // Ambil target yang mau dibalikkan
+        return node;
+    }
+
     // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI) ---
     // Mengizinkan: `entitas = {}`, `dewa.nama = "Enki"`, atau `sapa()`
     if (t.jenis == TOKEN_IDENTITAS) {

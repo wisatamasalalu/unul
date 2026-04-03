@@ -1,0 +1,42 @@
+^^ Uji Coba Mesin Waktu dan Labirin Memori (Domain Bertingkat)
+
+ketik("=== MEMULAI UJI LABIRIN MEMORI ===")
+
+^^ 1. Menciptakan Takdir Awal
+takdir.soft entitas = "Hanya Teks"
+ketik("Keadaan 1 (Teks):")
+ketik(entitas)
+
+^^ 2. Transmutasi menjadi Objek/Domain Bersarang
+entitas = {}
+entitas.level1 = {}
+entitas.level1.level2 = {}
+entitas.level1.level2.inti = "Harta Karun"
+
+ketik("Keadaan 2 (Objek Bersarang):")
+ketik(entitas)
+
+^^ 3. Modifikasi Inti Labirin
+entitas.level1.level2.inti = "Kosong"
+ketik("Keadaan 3 (Modifikasi Inti):")
+ketik(entitas.level1.level2.inti)
+
+^^ 4. Menguji Mesin Waktu pada Inti
+ketik("--- Memutar Waktu di Kedalaman Labirin ---")
+balikan entitas.level1.level2.inti
+
+ketik("Hasil Balikan Inti (Harusnya 'Harta Karun'):")
+ketik(entitas.level1.level2.inti)
+
+^^ 5. Menguji Mesin Waktu Total ke Masa Lalu
+ketik("--- Memutar Waktu ke Masa Sebelum Menjadi Objek ---")
+
+^^ Kita butuh 4 kali putaran waktu untuk kembali ke "Hanya Teks"
+effort 4 kali maka
+    balikan entitas
+putus
+
+ketik("Hasil Balikan Total (Harusnya 'Hanya Teks'):")
+ketik(entitas)
+
+ketik("=== UJI LABIRIN SELESAI ===")

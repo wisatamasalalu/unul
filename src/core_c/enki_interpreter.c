@@ -8,6 +8,8 @@
 #include <readline/history.h>  // <--- UNTUK MENGINGAT HISTORY PANAH ATAS
 #include <termios.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <regex.h>
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -120,8 +122,43 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai) {
     ram->kavling[ram->jumlah].anak_anak = NULL;            // Wajib NULL agar tidak dianggap objek
     ram->kavling[ram->jumlah].simpul_fungsi = NULL;
     ram->kavling[ram->jumlah].apakah_konstanta = 0; // 🔥 Default awal adalah soft (0)
+
+    // ========================================================
+    // 🔥 LETAKKAN DI SINI: INISIALISASI KETIADAAN MASA LALU 🔥
+    // ========================================================
+    ram->kavling[ram->jumlah].riwayat = NULL;
+    ram->kavling[ram->jumlah].jumlah_riwayat = 0;
+    ram->kavling[ram->jumlah].kapasitas_riwayat = 0;
+
     ram->jumlah++;
 }
+
+// 🔥 SIHIR BALIKAN (DEEP COPY MESIN WAKTU) 🔥
+EnkiRAM* salin_ram_rekursif(EnkiRAM* sumber) {
+    if (!sumber) return NULL;
+    
+    // 1. Ciptakan dimensi bayangan yang kosong
+    EnkiRAM* baru = ciptakan_ram_mini();
+    
+    // 2. Fotokopi seluruh kavling di dimensi sumber
+    for (int i = 0; i < sumber->jumlah; i++) {
+        // 🔥 PELINDUNG SEGFAULT: Objek tidak memiliki nilai_teks (NULL).
+        // Kita berikan "KOSONG" agar strdup() di simpan_ke_ram tidak meledak!
+        const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+        simpan_ke_ram(baru, sumber->kavling[i].nama, nilai_aman);
+        
+        // Kunci status takdir dan tipe wujudnya agar persis sama
+        baru->kavling[i].tipe = sumber->kavling[i].tipe;
+        baru->kavling[i].apakah_konstanta = sumber->kavling[i].apakah_konstanta;
+        
+        // 3. JIKA IA OBJEK: Selam dan salin RAM di dalamnya secara rekursif!
+        if (sumber->kavling[i].tipe == TIPE_OBJEK && sumber->kavling[i].anak_anak) {
+            baru->kavling[i].anak_anak = salin_ram_rekursif(sumber->kavling[i].anak_anak);
+        }
+    }
+    return baru;
+}
+
 // Fungsi Internal: Membaca nilai dari RAM
 const char* baca_dari_ram(EnkiRAM* ram, const char* nama) {
     for (int i = 0; i < ram->jumlah; i++) {
@@ -211,6 +248,23 @@ KavlingMemori* temukan_atau_ciptakan_kavling(ASTNode* node, EnkiRAM* ram) {
             simpan_ke_ram(ram_anak, node->nilai_teks, "[MUTASI]"); 
             return &(ram_anak->kavling[ram_anak->jumlah - 1]);
         }
+    }
+    return NULL;
+}
+
+// 🔥 SUNTIKAN MASA LALU: Mencari Akar/Induk Utama (Ditaruh di sini!)
+KavlingMemori* cari_induk_utama(ASTNode* node, EnkiRAM* ram) {
+    if (!node || !ram) return NULL;
+    if (node->jenis == AST_IDENTITAS) {
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                return &(ram->kavling[i]);
+            }
+        }
+        return NULL;
+    }
+    if (node->jenis == AST_AKSES_DOMAIN) {
+        return cari_induk_utama(node->kiri, ram); // Menyelam terus sampai ke akar
     }
     return NULL;
 }
@@ -319,14 +373,27 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* hasil_akhir = (char*)malloc(1024);
             memset(hasil_akhir, 0, 1024);
 
-            // Cari atau ciptakan kavlingnya HANYA sebagai target (tanpa membacanya)
+            // Cari target dan JUGA INDUKNYA!
             KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+            KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 
             
-            if (target) {
+            if (target && induk) {
+                // =======================================================
+                // 🔥 MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA!
+                // =======================================================
+                if (induk->jumlah_riwayat >= induk->kapasitas_riwayat) {
+                    induk->kapasitas_riwayat = induk->kapasitas_riwayat == 0 ? 4 : induk->kapasitas_riwayat * 2;
+                    induk->riwayat = (JejakMasaLalu*)realloc(induk->riwayat, induk->kapasitas_riwayat * sizeof(JejakMasaLalu));
+                }
+                JejakMasaLalu* jejak = &induk->riwayat[induk->jumlah_riwayat++];
+                jejak->tipe = induk->tipe;
+                jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+                
+                // Salin seluruh wujud semesta dari Induk ini!
+                jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
 
                 // =======================================================
-                // 🔥 SUNTIKAN HUKUM: Cek apakah target dikunci (takdir.hard)
-                // =======================================================
+                // 🔥 SUNTIKAN HUKUM: Cek apakah target dikunci
                 if (target->apakah_konstanta) {
                     char pesan[256];
                     snprintf(pesan, sizeof(pesan), "🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (%s) tidak bisa diubah!", target->nama);
@@ -334,7 +401,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     return strdup(""); 
                 }
 
-                // Hancurkan kenangan lama secara brutal (Cegah Memory Leak)
+                // Hancurkan kenangan lama masa kini (Dari Target)
                 if (target->tipe == TIPE_TEKS && target->nilai_teks) {
                     free(target->nilai_teks);
                     target->nilai_teks = NULL;
@@ -343,6 +410,25 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     free(target->anak_anak);
                     target->anak_anak = NULL;
                 }
+
+                // =======================================================
+                // 🔥 CEK APAKAH INI SIHIR BALIKAN() via Penugasan ( x = balikan(y) )
+                // =======================================================
+                if (node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
+                    KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
+                    if (sumber) {
+                        target->tipe = sumber->tipe;
+                        target->nilai_teks = strdup(sumber->nilai_teks ? sumber->nilai_teks : "KOSONG");
+                        
+                        // Fotokopi dimensinya secara brutal!
+                        if (sumber->tipe == TIPE_OBJEK && sumber->anak_anak) {
+                            target->anak_anak = salin_ram_rekursif(sumber->anak_anak);
+                        }
+                        return strdup(target->nilai_teks ? target->nilai_teks : "[Wujud Objek]");
+                    }
+                }
+                
+                // ... (Biarkan kode di bawahnya A. JIKA DIA DITIMPA MENJADI OBJEK {} tetap seperti aslinya)
 
                 // A. JIKA DIA DITIMPA MENJADI OBJEK {}
                 if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
@@ -644,6 +730,42 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             int kode = atoi(angka_str); free(angka_str);
             char buffer[2] = {(char)kode, '\0'};
             return strdup(buffer);
+        }
+
+        // --- TRANSMUTASI: COCOK POLA (TRUE REGEX) ---
+        else if (strcmp(node->nilai_teks, "cocok") == 0) {
+            // Pastikan argumen yang diberikan minimal 2 (teks dan pola)
+            if (node->jumlah_anak < 2) {
+                pemicu_kernel_panic(ram, "Pelanggaran Argumen: fungsi 'cocok_pola' butuh 2 parameter (teks, pola_regex)!");
+                return strdup("0");
+            }
+
+            char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* pola = evaluasi_ekspresi(node->anak_anak[1], ram);
+
+            regex_t mesin_regex;
+            char* hasil_akhir = "0"; // Default: 0 (Palsu / Tidak Cocok)
+
+            // 1. Kompilasi Pola Regex (Gunakan REG_EXTENDED agar mirip standar modern)
+            int status_kompilasi = regcomp(&mesin_regex, pola, REG_EXTENDED);
+            
+            if (status_kompilasi == 0) {
+                // 2. Jika pola sah, jalankan eksekusi pencocokan
+                int status_cocok = regexec(&mesin_regex, teks, 0, NULL, 0);
+                
+                if (status_cocok == 0) {
+                    hasil_akhir = "1"; // Sah! Cocok mutlak!
+                }
+                
+                // 3. Bersihkan memori mesin regex C
+                regfree(&mesin_regex); 
+            } else {
+                pemicu_kernel_panic(ram, "🚨 KERNEL PANIC! Sintaks pola Regex yang diberikan tidak valid!");
+            }
+
+            free(teks);
+            free(pola);
+            return strdup(hasil_akhir);
         }
 
         // G. SIHIR TERTINGGI: evaluasi(teks) - RECURSIVE DYNAMIC EVALUATION
@@ -967,6 +1089,27 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
                 }
             }
         } 
+
+        // 🔥 SUNTIKAN: JIKA INI ADALAH FUNGSI BALIKAN()
+        else if (node->kanan && node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
+            // Ambil nama variabel sumber dari argumen pertama balikan(sumber)
+            KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
+            
+            simpan_ke_ram(ram, nama, sumber ? sumber->nilai_teks : "KOSONG");
+            
+            // Kunci target dan masukkan dimensi fotokopiannya
+            for (int i = 0; i < ram->jumlah; i++) {
+                if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                    ram->kavling[i].apakah_konstanta = adalah_hard;
+                    if (sumber && sumber->tipe == TIPE_OBJEK) {
+                        ram->kavling[i].tipe = TIPE_OBJEK;
+                        ram->kavling[i].anak_anak = salin_ram_rekursif(sumber->anak_anak);
+                    }
+                    break;
+                }
+            }
+        }
+
         // 💧 JIKA NILAINYA ADALAH TEKS/ANGKA BIASA
         else {
             char* nilai = evaluasi_ekspresi(node->kanan, ram);
@@ -1171,6 +1314,36 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
+    // --- 9. SIHIR BALIKAN (MESIN WAKTU) ---
+    else if (node->jenis == AST_PERINTAH_BALIKAN) {
+        KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
+        KavlingMemori* induk = cari_induk_utama(node->kiri, ram); // 🔥 SUNTIKAN WAJIB
+        
+        // Kita mundur dari sejarah INDUK, bukan sejarah target!
+        if (induk && target && induk->jumlah_riwayat > 0) {
+            // 1. Mundur 1 langkah ke masa lalu
+            induk->jumlah_riwayat--;
+            JejakMasaLalu* masa_lalu = &induk->riwayat[induk->jumlah_riwayat];
+            
+            // 2. Hancurkan wujud masa kini DARI INDUK (Ganti Semesta)
+            if (induk->tipe == TIPE_TEKS && induk->nilai_teks) free(induk->nilai_teks);
+            else if (induk->tipe == TIPE_OBJEK && induk->anak_anak) {
+                bebaskan_ram(induk->anak_anak); free(induk->anak_anak);
+            }
+            
+            // 3. Bangkitkan wujud masa lalu KE INDUK
+            induk->tipe = masa_lalu->tipe;
+            induk->nilai_teks = masa_lalu->nilai_teks ? strdup(masa_lalu->nilai_teks) : NULL;
+            induk->anak_anak = masa_lalu->anak_anak ? salin_ram_rekursif(masa_lalu->anak_anak) : NULL;
+            
+            // 4. Hapus salinan jejak
+            if (masa_lalu->nilai_teks) free(masa_lalu->nilai_teks);
+            if (masa_lalu->anak_anak) {
+                bebaskan_ram(masa_lalu->anak_anak); free(masa_lalu->anak_anak);
+            }
+        }
+    }
+
     // 7. HUKUM TABU (Try-Catch / setjmp)
     else if (node->jenis == AST_COBA_TABU) {
         int status_coba_lama = ram->dalam_mode_coba;
@@ -1255,6 +1428,8 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         char* hasil_mutasi = evaluasi_ekspresi(node, ram);
         if (hasil_mutasi) free(hasil_mutasi); // Eksekusi lalu buang sisa teksnya (karena ini operasi diam)
     }
+
+
 
     
 }

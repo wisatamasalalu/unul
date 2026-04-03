@@ -5,28 +5,38 @@
 #include <setjmp.h>
 
 // --- FORWARD DECLARATION ---
-// Mengabari kompilator bahwa wujud EnkiRAM itu ada dan sah
 typedef struct EnkiRAM EnkiRAM;
+typedef struct KavlingMemori KavlingMemori;
+typedef struct JejakMasaLalu JejakMasaLalu;
 
 // --- TIPE DOMAIN MEMORI ---
 typedef enum {
-    TIPE_TEKS = 0,   // Nilai tunggal biasa (string, angka)
-    TIPE_OBJEK = 1,  // Domain bersarang (Objek JSON / Kamus)
-    TIPE_ARRAY = 2   // (Untuk Array Dinamis masa depan)
+    TIPE_TEKS = 0,   
+    TIPE_OBJEK = 1,  
+    TIPE_ARRAY = 2   
 } TipeKavling;
 
-// 1. WUJUD KAVLING MEMORI (DIROMBAK MULTIDIMENSI)
-typedef struct {
+// 🔥 MESIN WAKTU: Kapsul penyimpan kenangan
+struct JejakMasaLalu {
+    TipeKavling tipe;
+    char* nilai_teks;
+    EnkiRAM* anak_anak;
+};
+
+// 1. WUJUD KAVLING MEMORI (DIROMBAK)
+struct KavlingMemori {
     char* nama;
-    TipeKavling tipe;          // Penanda apakah ini teks atau objek
-    char* nilai_teks;          // (Teks Unlimited)
-    
-    // 🔥 INTI DARI SIHIR BERSARANG 🔥
-    EnkiRAM* anak_anak;        // Pointer ke RAM baru (jika tipe == TIPE_OBJEK)
-    
+    TipeKavling tipe;          
+    char* nilai_teks;          
+    EnkiRAM* anak_anak;        
     ASTNode* simpul_fungsi;
     int apakah_konstanta;
-} KavlingMemori;
+    
+    // 🔥 SARAF MESIN WAKTU (RIWAYAT) 🔥
+    JejakMasaLalu* riwayat;
+    int jumlah_riwayat;
+    int kapasitas_riwayat;
+};
 
 // 2. RAM UTAMA SISTEM OPERASI
 struct EnkiRAM {

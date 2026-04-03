@@ -38,7 +38,8 @@ typedef enum {
     AST_PERINTAH_PASRAH,    // Menyimpan perintah eksekusi free()
     AST_STRUKTUR_OBJEK,        // Menampung kurung kurawal {}
     AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
-    AST_AKSES_DOMAIN          // Menampung akses titik (misal: dewa.nama)
+    AST_AKSES_DOMAIN,          // Menampung akses titik (misal: dewa.nama)
+    AST_PERINTAH_BALIKAN       // Membalikan keadaan seperti sebelumnya (mesin waktu)
 
 } ASTJenis;
 
