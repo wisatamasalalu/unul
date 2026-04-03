@@ -35,6 +35,105 @@ EnkiRAM inisialisasi_ram() {
     return ram;
 }
 
+// =================================================================
+// 🟢 SIHIR DETEKSI TYPO (ALGORITMA JARAK LEVENSHTEIN)
+// =================================================================
+int jarak_levenshtein(const char *s1, const char *s2) {
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+    if(len1 > 255 || len2 > 255) return 999; 
+    
+    int matrix[256][256];
+    for (int i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (int j = 0; j <= len2; j++) matrix[0][j] = j;
+    
+    for (int i = 1; i <= len1; i++) {
+        for (int j = 1; j <= len2; j++) {
+            int cost = (s1[i - 1] == s2[j - 1]) ? 0 : 1;
+            int del = matrix[i - 1][j] + 1;
+            int ins = matrix[i][j - 1] + 1;
+            int sub = matrix[i - 1][j - 1] + cost;
+            int min = del < ins ? del : ins;
+            matrix[i][j] = min < sub ? min : sub;
+        }
+    }
+    return matrix[len1][len2];
+}
+
+char* cari_saran_typo(const char* nama_dicari, EnkiRAM* ram) {
+    char* saran_terbaik = NULL;
+    int jarak_terkecil = 3; // Maksimal salah 2 huruf agar dianggap typo
+    
+    for(int i = 0; i < ram->jumlah; i++) {
+        int jarak = jarak_levenshtein(nama_dicari, ram->kavling[i].nama);
+        if(jarak < jarak_terkecil) {
+            jarak_terkecil = jarak;
+            saran_terbaik = ram->kavling[i].nama;
+        }
+    }
+    return saran_terbaik;
+}
+// =================================================================
+// 🟢 SIHIR KIAMAT PRESISI (GCC-STYLE, SMART HINT, & HUKUM TABU)
+// =================================================================
+void pemicu_kiamat_presisi(ASTNode* node, EnkiRAM* ram, const char* pesan, const char* panduan_cerdas) {
+    char buffer_error[2048];
+    int baris = node->baris > 0 ? node->baris : 0;
+    int kolom = node->kolom > 0 ? node->kolom : 0;
+    
+    snprintf(buffer_error, sizeof(buffer_error), 
+             "🚨 [%s: Baris %d:%d] KIAMAT SINTAKSIS: %s\n", 
+             node->nama_file ? node->nama_file : "skrip.unul", 
+             baris, kolom, pesan);
+             
+    // 1. Cetak Visual ke Terminal
+    printf("\n%s", buffer_error);
+    if (node->nilai_teks) {
+        printf("   |\n %d | ... %s ... \n   | ", baris, node->nilai_teks);
+        for(int i = 0; i < kolom; i++) printf(" ");
+        printf("^-- Bencana bermula di sini!\n\n");
+    } else if (node->operator_math) {
+        printf("   |\n %d | ... %s ... \n   | ", baris, node->operator_math);
+        for(int i = 0; i < kolom; i++) printf(" ");
+        printf("^-- Bencana bermula di sini!\n\n");
+    } else {
+        printf("\n");
+    }
+
+    // 2. Cetak Panduan Cerdas (Jika ada)
+    if (panduan_cerdas) {
+        printf("💡 PANDUAN CERDAS:\n%s\n\n", panduan_cerdas);
+    }
+
+    // 3. Abadikan secara diam-diam ke unul.diary
+    FILE* file_diary = fopen("unul.diary", "a");
+    if (file_diary) {
+        fprintf(file_diary, "=== [WAKTU KIAMAT: %ld] ===\n", (long)time(NULL));
+        fprintf(file_diary, "%s", buffer_error);
+        if (node->nilai_teks) fprintf(file_diary, "   Kode Penyebab: %s\n", node->nilai_teks);
+        if (panduan_cerdas) fprintf(file_diary, "   Saran: %s\n", panduan_cerdas);
+        fprintf(file_diary, "=================================\n\n");
+        fclose(file_diary);
+    }
+
+    // 4. 🔥 CEK PERISAI HUKUM TABU (Try-Catch / setjmp) 🔥
+    if (ram && ram->dalam_mode_coba == 1) {
+        // Bebaskan kotak error lama (jika ada) untuk mencegah memory leak
+        if (ram->pesan_error_tabu) {
+            free(ram->pesan_error_tabu);
+        }
+        
+        // Cetak memori baru tanpa batasan ukuran
+        ram->pesan_error_tabu = strdup(pesan);
+        
+        // Lontarkan program kembali ke blok 'coba' yang aman!
+        longjmp(ram->titik_kembali, 1); 
+    }
+
+    // 5. JIKA TIDAK ADA PERISAI, MATIKAN OS/PROGRAM!
+    exit(1); 
+}
+
 // Membangkitkan RAM Mini (Untuk Objek Bersarang)
 EnkiRAM* ciptakan_ram_mini() {
     EnkiRAM* ram_baru = (EnkiRAM*)malloc(sizeof(EnkiRAM));
@@ -308,7 +407,6 @@ char* ambil_elemen_array(const char* teks_array, int target_indeks) {
 }
 
 // --- 2. LOGIKA EVALUASI NILAI ---
-// --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
     
@@ -319,17 +417,36 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         return teks_bersih;
     }
     
-    // 2. Identitas (Variabel)
+    // 2. Identitas (Variabel Biasa / Array)
     if (node->jenis == AST_IDENTITAS) {
-        const char* memori = baca_dari_ram(ram, node->nilai_teks);
-        if (memori) return strdup(memori);
+        KavlingMemori* kavling = NULL;
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                kavling = &(ram->kavling[i]);
+                break;
+            }
+        }
         
-        char pesan_error[256];
-        snprintf(pesan_error, sizeof(pesan_error), "Takdir '%s' belum diciptakan!", node->nilai_teks);
-        
-        // Panggil dengan ram dan pesan
-        pemicu_kernel_panic(ram, pesan_error); 
-        return strdup(""); 
+        // 🟢 JIKA VARIABEL GAGAL DITEMUKAN (Tampilkan Saran Typo!)
+        if (!kavling) {
+            char pesan_typo[512];
+            char* saran = cari_saran_typo(node->nilai_teks, ram); 
+            
+            if (saran) {
+                snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' tidak ditemukan. Apakah maksud Anda '%s'?", node->nilai_teks, saran);
+            } else {
+                snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' belum diciptakan di realita ini.", node->nilai_teks);
+            }
+            
+            pemicu_kiamat_presisi(node, ram, pesan_typo, "Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.");
+            return strdup(""); 
+        }
+
+        // Jika ketemu, kembalikan teksnya
+        if (kavling->tipe == TIPE_OBJEK) {
+            return strdup("[Wujud Objek / Domain Bersarang]");
+        }
+        return strdup(kavling->nilai_teks ? kavling->nilai_teks : "");
     }
 
     // 3.1 EVALUASI AKSES DOMAIN (TITIK) ---
@@ -337,7 +454,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         KavlingMemori* target = cari_kavling_domain(node, ram);
         
         if (target) {
-            // Jika yang dipanggil ternyata objek lagi (misal: ketik(dewa.senjata) dan senjata itu objek)
+            // Jika yang dipanggil ternyata objek lagi
             if (target->tipe == TIPE_OBJEK) {
                 return strdup("[Wujud Objek / Domain Bersarang]");
             }
@@ -348,7 +465,16 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
         
         // Jika properti gaib / tidak ada
-        pemicu_kernel_panic(ram, "Domain bersarang atau properti tidak ditemukan!");
+        // Jika properti gaib / tidak ada
+        pemicu_kiamat_presisi(node, ram, "Domain bersarang atau properti tidak ditemukan!", 
+            "Domain bersarang adalah cara memanggil isi dari sebuah objek menggunakan tanda titik (.).\n"
+            "Contoh pemanggilan: bos.gaji\n\n"
+            "Penyebab error ini:\n"
+            "1. Variabel induk ('bos') belum diciptakan, ATAU\n"
+            "2. Variabel induk bukan berupa objek { }, ATAU\n"
+            "3. Properti ('gaji') tidak ada di dalam objek tersebut.\n"
+            "Pastikan Anda telah mendeklarasikannya dengan benar, contoh:\n"
+            "takdir.soft bos = {\"gaji\": 5000}");
         return strdup("");
     }
     
@@ -768,7 +894,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* teks_kode = evaluasi_ekspresi(node->anak_anak[0], ram);
             
             // 1. Panggil Pemindai (Lexer) khusus untuk teks ini
-            TokenArray token_eval = enki_lexer(teks_kode);
+            TokenArray token_eval = enki_lexer(teks_kode, "<evaluasi_dinamis>");
             
             // 2. Panggil Pohon Logika (Parser)
             Parser parser_eval = inisialisasi_parser(token_eval);
@@ -1272,7 +1398,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         fclose(file);
         
         // [SIHIR REKURSIF] Panggil Lexer dan Parser untuk mengeksekusi isi pustaka ini!
-        TokenArray token_list_sowan = enki_lexer(kode_sowan); 
+        TokenArray token_list_sowan = enki_lexer(kode_sowan, target_file);
         Parser parser_sowan = inisialisasi_parser(token_list_sowan); 
         ASTNode* ast_sowan = parse_program(&parser_sowan);
         
@@ -1349,7 +1475,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             free(waktu_str);
         }
     }
-    
+
     // --- 9. SIHIR BALIKAN (MESIN WAKTU) ---
     else if (node->jenis == AST_PERINTAH_BALIKAN) {
         KavlingMemori* target = NULL;

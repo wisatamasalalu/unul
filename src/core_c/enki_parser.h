@@ -58,6 +58,11 @@ typedef struct ASTNode {
     char* nilai_teks;           // Menyimpan teks (misal: "Siapa nama anda?")
     char* operator_math; // Buat ngitung
 
+    // buat error handling
+    int baris;       
+    int kolom;       
+    char* nama_file; 
+
     // --- Cabang untuk Deklarasi (Kiri = Kanan) atau Panggilan Fungsi ---
     struct ASTNode* kiri;       // Contoh: Menunjuk ke node identitas (nama_user)
     struct ASTNode* kanan;      // Contoh: Menunjuk ke nilai (dengar())
@@ -89,7 +94,7 @@ ASTNode* parse_program(Parser* parser);
 ASTNode* parse_ekspresi(Parser* parser);
 // ------------------------------------------
 
-// Fungsi Wajib untuk membuang Pohon dari RAM saat program selesai
+// Fung// <--- Sowan ke Jantung Eksekusisi Wajib untuk membuang Pohon dari RAM saat program selesai
 void bebaskan_ast(ASTNode* node);
 
 #endif // ENKI_PARSER_H

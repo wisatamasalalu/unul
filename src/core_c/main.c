@@ -3,9 +3,9 @@
 #include <time.h>
 #include "enki_lexer.h"
 #include "enki_parser.h"
-#include "enki_interpreter.h" // <--- Sowan ke Jantung Eksekusi
+#include "enki_interpreter.h" 
 
-// (Bagian baca_kitab dan nama_jenis_token tetap biarkan utuh di sini, saya persingkat agar muat)
+// Fungsi untuk membaca seluruh teks dari file
 char* baca_kitab(const char* path) {
     FILE* file = fopen(path, "rb");
     if (!file) { printf("🚨 Bencana! Kitab '%s' tidak ditemukan.\n", path); exit(1); }
@@ -26,7 +26,8 @@ int main(int argc, char** argv) {
     char* kode_sumber = baca_kitab(argv[1]);
 
     // 1. LEXER
-    TokenArray token_list = enki_lexer(kode_sumber);
+    // 🟢 SUNTIKAN: Mengirimkan argv[1] (Nama File) ke dalam mesin waktu Lexer!
+    TokenArray token_list = enki_lexer(kode_sumber, argv[1]);
 
     // 2. PARSER
     Parser parser = inisialisasi_parser(token_list);
@@ -39,7 +40,6 @@ int main(int argc, char** argv) {
     EnkiRAM ram = inisialisasi_ram(); 
     
     // B. Suntikkan Rahasia .anu ke dalam RAM yang baru dibuat
-    // Gunakan '&' untuk mengirim ALAMAT memori variabel ram
     muat_anu(&ram); 
     
     // C. Jalankan Program
