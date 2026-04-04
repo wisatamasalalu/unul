@@ -118,18 +118,44 @@ ASTNode* parse_nilai_dasar(Parser* p) {
     Token t = token_sekarang(p);
     ASTNode* simpul_kiri = NULL;
 
-    // [MISI 1] PRIORITAS KURUNG MATEMATIKA (DIPERBAIKI)
+    // [MISI 1] PRIORITAS KURUNG MATEMATIKA & FUNGSI PANAH
     if (t.jenis == TOKEN_KURUNG_B) {
-        maju(p); // Lewati '('
-        simpul_kiri = parse_ekspresi(p); // Tangkap operasi di dalamnya
         
-        if (token_sekarang(p).jenis == TOKEN_KURUNG_T) {
+        // 🟢 SUNTIKAN BARU: Sihir Pengintaian (Lookahead)
+        // Kita intip ke depan, apakah setelah kurung tutup ')' ada panah '=>' ?
+        int is_panah = 0;
+        int kursor_intip = p->kursor + 1;
+        while (kursor_intip < p->tokens.jumlah && p->tokens.data[kursor_intip].jenis != TOKEN_KURUNG_T) kursor_intip++;
+        if (kursor_intip + 1 < p->tokens.jumlah && p->tokens.data[kursor_intip + 1].jenis == TOKEN_PANAH) is_panah = 1;
+
+        if (is_panah) {
+            ASTNode* node_panah = buat_node(AST_FUNGSI_PANAH, p);
+            maju(p); // Lewati '('
+            // Tangkap parameter (x, y)
+            while (token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+                    ASTNode* param = buat_node(AST_IDENTITAS, p);
+                    param->nilai_teks = strdup(token_sekarang(p).isi);
+                    tambah_anak(node_panah, param);
+                    maju(p);
+                }
+                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+            }
             maju(p); // Lewati ')'
-        } else {
-            kiamat_sintaksis(p, "Kurung buka '(' kehilangan pasangan penutupnya ')'!", 
-                             "Setiap kali Anda membuka kurung '(', Anda wajib menutupnya dengan ')'.\n"
-                             "Periksa kembali baris ini, apakah ada kurung yang tertinggal?");
+            maju(p); // Lewati '=>'
+            
+            // Tangkap tubuh fungsinya (ekspresi)
+            node_panah->kanan = parse_ekspresi(p);
+            return node_panah;
         }
+
+        // Jika bukan fungsi panah, berarti ini Kurung Matematika biasa!
+        maju(p); // Lewati '('
+        simpul_kiri = parse_ekspresi(p); 
+        
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_T) maju(p); 
+        else kiamat_sintaksis(p, "Kurung hilang!", "Tutup dengan ')'");
+        
         return simpul_kiri;
     }
     

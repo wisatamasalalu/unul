@@ -406,17 +406,115 @@ char* ambil_elemen_array(const char* teks_array, int target_indeks) {
     return hasil;
 }
 
+// =================================================================
+// 🟢 SIHIR SISIPAN TEKS (String Interpolation: "Halo {nama}")
+// =================================================================
+char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
+    if (!teks_asli) return strdup("");
+    
+    // Jalan pintas: Jika tidak ada '{', langsung kembalikan teks aslinya (Sangat Cepat & Hemat CPU)
+    if (strchr(teks_asli, '{') == NULL) {
+        return strdup(teks_asli);
+    }
+
+    char buffer[4096] = {0}; // Batas aman: 4096 karakter per kalimat
+    int buf_idx = 0;
+    const char* p = teks_asli;
+
+    while (*p != '\0') {
+        if (*p == '{') {
+            p++; // Lewati kurung kurawal buka '{'
+            char nama_var[256] = {0};
+            int var_idx = 0;
+
+            // Menangkap nama variabel di dalamnya
+            while (*p != '}' && *p != '\0' && var_idx < 255) {
+                nama_var[var_idx++] = *p++;
+            }
+
+            if (*p == '}') {
+                p++; // Lewati kurung kurawal tutup '}'
+                
+                // Tarik nilai variabel dari EnkiRAM!
+                const char* nilai = baca_dari_ram(ram, nama_var);
+                
+                if (nilai) {
+                    strcpy(buffer + buf_idx, nilai);
+                    buf_idx += strlen(nilai);
+                } else {
+                    // KIAMAT PRESISI JIKA VARIABEL GAIB
+                    char pesan_error[512];
+                    snprintf(pesan_error, sizeof(pesan_error), "Variabel sisipan '{%s}' belum diciptakan!", nama_var);
+                    pemicu_kiamat_presisi(node, ram, pesan_error, 
+                        "Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.\n"
+                        "Pastikan tidak ada salah eja. Contoh yang sah:\n"
+                        "takdir.soft nama = \"Enki\"\n"
+                        "ketik(\"Halo {nama}\")");
+                }
+            } else {
+                // Jika kurung tidak ditutup (misal teksnya aneh), cetak apa adanya
+                buffer[buf_idx++] = '{';
+                strcpy(buffer + buf_idx, nama_var);
+                buf_idx += var_idx;
+            }
+        } else {
+            // Salin huruf biasa
+            buffer[buf_idx++] = *p++;
+        }
+    }
+    
+    return strdup(buffer);
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
     
-    // 1. Literal Teks/Angka
+    // 1. Literal Teks (Kini mendukung Sihir Interpolasi / Sisipan Teks!)
     if (node->jenis == AST_LITERAL_TEKS) {
+        // A. Bersihkan kutipan terlebih dahulu ("Halo {nama}" menjadi Halo {nama})
         char* teks_bersih = strdup(node->nilai_teks);
         bersihkan_kutip(teks_bersih);
-        return teks_bersih;
+        
+        // B. Masukkan teks yang sudah bersih ke dalam mesin sisipan
+        char* teks_final = proses_sisipan_teks(teks_bersih, ram, node);
+        
+        // C. Bersihkan memori sementara agar tidak bocor
+        free(teks_bersih);
+        
+        return teks_final;
     }
     
+    // Evaluasi Pendaftaran Fungsi Panah
+    if (node->jenis == AST_FUNGSI_PANAH) {
+        static int anon_counter = 0;
+        char nama_anon[64];
+        snprintf(nama_anon, sizeof(nama_anon), "<anonim_%d>", anon_counter++); // Buat nama gaib
+
+        // Sulap tubuh fungsi panah agar memiliki perintah 'pulang' otomatis
+        if (!node->blok_maka) {
+            node->blok_maka = (ASTNode*)malloc(sizeof(ASTNode));
+            memset(node->blok_maka, 0, sizeof(ASTNode));
+            node->blok_maka->jenis = AST_PROGRAM;
+            
+            ASTNode* pulang = (ASTNode*)malloc(sizeof(ASTNode));
+            memset(pulang, 0, sizeof(ASTNode));
+            pulang->jenis = AST_PULANG;
+            pulang->kiri = node->kanan; // Pulangkan nilai hasil ekspresi kanan
+            
+            tambah_anak(node->blok_maka, pulang);
+        }
+
+        simpan_ke_ram(ram, nama_anon, "<fungsi_panah>");
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, nama_anon) == 0) {
+                ram->kavling[i].simpul_fungsi = node; // Tanam cetak biru ke RAM
+                break;
+            }
+        }
+        return strdup(nama_anon); // Kembalikan nama gaibnya ke pemanggil
+    }
+
     // 2. Identitas (Variabel Biasa / Array)
     if (node->jenis == AST_IDENTITAS) {
         KavlingMemori* kavling = NULL;
@@ -430,15 +528,22 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // 🟢 JIKA VARIABEL GAGAL DITEMUKAN (Tampilkan Saran Typo!)
         if (!kavling) {
             char pesan_typo[512];
+            
+            // Coba cari apakah ada variabel yang namanya mirip (Typo)
             char* saran = cari_saran_typo(node->nilai_teks, ram); 
             
             if (saran) {
+                // JIKA KETEMU KEMIRIPAN (Misal: apell -> apel)
                 snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' tidak ditemukan. Apakah maksud Anda '%s'?", node->nilai_teks, saran);
+                pemicu_kiamat_presisi(node, ram, pesan_typo, "Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.");
             } else {
+                // JIKA SAMA SEKALI TIDAK ADA YANG MIRIP (Mungkin lupa tanda kutip!)
                 snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' belum diciptakan di realita ini.", node->nilai_teks);
+                pemicu_kiamat_presisi(node, ram, pesan_typo, 
+                    "1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (\").\n"
+                    "   Contoh: ketik(\"Halo Dunia\")\n"
+                    "2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.");
             }
-            
-            pemicu_kiamat_presisi(node, ram, pesan_typo, "Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.");
             return strdup(""); 
         }
 
@@ -584,9 +689,21 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     target->tipe = TIPE_TEKS;
                     target->nilai_teks = hasil_masa_depan ? strdup(hasil_masa_depan) : strdup("");
                     snprintf(hasil_akhir, 1024, "%s", target->nilai_teks);
+
+                    // 🟢 SUNTIKAN BARU: Jika yang ditugaskan adalah nama gaib Fungsi Panah, salin cetak birunya!
+                    if (hasil_masa_depan && strncmp(hasil_masa_depan, "<anonim_", 8) == 0) {
+                        for(int i = 0; i < ram->jumlah; i++) {
+                            if(strcmp(ram->kavling[i].nama, hasil_masa_depan) == 0) {
+                                target->simpul_fungsi = ram->kavling[i].simpul_fungsi;
+                                break;
+                            }
+                        }
+                    }
                 }
             } else {
-                pemicu_kernel_panic(ram, "Gagal memutasi memori. Variabel induk belum ditakdirkan!");
+                pemicu_kiamat_presisi(node, ram, "Gagal memutasi memori. Variabel belum diciptakan!",
+                    "Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.\n"
+                    "Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.");
             }
             
             if (hasil_masa_depan) free(hasil_masa_depan);
@@ -1071,15 +1188,28 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
                 tm->tm_hour, tm->tm_min, tm->tm_sec);
         fprintf(log, "Pesan Alam     : %s\n", pesan);
         
-        // Catat isi memori jika sedang mode Debug (Untuk analisis post-mortem)
+        /// Catat isi memori jika sedang mode Debug (Untuk analisis post-mortem)
         if (strcmp(mode_debug, "1") == 0) {
             fprintf(log, "Status         : MODE DEBUG AKTIF\n");
-            fprintf(log, "Isi RAM Saat Ini (%d variabel):\n", ram->jumlah);
+            fprintf(log, "Isi RAM Saat Ini (%d Kavling Terisi):\n", ram->jumlah);
+            
             for (int i = 0; i < ram->jumlah; i++) {
-                fprintf(log, "  -> %s = %s\n", ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+                // 1. Cek Sifat Takdir
+                const char* sifat = ram->kavling[i].apakah_konstanta ? "HARD" : "SOFT";
+                
+                // 2. Cek Wujud (Teks vs Objek)
+                if (ram->kavling[i].tipe == TIPE_OBJEK) {
+                    int jumlah_anak = ram->kavling[i].anak_anak ? ram->kavling[i].anak_anak->jumlah : 0;
+                    fprintf(log, "  -> [%s] %s = { Wujud Objek: %d Properti Dalam }\n", sifat, ram->kavling[i].nama, jumlah_anak);
+                } else if (ram->kavling[i].simpul_fungsi != NULL) {
+                    fprintf(log, "  -> [FUNGSI] %s = <cetak_biru_instruksi>\n", ram->kavling[i].nama);
+                } else {
+                    fprintf(log, "  -> [%s] %s = \"%s\"\n", sifat, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+                }
             }
         } else {
             fprintf(log, "Status         : MODE PRODUKSI (Minimal Log)\n");
+            fprintf(log, "Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.\n");
         }
         
         fprintf(log, "========================\n\n");
@@ -1256,6 +1386,21 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             if (nilai) {
                 simpan_ke_ram(ram, nama, nilai);
                 
+                // 🟢 SUNTIKAN FUNGSI PANAH: Transfer Cetak Biru jika ini adalah fungsi anonim
+                if (strncmp(nilai, "<anonim_", 8) == 0) {
+                    for(int i = 0; i < ram->jumlah; i++) {
+                        if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                            for(int j = 0; j < ram->jumlah; j++) {
+                                if (strcmp(ram->kavling[j].nama, nilai) == 0) {
+                                    ram->kavling[i].simpul_fungsi = ram->kavling[j].simpul_fungsi;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
                 // 🔥 SUNTIKAN: Set status hard jika keywordnya adalah 'takdir.hard'
                 if (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0) {
                     for (int i = 0; i < ram->jumlah; i++) {

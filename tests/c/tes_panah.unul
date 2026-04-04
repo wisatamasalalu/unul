@@ -1,0 +1,4 @@
+datang
+takdir.soft kali_dua = (x) => x * 2
+ketik( kali_dua(50) )
+pergi

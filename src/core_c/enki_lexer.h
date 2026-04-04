@@ -36,6 +36,7 @@ typedef enum {
     TOKEN_LOGIKA,        // dan, atau, bukan, &&, ||, !
     TOKEN_OPERATOR,      // +, -, *, /, %, ^
     TOKEN_ASSIGN,        // =
+    TOKEN_PANAH,         // =>
 
     // Tipe Data Dasar & Identitas
     TOKEN_TEKS,          // "String teks" atau 'String'

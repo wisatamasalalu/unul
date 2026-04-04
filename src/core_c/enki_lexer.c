@@ -130,6 +130,13 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
             int awal_kolom = kolom;
             char op_str[3] = {c, '\0', '\0'};
             
+            // Cek Fungsi Panah (=>)
+            if (c == '=' && kode_sumber[i+1] == '>') {
+                tambah_token(&token_list, TOKEN_PANAH, "=>", baris, awal_kolom, nama_file_sumber);
+                i += 2; kolom += 2;
+                continue;
+            }
+
             // Cek Double Operator (==, !=, >=, <=)
             if ((c == '=' || c == '!' || c == '>' || c == '<') && kode_sumber[i+1] == '=') {
                 op_str[1] = '=';

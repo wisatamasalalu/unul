@@ -1,0 +1,13 @@
+datang
+
+takdir.soft nama = tanya("Siapa nama anda?: ")
+takdir.soft senjata = "LinuxDNC"
+
+^^ Interpolasi standar
+ketik("Salam, {nama}! Anda sedang menggunakan senjata {senjata}.")
+
+^^ Interpolasi untuk mendefinisikan variabel baru!
+takdir.soft sapaan = "Halo {nama}, misimu telah dimulai."
+ketik(sapaan)
+
+pergi

@@ -86,3 +86,44 @@ Pesan Alam     : Takdir 'entitas_waktu' belum diciptakan!
 Status         : MODE PRODUKSI (Minimal Log)
 ========================
 
+=== [WAKTU KIAMAT: 1775257158] ===
+🚨 [tes_kiamat.unul: Baris 6:7] KIAMAT SINTAKSIS: Variabel 'Halo' belum diciptakan di realita ini.
+   Kode Penyebab: Halo
+   Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
+=================================
+
+=== [WAKTU KIAMAT: 1775257538] ===
+🚨 [tes_kiamat.unul: Baris 6:7] KIAMAT SINTAKSIS: Variabel 'Halo' belum diciptakan di realita ini.
+   Kode Penyebab: Halo
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775257619] ===
+🚨 [tes_kiamat.unul: Baris 10:7] KIAMAT SINTAKSIS: Variabel 'apell' tidak ditemukan. Apakah maksud Anda 'apel'?
+   Kode Penyebab: apell
+   Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
+=================================
+
+=== [WAKTU KIAMAT: 1775257639] ===
+🚨 [tes_kiamat.unul: Baris 14:11] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: gaji
+   Saran: Domain bersarang adalah cara memanggil isi dari sebuah objek menggunakan tanda titik (.).
+Contoh pemanggilan: bos.gaji
+
+Penyebab error ini:
+1. Variabel induk ('bos') belum diciptakan, ATAU
+2. Variabel induk bukan berupa objek { }, ATAU
+3. Properti ('gaji') tidak ada di dalam objek tersebut.
+Pastikan Anda telah mendeklarasikannya dengan benar, contoh:
+takdir.soft bos = {"gaji": 5000}
+=================================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-04 07:29:20
+Pesan Alam     : Gagal memutasi memori. Variabel induk belum ditakdirkan!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+

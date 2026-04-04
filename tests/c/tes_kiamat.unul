@@ -1,0 +1,26 @@
+datang
+
+ketik("=== MENGUJI PERISAI KIAMAT UNUL ===")
+
+^^ DOSA 1: Lupa tanda kutip (Interpreter Error - Variabel Gaib)
+^^ ketik(Halo Dunia)
+
+^^ DOSA 2: Typo Pemanggilan Variabel (Interpreter Error - Smart Typo)
+^^ takdir.soft apel = 10
+^^ ketik(apell)
+
+^^ DOSA 3: Memanggil properti gaib pada Objek (Interpreter Error - Domain Bersarang)
+takdir.soft bos = {"nama": "Enki"}
+^^ ketik(bos.gaji)
+
+^^ DOSA 4: Lupa kata 'maka' pada percabangan (Parser Error)
+jika 1 == 1 maka
+    ketik("Ini tidak akan jalan karena lupa maka")
+putus
+
+^^ DOSA 5: Menulis 'tabu' sendirian tanpa 'coba' (Parser Error - Yatim Piatu)
+^^    tabu melanggar e maka
+        ^^ ketik("Ini error yatim piatu")
+    pasrah
+
+pergi

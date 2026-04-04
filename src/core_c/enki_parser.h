@@ -40,7 +40,8 @@ typedef enum {
     AST_STRUKTUR_OBJEK,        // Menampung kurung kurawal {}
     AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
     AST_AKSES_DOMAIN,          // Menampung akses titik (misal: dewa.nama)
-    AST_PERINTAH_BALIKAN       // Membalikan keadaan seperti sebelumnya (mesin waktu)
+    AST_PERINTAH_BALIKAN,       // Membalikan keadaan seperti sebelumnya (mesin waktu)
+    AST_FUNGSI_PANAH           // Fungsi Anonim (x) => ...
 
 } ASTJenis;
 
@@ -89,6 +90,8 @@ typedef struct {
 // 4. FUNGSI-FUNGSI PARSER UTAMA
 Parser inisialisasi_parser(TokenArray tokens);
 ASTNode* parse_program(Parser* parser);
+// Fungsi bantuan untuk menambah anak cabang
+void tambah_anak(ASTNode* induk, ASTNode* anak);
 
 // --- SUNTIKAN BARU UNTUK SIHIR EVALUASI ---
 ASTNode* parse_ekspresi(Parser* parser);
