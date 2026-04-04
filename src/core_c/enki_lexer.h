@@ -24,6 +24,7 @@ typedef enum {
     TOKEN_PULANG,        // pulang
     
     TOKEN_SOWAN,         // sowan
+    TOKEN_UTAS,          // utas, gaib
     
     // Hukum Tabu (Error Handling)
     TOKEN_COBA,          // coba

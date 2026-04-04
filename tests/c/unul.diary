@@ -208,3 +208,24 @@ takdir.soft nama = "Enki"
 ketik("Halo {nama}")
 =================================
 
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-04 14:39:09
+Pesan Alam     : Fungsi gaib 'tugas_berat' tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-04 14:51:40
+Pesan Alam     : Fungsi gaib 'tugas_berat' tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-04 14:52:29
+Pesan Alam     : Fungsi gaib 'tugas_berat' tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+

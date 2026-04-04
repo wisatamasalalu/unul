@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <pthread.h>
 #include "enki_interpreter.h"
 
 // =================================================================
@@ -1189,9 +1190,12 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         
         // Jika di RAM juga tidak ada, BARU KITA PANIK!
         if (func_node == NULL) {
-            char pesan_err[128];
-            snprintf(pesan_err, sizeof(pesan_err), "Fungsi gaib '%s' tidak ditemukan!", node->nilai_teks);
-            pemicu_kernel_panic(ram, pesan_err);
+            char pesan_error[512];
+            snprintf(pesan_error, sizeof(pesan_error), "Fungsi gaib '%s' tidak ditemukan!", node->nilai_teks);
+            pemicu_kiamat_presisi(node, ram, pesan_error, 
+                "Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).\n"
+                "Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.");
+            return strdup(""); // Kembalikan teks kosong agar interpreter tidak crash
         }
 
         // 3. MENCIPTAKAN RAM SEMENTARA (LOCAL SCOPE DINAMIS)
@@ -1204,11 +1208,38 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             ram_lokal.kavling[ram_lokal.jumlah - 1].simpul_fungsi = ram->kavling[i].simpul_fungsi;
         }
 
-        // 4. TRANSFER NILAI PARAMETER KE RAM LOKAL
-        for (int i = 0; i < func_node->jumlah_anak && i < node->jumlah_anak; i++) {
-            char* nilai_argumen = evaluasi_ekspresi(node->anak_anak[i], ram);
-            simpan_ke_ram(&ram_lokal, func_node->anak_anak[i]->nilai_teks, nilai_argumen);
-            free(nilai_argumen);
+        // 4. TRANSFER NILAI PARAMETER KE RAM LOKAL (Dengan Sihir Parameter Bawaan)
+        for (int i = 0; i < func_node->jumlah_anak; i++) { 
+            ASTNode* param = func_node->anak_anak[i];
+            char* nama_param = "";
+            char* nilai_akhir = NULL;
+
+            // 1. Cek Wujud Parameternya (Apakah punya Default Value '=')
+            int punya_bawaan = (param->operator_math && strcmp(param->operator_math, "=") == 0);
+            
+            if (punya_bawaan) {
+                nama_param = param->kiri->nilai_teks; // Nama variabel ada di sebelah kiri '='
+            } else {
+                nama_param = param->nilai_teks; // Parameter biasa (hanya nama)
+            }
+
+            // 2. Tentukan Nilai Akhirnya!
+            if (i < node->jumlah_anak) { 
+                // Jika pemanggil memberikan argumen, GUNAKAN!
+                nilai_akhir = evaluasi_ekspresi(node->anak_anak[i], ram);
+            } else if (punya_bawaan) {
+                // Jika argumen kosong, tapi punya bawaan, GUNAKAN NILAI BAWAAN!
+                nilai_akhir = evaluasi_ekspresi(param->kanan, &ram_lokal); 
+            } else {
+                // Jika argumen kosong dan tidak ada bawaan, KIAMAT!
+                pemicu_kiamat_presisi(node, ram, "Kekurangan Argumen!", "Fungsi ini membutuhkan lebih banyak argumen, dan tidak ada parameter bawaan yang bisa menyelamatkan.");
+            }
+
+            // 3. Simpan ke RAM Lokal fungsi tersebut
+            if (nilai_akhir) {
+                simpan_ke_ram(&ram_lokal, nama_param, nilai_akhir);
+                free(nilai_akhir);
+            }
         }
 
         // 5. JALANKAN MESIN!
@@ -1377,6 +1408,47 @@ void muat_anu(EnkiRAM* ram) {
     }
     fclose(file);
     printf("🛡️ [SISTEM] Kitab rahasia .anu berhasil merasuk ke memori!\n");
+}
+
+// ========================================================
+// 🟢 SIHIR UTAS GAIB (GOROUTINES / MULTITHREADING)
+// ========================================================
+typedef struct {
+    ASTNode* simpul_panggilan;
+    EnkiRAM* ram_paralel;
+} KapsulUtas;
+
+// 🟢 SUNTIKAN ANTI-AMNESIA: Menyalin seluruh isi RAM termasuk fungsi!
+EnkiRAM* salin_ram_untuk_utas(EnkiRAM* sumber) {
+    EnkiRAM* baru = ciptakan_ram_mini(); 
+    baru->butuh_anu_aktif = sumber->butuh_anu_aktif;
+    
+    for (int i = 0; i < sumber->jumlah; i++) {
+        // Salin Nama dan Nilai Teks
+        const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+        simpan_ke_ram(baru, sumber->kavling[i].nama, nilai_aman);
+        
+        // 🚨 KUNCI UTAMA: Salin juga "Jiwa" fungsinya agar tidak hilang di dimensi paralel!
+        baru->kavling[baru->jumlah - 1].simpul_fungsi = sumber->kavling[i].simpul_fungsi;
+        baru->kavling[baru->jumlah - 1].tipe = sumber->kavling[i].tipe;
+        baru->kavling[baru->jumlah - 1].apakah_konstanta = sumber->kavling[i].apakah_konstanta;
+    }
+    return baru;
+}
+
+void* pelari_utas_gaib(void* arg) {
+    KapsulUtas* kapsul = (KapsulUtas*)arg;
+    
+    // Jalankan fungsi di dimensi terpisah!
+    char* hasil = evaluasi_ekspresi(kapsul->simpul_panggilan, kapsul->ram_paralel);
+    if (hasil) free(hasil);
+    
+    // Setelah selesai, hancurkan dimensi paralel agar RAM tidak bocor
+    bebaskan_ram(kapsul->ram_paralel);
+    free(kapsul->ram_paralel);
+    free(kapsul);
+    
+    return NULL;
 }
 
 // --- 3. EKSEKUSI NODE (MENJALANKAN PERINTAH) ---
@@ -1622,6 +1694,24 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
                 ram->status_henti = 0;
                 break;
             }
+        }
+    }
+
+    // --- EKSEKUSI UTAS GAIB (PARALEL) ---
+    else if (node->jenis == AST_UTAS) {
+        if (node->kiri && node->kiri->jenis == AST_PANGGILAN_FUNGSI) {
+            pthread_t id_utas;
+            KapsulUtas* kapsul = (KapsulUtas*)malloc(sizeof(KapsulUtas));
+            
+            kapsul->simpul_panggilan = node->kiri;
+            
+            // Gunakan penyalin baru yang sudah kita buat!
+            kapsul->ram_paralel = salin_ram_untuk_utas(ram); 
+            
+            pthread_create(&id_utas, NULL, pelari_utas_gaib, kapsul);
+            pthread_detach(id_utas); 
+        } else {
+            pemicu_kiamat_presisi(node, ram, "Sihir utas cacat!", "Sihir 'utas' atau 'gaib' hanya bisa digunakan untuk memanggil fungsi.");
         }
     }
 

@@ -45,7 +45,8 @@ typedef enum {
     AST_COCOKKAN,              // Blok percocokan pola
     AST_KASUS,                  // Ranting kasus individu
     AST_TERNARI,                // Percabangan sebaris (jika A maka B lain C)
-    AST_KECUALI                // Logika terbalik (Unless)
+    AST_KECUALI,                // Logika terbalik (Unless)
+    AST_UTAS                    // Eksekusi Asinkron (Multithread)
 
 } ASTJenis;
 

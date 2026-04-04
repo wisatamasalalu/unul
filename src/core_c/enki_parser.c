@@ -766,7 +766,7 @@ ASTNode* parse_pernyataan(Parser* p) {
     }
 
     // --- PENANGKAP PENCIPTAAN FUNGSI ---
-    // Sintaksis: ciptakan fungsi nama(x, y) maka ... putus
+    // Sintaksis: ciptakan fungsi nama(x, y) atau nama(x = 10) maka ... putus
     if (t.jenis == TOKEN_CIPTAKAN) {
         maju(p); // lewati 'ciptakan'
         if (token_sekarang(p).jenis == TOKEN_FUNGSI) maju(p); // lewati 'fungsi'
@@ -779,16 +779,15 @@ ASTNode* parse_pernyataan(Parser* p) {
             maju(p);
         }
 
-        // Tangkap Parameter: (x, y)
+        // 🟢 SUNTIKAN BARU: Tangkap Parameter (Menggunakan parse_ekspresi)
         if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
             maju(p); // lewati '('
             while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
-                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
-                    ASTNode* param = buat_node(AST_IDENTITAS, p);
-                    param->nilai_teks = strdup(token_sekarang(p).isi);
-                    tambah_anak(node, param); // Simpan daftar parameter ke anak_anak
-                    maju(p);
-                }
+                
+                // Gunakan parse_ekspresi agar mesin bisa membaca tanda '='
+                ASTNode* param = parse_ekspresi(p); 
+                tambah_anak(node, param); // Masukkan ke daftar parameter
+
                 if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
             }
             maju(p); // lewati ')'
@@ -879,6 +878,15 @@ ASTNode* parse_pernyataan(Parser* p) {
             node->kiri = parse_ekspresi(p); 
         }
         
+        return node;
+    }
+
+    // --- PENANGKAP UTAS GAIB (MULTITHREADING) ---
+    if (t.jenis == TOKEN_UTAS) {
+        ASTNode* node = buat_node(AST_UTAS, p);
+        maju(p); // lewati kata 'utas' atau 'gaib'
+        
+        node->kiri = parse_ekspresi(p); // Tangkap panggilan fungsinya, misal: hitung_berat()
         return node;
     }
 

@@ -1,0 +1,16 @@
+datang
+
+ciptakan fungsi tugas_berat() maka
+    jeda("2s")
+    ketik("✅ Tugas berat di latar belakang SELESAI!")
+putus
+
+ketik("1. Memulai program...")
+utas tugas_berat()  ^^ Fungsi ini dilempar ke dimensi lain (tidak memblokir)
+ketik("2. Program utama langsung lanjut tanpa menunggu tugas berat!")
+
+^^ Jeda program utama agar tidak langsung mati sebelum utas selesai
+jeda("3s") 
+ketik("3. Program utama selesai.")
+
+pergi

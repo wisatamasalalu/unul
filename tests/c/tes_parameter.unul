@@ -1,0 +1,17 @@
+datang
+
+^^ Fungsi dengan parameter bawaan
+ciptakan fungsi sapa(nama = "Anonim", gelar = "Sang Pengembara") maka
+    ketik("Salam, {gelar} {nama}!")
+putus
+
+^^ Menguji tanpa argumen sama sekali
+sapa()
+
+^^ Menguji dengan 1 argumen (nama)
+sapa("Enki")
+
+^^ Menguji dengan argumen lengkap
+sapa("Nabhan", "Arsitek Agung")
+
+pergi
