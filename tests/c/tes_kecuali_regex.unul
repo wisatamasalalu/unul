@@ -1,0 +1,14 @@
+datang
+
+takdir.soft plat_nomor = "D 1234 ABC"
+
+^^ Mengecek apakah formatnya 1 Huruf, Spasi, 4 Angka, Spasi, 3 Huruf
+takdir.soft valid = cocok(plat_nomor, "^[A-Z] [0-9]{4} [A-Z]{3}$")
+
+jika valid == "1" maka
+    ketik("Plat nomor sah!")
+lain maka
+    ketik("Plat nomor palsu!")
+putus
+
+pergi

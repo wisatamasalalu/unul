@@ -1,0 +1,11 @@
+datang
+
+takdir.soft hasil = tanya("Masukkan 3 huruf kecil: ") |> cocok("^[a-z]{3}$")
+
+jika hasil == "1" maka
+    ketik("Sempurna!")
+lain maka
+    ketik("Salah format!")
+putus
+
+pergi

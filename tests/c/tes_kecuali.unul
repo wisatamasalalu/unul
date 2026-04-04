@@ -1,0 +1,12 @@
+datang
+
+takdir.soft nama = tanya("Masukkan nama Anda: ")
+
+^^ Kode ini dibaca: Kecuali namanya adalah 'Enki', maka tolak!
+kecuali nama == "Enki" maka
+    ketik("🚨 Peringatan: Anda bukan Sang Pencipta!")
+lain
+    ketik("✅ Selamat datang, Tuan Enki.")
+putus
+
+pergi

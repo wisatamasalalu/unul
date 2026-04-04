@@ -435,21 +435,40 @@ char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
             if (*p == '}') {
                 p++; // Lewati kurung kurawal tutup '}'
                 
-                // Tarik nilai variabel dari EnkiRAM!
-                const char* nilai = baca_dari_ram(ram, nama_var);
-                
-                if (nilai) {
-                    strcpy(buffer + buf_idx, nilai);
-                    buf_idx += strlen(nilai);
-                } else {
-                    // KIAMAT PRESISI JIKA VARIABEL GAIB
-                    char pesan_error[512];
-                    snprintf(pesan_error, sizeof(pesan_error), "Variabel sisipan '{%s}' belum diciptakan!", nama_var);
-                    pemicu_kiamat_presisi(node, ram, pesan_error, 
-                        "Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.\n"
-                        "Pastikan tidak ada salah eja. Contoh yang sah:\n"
-                        "takdir.soft nama = \"Enki\"\n"
-                        "ketik(\"Halo {nama}\")");
+                // 🟢 SUNTIKAN CERDAS: Cek apakah isi kurungnya murni angka/koma (Pola Regex)
+                int murni_angka_regex = 1;
+                for(int i = 0; i < var_idx; i++) {
+                    // Jika ada huruf biasa, berarti ini nama variabel, bukan regex
+                    if (!isdigit(nama_var[i]) && nama_var[i] != ',') {
+                        murni_angka_regex = 0; 
+                        break;
+                    }
+                }
+
+                // JIKA INI REGEX (contoh: {4} atau {1,3}), cetak ulang apa adanya!
+                if (murni_angka_regex) {
+                    buffer[buf_idx++] = '{';
+                    strcpy(buffer + buf_idx, nama_var);
+                    buf_idx += strlen(nama_var);
+                    buffer[buf_idx++] = '}';
+                } 
+                // JIKA BUKAN REGEX (Berarti variabel beneran, misal {nama})
+                else {
+                    const char* nilai = baca_dari_ram(ram, nama_var);
+                    
+                    if (nilai) {
+                        strcpy(buffer + buf_idx, nilai);
+                        buf_idx += strlen(nilai);
+                    } else {
+                        // KIAMAT PRESISI JIKA VARIABEL GAIB
+                        char pesan_error[512];
+                        snprintf(pesan_error, sizeof(pesan_error), "Variabel sisipan '{%s}' belum diciptakan!", nama_var);
+                        pemicu_kiamat_presisi(node, ram, pesan_error, 
+                            "Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.\n"
+                            "Pastikan tidak ada salah eja. Contoh yang sah:\n"
+                            "takdir.soft nama = \"Enki\"\n"
+                            "ketik(\"Halo {nama}\")");
+                    }
                 }
             } else {
                 // Jika kurung tidak ditutup (misal teksnya aneh), cetak apa adanya
@@ -1406,7 +1425,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             }
         } 
 
-        // 🔥 SUNTIKAN: JIKA INI ADALAH FUNGSI BALIKAN()
+        // JIKA INI ADALAH FUNGSI BALIKAN()
         else if (node->kanan && node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
             // Ambil nama variabel sumber dari argumen pertama balikan(sumber)
             KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
@@ -1474,6 +1493,18 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
+    // Eksekusi Hukum Kecuali (Unless) ---
+    else if (node->jenis == AST_KECUALI) {
+        int sah = evaluasi_kondisi(node->syarat, ram);
+        // LOGIKA TERBALIK: Jalankan blok 'maka' JIKA KONDISINYA SALAH (0)!
+        if (!sah) {
+            eksekusi_program(node->blok_maka, ram);
+        } else if (node->blok_lain) {
+            // Jika kondisinya benar, jalankan blok 'lain'
+            eksekusi_program(node->blok_lain, ram);
+        }
+    }
+    
     // Eksekusi PERCOCOKAN POLA (Switch-Case) ---
     else if (node->jenis == AST_COCOKKAN) {
         char* nilai_target = evaluasi_ekspresi(node->kiri, ram);

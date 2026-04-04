@@ -676,6 +676,12 @@ ASTNode* parse_pernyataan(Parser* p) {
         Token t_lain = token_sekarang(p);
         if (t_lain.jenis == TOKEN_KARMA && strcmp(t_lain.isi, "lain") == 0) {
             maju(p); // lewati kata 'lain'
+            // 🟢 HUKUM MUTLAK DISIPLIN MILITER!
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                maju(p); // lewati 'maka'
+            } else {
+                kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Kata 'lain' sebagai pembuka blok perintah WAJIB diikuti oleh kata 'maka'.");
+            }
             node->blok_lain = buat_node(AST_PROGRAM, p);
             while (token_sekarang(p).jenis != TOKEN_EOF) {
                 Token t_cek = token_sekarang(p);
@@ -689,6 +695,43 @@ ASTNode* parse_pernyataan(Parser* p) {
         Token t_putus = token_sekarang(p);
         if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
 
+        return node;
+    }
+
+    // --- PENANGKAP HUKUM KECUALI (UNLESS) ---
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "kecuali") == 0) {
+        ASTNode* node = buat_node(AST_KECUALI, p);
+        maju(p); // lewati 'kecuali'
+        
+        node->syarat = parse_syarat_logika(p);
+        
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Hukum Kecuali cacat!", "Kehilangan kata 'maka' setelah syarat.");
+        
+        node->blok_maka = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_dalam = token_sekarang(p);
+            if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "lain") == 0) {
+                maju(p); // lewati 'lain'
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                    maju(p);
+                } else {
+                    kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Kata 'lain' sebagai pembuka blok perintah WAJIB diikuti oleh kata 'maka'.");
+                }
+                node->blok_lain = buat_node(AST_PROGRAM, p);
+                continue;
+            }
+            if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                maju(p); // lewati 'putus'
+                break;
+            }
+            
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) {
+                if (node->blok_lain) tambah_anak(node->blok_lain, stmt);
+                else tambah_anak(node->blok_maka, stmt);
+            }
+        }
         return node;
     }
 

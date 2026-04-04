@@ -127,3 +127,57 @@ Status         : MODE PRODUKSI (Minimal Log)
 Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
 ========================
 
+=== [WAKTU KIAMAT: 1775275362] ===
+🚨 [tes_kecuali_regex.unul: Baris 6:39] KIAMAT SINTAKSIS: Variabel sisipan '{4}' belum diciptakan!
+   Kode Penyebab: "^[A-Z] [0-9]{4} [A-Z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775275378] ===
+🚨 [tes_kecuali_regex.unul: Baris 6:39] KIAMAT SINTAKSIS: Variabel sisipan '{4}' belum diciptakan!
+   Kode Penyebab: "^[A-Z] [0-9]{4} [A-Z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775275387] ===
+🚨 [tes_kecuali_regex.unul: Baris 6:39] KIAMAT SINTAKSIS: Variabel sisipan '{4}' belum diciptakan!
+   Kode Penyebab: "^[A-Z] [0-9]{4} [A-Z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775275423] ===
+🚨 [tes_kecuali_regex.unul: Baris 6:39] KIAMAT SINTAKSIS: Variabel sisipan '{4}' belum diciptakan!
+   Kode Penyebab: "^[A-Z] [0-9]{4} [A-Z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775275479] ===
+🚨 [tes_kecuali_regex.unul: Baris 6:39] KIAMAT SINTAKSIS: Variabel sisipan '{4}' belum diciptakan!
+   Kode Penyebab: "^[A-Z] [0-9]{4} [A-Z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775275515] ===
+🚨 [tes_kecualipiperegex.unul: Baris 3:64] KIAMAT SINTAKSIS: Variabel sisipan '{3}' belum diciptakan!
+   Kode Penyebab: "^[a-z]{3}$"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
