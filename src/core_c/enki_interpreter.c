@@ -1293,7 +1293,7 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
             return strdup(""); 
         }
-        
+
         // 🟢 TEMPELKAN SIHIR SISTEM FILE DI SINI 🟢
         // --- SIHIR SISTEM FILE (BLOB/GLOB) ---
         if (strcmp(node->nilai_teks, "cari") == 0) {
@@ -1918,79 +1918,89 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         eksekusi_effort_gaib(node, ram);
     }
 
-    // 6. Sowan (Pemanggilan Dimensi / Import)
+    // 6. Sowan (Pemanggilan Dimensi / Import Pustaka)
     else if (node->jenis == AST_PERINTAH_SOWAN) {
-        // 1. Dapatkan nama file mentah (entah dari teks "..." atau dari variabel)
         char* target_mentah = evaluasi_ekspresi(node->kiri, ram);
         char target_file[512];
+        strncpy(target_file, target_mentah, sizeof(target_file) - 1);
+        target_file[sizeof(target_file) - 1] = '\0';
         
-        // [SIHIR IMBUHAN OTOMATIS] Jika user mengetik 'sowan aljabar', otomatis jadi 'aljabar.unll'
-        if (strstr(target_mentah, ".") == NULL) {
-            snprintf(target_file, sizeof(target_file), "%s.unll", target_mentah);
-        } else {
-            strncpy(target_file, target_mentah, sizeof(target_file));
+        const char* titik = strrchr(target_file, '.');
+
+        // 🛡️ PROTEKSI EKSTENSI & SMART HINT
+        if (titik && strcmp(titik, ".unll") != 0) {
+            char pesan_err[1024]; 
+            snprintf(pesan_err, sizeof(pesan_err), "Pustaka '%s' DITOLAK!", target_file);
+            char panduan[2048];
+            snprintf(panduan, sizeof(panduan), 
+                "⚠️ PERINGATAN DIMENSI:\n"
+                "Sesuai Hukum Dasar UNUL, perintah 'sowan' HANYA untuk pustaka (.unll).\n"
+                "Ekstensi '%s' tidak diizinkan di jalur ini.\n\n"
+                "💡 SOLUSI: Gunakan 'baca()' jika ingin mengambil data.\n"
+                "Contoh: takdir.soft data = baca(\"%s\")", titik, target_file);
+            pemicu_kiamat_presisi(node, ram, pesan_err, panduan);
+            free(target_mentah);
+            return;
         }
 
-        // Tambahkan Log ke diary saat ada pustaka yang dirasukkan (Optional Debug)
-        if (ram->butuh_anu_aktif) {
-            FILE *log = fopen("unul.diary", "a");
-            if (log) {
-                fprintf(log, "[INFO] Memanggil kasta '%s' ke dalam memori.\n", target_file);
-                fclose(log);
-            }
+        if (!titik) strncat(target_file, ".unll", sizeof(target_file) - strlen(target_file) - 1);
+
+        // 🟢 RADAR PENCARIAN PENUH (Dinamis & Statis)
+        char jalur_final[1024] = "";
+        FILE* file = NULL;
+
+        // Jalur 1-4: Folder Lokal & Sistem
+        char* daftar_radar[] = {"./", "./lib/", "/usr/lib/unul/", "/opt/unul/lib/", NULL};
+        for (int i = 0; daftar_radar[i] != NULL; i++) {
+            snprintf(jalur_final, sizeof(jalur_final), "%s%s", daftar_radar[i], target_file);
+            file = fopen(jalur_final, "r");
+            if (file) break;
         }
-        
-        // 2. RADAR LOKAL: Cari di folder tempat user berada saat ini
-        FILE *file = fopen(target_file, "r");
-        
-        // 3. RADAR SISTEM: Jika di lokal tidak ada, cari di Pustaka OS LinuxDNC!
+
+        // Jalur 5-6: Jalur Dinamis User ($HOME)
         if (!file) {
-            char path_sistem[1024];
-            
-            // Simulasi 1: Folder 'lib/' yang berdampingan dengan program (untuk masa development)
-            snprintf(path_sistem, sizeof(path_sistem), "lib/%s", target_file);
-            file = fopen(path_sistem, "r");
-            
-            // Simulasi 2: Folder absolut OS (nanti jika sudah rilis di Arch via yay/apt)
-            if (!file) {
-                snprintf(path_sistem, sizeof(path_sistem), "/usr/lib/unul/%s", target_file);
-                file = fopen(path_sistem, "r");
-            }
-            
-            // 4. KIAMAT: Jika di seluruh sistem tidak ada, hancurkan program!
-            if (!file) {
-                char pesan_kiamat[1024];
-                snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Bencana Sowan! Kitab pustaka '%s' tidak ditemukan di lokal maupun direktori sistem OS.", target_file);
-                pemicu_kernel_panic(ram, pesan_kiamat);
-                free(target_mentah);
-                return;
+            char* home_user = getenv("HOME"); // 🟢 SIHIR DINAMIS KEMBALI!
+            if (home_user) {
+                // Cek di ~/.unul/lib/
+                snprintf(jalur_final, sizeof(jalur_final), "%s/.unul/lib/%s", home_user, target_file);
+                file = fopen(jalur_final, "r");
+                // Jika belum ketemu, cek standar XDG (~/.local/lib/unul/)
+                if (!file) {
+                    snprintf(jalur_final, sizeof(jalur_final), "%s/.local/lib/unul/%s", home_user, target_file);
+                    file = fopen(jalur_final, "r");
+                }
             }
         }
-        
-        // Baca seluruh isi pustaka ke dalam memori
-        fseek(file, 0, SEEK_END);
-        long fsize = ftell(file);
-        fseek(file, 0, SEEK_SET);
+
+        if (!file) {
+            char pesan_gaib[1024];
+            snprintf(pesan_gaib, sizeof(pesan_gaib), "Pustaka '%s' tidak ditemukan di alam manapun!", target_file);
+            char panduan_radar[2048];
+            snprintf(panduan_radar, sizeof(panduan_radar),
+                "Radar UNUL sudah menyisir lokasi berikut:\n"
+                "1. Folder Lokal (./)\n"
+                "2. Folder Pustaka Aplikasi (./lib/)\n"
+                "3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)\n"
+                "4. Jalur User (~/.unul/lib/)\n"
+                "5. Jalur Lokal User (~/.local/lib/unul/)\n\n"
+                "Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.");
+            pemicu_kiamat_presisi(node, ram, pesan_gaib, panduan_radar);
+            free(target_mentah);
+            return;
+        }
+
+        // --- LANJUT EKSEKUSI (Muat Kode) ---
+        fseek(file, 0, SEEK_END); long fsize = ftell(file); fseek(file, 0, SEEK_SET);
         char *kode_sowan = malloc(fsize + 1);
-        fread(kode_sowan, 1, fsize, file);
-        kode_sowan[fsize] = '\0';
+        fread(kode_sowan, 1, fsize, file); kode_sowan[fsize] = '\0';
         fclose(file);
-        
-        // [SIHIR REKURSIF] Panggil Lexer dan Parser untuk mengeksekusi isi pustaka ini!
-        TokenArray token_list_sowan = enki_lexer(kode_sowan, target_file);
-        Parser parser_sowan = inisialisasi_parser(token_list_sowan); 
-        ASTNode* ast_sowan = parse_program(&parser_sowan);
-        
-        // Eksekusi Pustaka! (Fungsi-fungsinya akan tersimpan abadi di dalam EnkiRAM)
-        eksekusi_program(ast_sowan, ram); 
-        
-        // Bersihkan sampah memori
-        // bebaskan_ast(ast_sowan); -> DIMATIKAN AGAR FUNGSI TIDAK HILANG (Mencegah SegFault)
-        bebaskan_token_array(&token_list_sowan);
-        free(kode_sowan);
-        
-        // KITA MEMBERSIHKAN TARGET MENTAH (Bukan target_file karena target_file bukan hasil malloc)
-        free(target_mentah); 
+        TokenArray tk_sowan = enki_lexer(kode_sowan, jalur_final);
+        Parser p_sowan = inisialisasi_parser(tk_sowan);
+        ASTNode* ast_sowan = parse_program(&p_sowan);
+        eksekusi_program(ast_sowan, ram);
+        bebaskan_ast(ast_sowan);
+        bebaskan_token_array(&tk_sowan);
+        free(kode_sowan); free(target_mentah);
     }
 
     // --- 8. PEMBEBASAN MEMORI (pasrah) ---

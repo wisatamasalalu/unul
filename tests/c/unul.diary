@@ -269,3 +269,20 @@ Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
 2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
 =================================
 
+[INFO] Memanggil kasta 'list_test.csv' ke dalam memori.
+=== [WAKTU KIAMAT: 1775324654] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'list_test.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah mencari di folder lokal, /lib, hingga folder sistem.
+Pastikan pustaka tersebut sudah terpasang atau ejaan namanya benar.
+=================================
+
+=== [WAKTU KIAMAT: 1775326232] ===
+🚨 [<dimensi_jalankan>: Baris 2:1] KIAMAT SINTAKSIS: Pustaka 'list_test.csv' DITOLAK!
+   Saran: ⚠️ PERINGATAN DIMENSI:
+Sesuai Hukum Dasar UNUL, perintah 'sowan' HANYA untuk pustaka (.unll).
+Ekstensi '.csv' tidak diizinkan di jalur ini.
+
+💡 SOLUSI: Gunakan 'baca()' jika ingin mengambil data.
+Contoh: takdir.soft data = baca("list_test.csv")
+=================================
+
