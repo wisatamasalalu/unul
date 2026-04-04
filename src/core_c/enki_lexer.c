@@ -202,6 +202,8 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
 
             // Keyword Cek Mutlak
             if (strcmp(kata, "datang") == 0) tambah_token(&token_list, TOKEN_HEADER, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "cocokkan") == 0) tambah_token(&token_list, TOKEN_COCOKKAN, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "kasus") == 0) tambah_token(&token_list, TOKEN_KASUS, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "jika") == 0 || strcmp(kata, "maka") == 0 || strcmp(kata, "lain") == 0 || strcmp(kata, "putus") == 0) tambah_token(&token_list, TOKEN_KARMA, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "effort") == 0 || strcmp(kata, "kali") == 0) tambah_token(&token_list, TOKEN_SIKLUS, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "dan") == 0 || strcmp(kata, "atau") == 0 || strcmp(kata, "bukan") == 0) tambah_token(&token_list, TOKEN_LOGIKA, kata, baris, awal_kolom, nama_file_sumber);

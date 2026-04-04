@@ -41,7 +41,10 @@ typedef enum {
     AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
     AST_AKSES_DOMAIN,          // Menampung akses titik (misal: dewa.nama)
     AST_PERINTAH_BALIKAN,       // Membalikan keadaan seperti sebelumnya (mesin waktu)
-    AST_FUNGSI_PANAH           // Fungsi Anonim (x) => ...
+    AST_FUNGSI_PANAH,           // Fungsi Anonim (x) => ...
+    AST_COCOKKAN,              // Blok percocokan pola
+    AST_KASUS,                  // Ranting kasus individu
+    AST_TERNARI                // Percabangan sebaris (jika A maka B lain C)
 
 } ASTJenis;
 

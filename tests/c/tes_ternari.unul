@@ -1,0 +1,10 @@
+datang
+
+takdir.soft umur = tanya("Berapa umurmu? ") |> ke_desimal()
+
+^^ Penggunaan Ternary Operator!
+takdir.soft status = jika umur >= 18 maka "Dewasa" lain "Bocil"
+
+ketik("Status Anda: {status}")
+
+pergi

@@ -1,0 +1,17 @@
+datang
+
+takdir.soft nama = tanya("Masukkan wujud dewa: ")
+
+cocokkan nama maka
+    kasus "Enki" maka 
+        ketik("Dewa Kebijaksanaan Sumeria") 
+    putus
+    kasus "Enlil" maka 
+        ketik("Dewa Badai Sumeria") 
+    putus
+    lain maka 
+        ketik("Dewa asing tidak dikenali!") 
+    putus
+putus
+
+pergi

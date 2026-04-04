@@ -466,10 +466,23 @@ char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
     return strdup(buffer);
 }
 
+// Pengumuman Fungsi (Forward Declaration)
+int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram);
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
     
+    // Evaluasi Operator Ternari Sebaris
+    if (node->jenis == AST_TERNARI) {
+        int sah = evaluasi_kondisi(node->syarat, ram);
+        if (sah) {
+            return evaluasi_ekspresi(node->kiri, ram);
+        } else {
+            return evaluasi_ekspresi(node->kanan, ram);
+        }
+    }
+
     // 1. Literal Teks (Kini mendukung Sihir Interpolasi / Sisipan Teks!)
     if (node->jenis == AST_LITERAL_TEKS) {
         // A. Bersihkan kutipan terlebih dahulu ("Halo {nama}" menjadi Halo {nama})
@@ -513,6 +526,21 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
         }
         return strdup(nama_anon); // Kembalikan nama gaibnya ke pemanggil
+    }
+
+    // 🟢 SUNTIKAN BARU: Evaluasi Operator Ternari Sebaris
+    if (node->jenis == AST_TERNARI) {
+        // Cek secara gaib, apakah kondisinya sah?
+        int sah = evaluasi_kondisi(node->syarat, ram);
+        
+        // Jika sah, evaluasi dan kembalikan nilai di sebelah kiri
+        if (sah) {
+            return evaluasi_ekspresi(node->kiri, ram);
+        } 
+        // Jika batal, evaluasi dan kembalikan nilai di sebelah kanan
+        else {
+            return evaluasi_ekspresi(node->kanan, ram);
+        }
     }
 
     // 2. Identitas (Variabel Biasa / Array)
@@ -1444,6 +1472,34 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             // Jika gagal, dan ada blok LAIN, jalankan blok LAIN
             eksekusi_program(node->blok_lain, ram);
         }
+    }
+
+    // Eksekusi PERCOCOKAN POLA (Switch-Case) ---
+    else if (node->jenis == AST_COCOKKAN) {
+        char* nilai_target = evaluasi_ekspresi(node->kiri, ram);
+        int sudah_cocok = 0;
+
+        // Periksa semua ranting kasus satu per satu
+        for (int i = 0; i < node->jumlah_anak; i++) {
+            ASTNode* kasus = node->anak_anak[i];
+            char* nilai_kasus = evaluasi_ekspresi(kasus->kiri, ram);
+            
+            // JIKA COCOK
+            if (strcmp(nilai_target, nilai_kasus) == 0) {
+                eksekusi_program(kasus->blok_maka, ram);
+                sudah_cocok = 1;
+                free(nilai_kasus);
+                break; // Keluar (Break otomatis ala modern, tidak ada fallthrough!)
+            }
+            free(nilai_kasus);
+        }
+
+        // Jika tidak ada kasus yang cocok sama sekali, jalankan blok 'lain'
+        if (!sudah_cocok && node->blok_lain) {
+            eksekusi_program(node->blok_lain, ram);
+        }
+
+        free(nilai_target);
     }
 
     // 4. Eksekusi KONTROL & TATA KRAMA

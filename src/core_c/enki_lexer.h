@@ -13,6 +13,8 @@ typedef enum {
     TOKEN_TAKDIR,        // takdir.soft, takdir.hard
     TOKEN_FUNGSI,        // ketik, dengar, tunggu, jeda, (dan juga kata 'fungsi')
     TOKEN_KARMA,         // jika, maka, lain, putus
+    TOKEN_COCOKKAN,      // cocokkan
+    TOKEN_KASUS,         // kasus
     TOKEN_SIKLUS,        // effort, kali
     
     TOKEN_PENCIPTAAN,    // (Cadangan)

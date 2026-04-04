@@ -122,6 +122,7 @@ void bebaskan_ast(ASTNode* node) {
 // Deklarasi Hierarki Matematika Mutlak
 ASTNode* parse_ekspresi(Parser* p);
 ASTNode* parse_pipa(Parser* p);
+ASTNode* parse_syarat_logika(Parser* p);
 ASTNode* parse_penjumlahan(Parser* p);
 ASTNode* parse_faktor(Parser* p);
 ASTNode* parse_pangkat(Parser* p);
@@ -137,7 +138,32 @@ ASTNode* parse_nilai_dasar(Parser* p) {
     // [MISI 1] PRIORITAS KURUNG MATEMATIKA & FUNGSI PANAH
     if (t.jenis == TOKEN_KURUNG_B) {
         
-        // 🟢 SUNTIKAN BARU: Sihir Pengintaian (Lookahead)
+    //  PENANGKAP OPERATOR TERNARI (Ekspresi)
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        maju(p); // Lewati 'jika'
+        ASTNode* node_ternari = buat_node(AST_TERNARI, p);
+        
+        // 1. Tangkap syarat kondisinya
+        node_ternari->syarat = parse_ekspresi(p);
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'maka' setelah kondisi pada operasi sebaris.");
+        
+        // 3. Tangkap nilai jika BENAR
+        node_ternari->kiri = parse_ekspresi(p);
+        
+        // 4. Wajib ada 'lain'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "lain") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'lain' pada operasi sebaris. Ternari harus memiliki jalan alternatif.");
+        
+        // 5. Tangkap nilai jika SALAH
+        node_ternari->kanan = parse_ekspresi(p);
+        
+        return node_ternari;
+    }
+
+        // Sihir Pengintaian (Lookahead)
         // Kita intip ke depan, apakah setelah kurung tutup ')' ada panah '=>' ?
         int is_panah = 0;
         int kursor_intip = p->kursor + 1;
@@ -274,6 +300,31 @@ ASTNode* parse_nilai_dasar(Parser* p) {
         }
         maju(p); // Lewati '}'
         return simpul_kiri;
+    }
+
+    // PENANGKAP OPERATOR TERNARI (Di letakkan paling bawah agar tidak tertelan)
+    else if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        maju(p); // Lewati 'jika'
+        ASTNode* node_ternari = buat_node(AST_TERNARI, p);
+        
+        // 1. Tangkap syarat kondisinya (WAJIB PAKAI parse_syarat_logika!)
+        node_ternari->syarat = parse_syarat_logika(p);
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'maka' setelah kondisi pada operasi sebaris.");
+        
+        // 3. Tangkap nilai jika BENAR
+        node_ternari->kiri = parse_ekspresi(p);
+        
+        // 4. Wajib ada 'lain'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "lain") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'lain' pada operasi sebaris. Ternari harus memiliki jalan alternatif.");
+        
+        // 5. Tangkap nilai jika SALAH
+        node_ternari->kanan = parse_ekspresi(p);
+        
+        return node_ternari;
     }
 
     return NULL;
@@ -481,6 +532,70 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
     
+    // PENANGKAP SIHIR PERCOCOKAN POLA (SWITCH-CASE) ---
+    if (t.jenis == TOKEN_COCOKKAN) {
+        ASTNode* node = buat_node(AST_COCOKKAN, p);
+        maju(p); // lewati 'cocokkan'
+
+        // 1. Tangkap target yang mau dicocokkan (misal: status_server)
+        node->kiri = parse_ekspresi(p);
+
+        // 2. Pastikan ada 'maka' pembuka
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Kehilangan 'maka'!", "Gunakan 'maka' setelah target cocokkan.");
+
+        // 3. Baca isi seluruh percocokan
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            
+            // A. Jika menemukan KASUS
+            if (t_cek.jenis == TOKEN_KASUS) {
+                maju(p); // lewati 'kasus'
+                ASTNode* node_kasus = buat_node(AST_KASUS, p);
+                
+                node_kasus->kiri = parse_ekspresi(p); // Nilai kasus (misal: "Menyala")
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+                
+                // Tangkap perintah di dalam kasus
+                node_kasus->blok_maka = buat_node(AST_PROGRAM, p);
+                while (token_sekarang(p).jenis != TOKEN_EOF) {
+                    Token t_dalam = token_sekarang(p);
+                    if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                        maju(p); // lewati 'putus' untuk kasus ini
+                        break;
+                    }
+                    ASTNode* stmt = parse_pernyataan(p);
+                    if (stmt) tambah_anak(node_kasus->blok_maka, stmt);
+                }
+                tambah_anak(node, node_kasus); // Masukkan kasus ke wadah anak_anak
+            } 
+            // B. Jika menemukan LAIN (Default Case)
+            else if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "lain") == 0) {
+                maju(p); // lewati 'lain'
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+                
+                node->blok_lain = buat_node(AST_PROGRAM, p);
+                while (token_sekarang(p).jenis != TOKEN_EOF) {
+                    Token t_dalam = token_sekarang(p);
+                    if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                        maju(p); // lewati 'putus' untuk blok lain
+                        break;
+                    }
+                    ASTNode* stmt = parse_pernyataan(p);
+                    if (stmt) tambah_anak(node->blok_lain, stmt);
+                }
+            }
+            // C. Jika menemukan PUTUS (Penutup Mutlak)
+            else if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) {
+                maju(p); // lewati 'putus' utama
+                break;
+            } else {
+                kiamat_sintaksis(p, "Struktur cocokkan cacat!", "Harap gunakan 'kasus [nilai] maka', 'lain maka', dan akhiri setiap blok dengan 'putus'.");
+            }
+        }
+        return node;
+    }
+
     // --- PENANGKAP KONTROL (pergi, henti, terus) ---
     if (t.jenis == TOKEN_KONTROL) {
         if (strcmp(t.isi, "pergi") == 0) {
