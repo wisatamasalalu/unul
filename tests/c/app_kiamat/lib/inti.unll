@@ -1,0 +1,22 @@
+^^ Deklarasi Konstanta Abadi (Takdir Hard)
+takdir.hard NAMA_SISTEM = "LinuxDNC Kernel"
+takdir.hard VERSI = 3.14
+
+^^ Fungsi Pemroses (Menggunakan Teknologi Fase C)
+ciptakan fungsi proses_entitas(waktu)
+    ^^ Menggunakan variabel terpisah karena Objek Bersarang ada di Fase 5
+    takdir.soft dewa = "Anunnaki"
+    takdir.soft koordinat_x = 10
+    ketik("-> [INTI] Memproses Entitas: " + dewa + " di X: {koordinat_x}")
+    
+    ^^ Simulasi Pembongkaran Array dengan teknik Fase C
+    takdir.soft array_mentah = "Alpha,Beta,Gamma"
+    takdir.soft data_array = pecah_teks(array_mentah, ",")
+    
+    takdir.soft a = ambil_array(data_array, 1)
+    takdir.soft b = ambil_array(data_array, 2)
+    takdir.soft c = ambil_array(data_array, 3)
+    
+    ketik("-> [INTI] Segel Array Dibuka: {a}, {b}, {c}")
+    
+    pulang waktu

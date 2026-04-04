@@ -1,0 +1,14 @@
+ciptakan fungsi sihir_transmutasi(teks_sandi, angka_hex)
+    takdir.soft desimal = ke_desimal(angka_hex)
+    takdir.soft biner = ke_biner(desimal)
+    
+    ^^ Validasi Regex
+    takdir.soft apakah_sah = cocok(teks_sandi, "^Sandi.*")
+    
+    jika  apakah_sah == "1" maka
+        ketik("-> [UTIL] Sandi Sah! Hex: {angka_hex} | Desimal: {desimal} | Biner: {biner}")
+    lain maka
+        ketik("-> [UTIL] Sandi Palsu Terdeteksi!")
+    putus
+        
+    pulang desimal

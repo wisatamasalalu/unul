@@ -1,0 +1,9 @@
+^^ Skrip ini akan dieksekusi murni di dimensi terpisah
+takdir.soft id_pekerja = acak(100, 999)
+ketik("     [PEKERJA BAYANGAN] Pekerja ID-" + id_pekerja + " bangkit dan melakukan tugas background!")
+
+^^ Eksekusi fungsi ke variabel dulu (Penyesuaian Fase C)
+takdir.soft waktu = waktu_sekarang()
+takdir.soft isi_log = "Tugas ID-" + id_pekerja + " selesai pada: " + waktu
+
+tulis("data/log_pekerja.txt", isi_log)

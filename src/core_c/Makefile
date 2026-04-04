@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -g
 TARGET = ../../bin/unul -lm -lreadline -pthread -lcurl
 
 # Semua file dapur mesin C kita
-SRCS = main.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c
+SRCS = main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c
 
 build:
 	$(CC) $(CFLAGS) $(SRCS) -o $(TARGET)

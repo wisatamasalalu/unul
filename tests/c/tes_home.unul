@@ -1,0 +1,3 @@
+datang
+takdir.soft isi_file = baca("~/.bashrc") ^^ Atau file apapun yang ada di home Anda
+ketik("Berhasil membaca file dari markas!")

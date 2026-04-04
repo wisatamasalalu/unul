@@ -1,0 +1,89 @@
+^^ =================================================================
+^^ 🦅 UJIAN KIAMAT LINUXDNC - STRESS TEST SEMUA FITUR C
+^^ =================================================================
+
+^^ 1. SIHIR SOWAN (Pemanggilan Pustaka Lokal)
+sowan "./lib/inti.unll"
+sowan "./lib/utilitas.unll"
+
+ketik("=== [1] MEMULAI UJIAN: {NAMA_SISTEM} v{VERSI} ===")
+
+^^ 2. SISTEM FILE & REGEX
+takdir.soft csv = baca("data/list_target.csv")
+takdir.soft rahasia = baca("data/rahasia.txt")
+ketik("Isi Pustaka Target:\n" + csv)
+
+^^ 3. MANIPULASI TEKS & ARRAY
+takdir.soft data_pecah = pecah_teks(rahasia, ": ")
+takdir.soft sandi_mentah = ambil_array(data_pecah, 2)
+ketik("Sandi yang diekstrak: '{sandi_mentah}'")
+
+^^ 4. PANGGILAN FUNGSI & TRANSMUTASI
+takdir.soft hasil_desimal = sihir_transmutasi(rahasia, "0xFF")
+
+^^ 5. UTAS GAIB (Threading Paralel)
+ketik("\n=== [2] MEMANGGIL UTAS PARALEL ===")
+utas proses_entitas(waktu_sekarang())
+^^ Jeda dibungkus kutip jika ada satuan huruf, atau cukup angka saja
+jeda 200
+
+^^ 6. HUKUM TABU (Try-Catch Mutlak) & KECUALI
+ketik("\n=== [3] MENGUJI PERISAI HUKUM TABU ===")
+coba maka
+    ketik("Mencoba melanggar hukum alam (Pembagian Nol)...")
+    takdir.soft kiamat = hasil_desimal / 0
+tabu melanggar e maka
+    ketik("🛡️ PERISAI AKTIF: {e}")
+tebus maka
+    ketik("Pembersihan dimensi anomali selesai.")
+pasrah
+
+kecuali hasil_desimal == 0 maka
+    ketik("Kondisi Kecuali (Unless): Hasil desimal bukan nol, hukum berjalan normal.")
+putus
+
+^^ 7. PERCOCOKAN POLA (Switch-Case)
+ketik("\n=== [4] PERCOCOKAN KASUS ===")
+takdir.soft bos = "Enki"
+cocokkan bos maka
+    kasus "Anu" maka
+        ketik("Salam, Dewa Langit!")
+        putus
+    kasus "Enki" maka
+        ketik("Salam, Dewa Kebijaksanaan dan Air!")
+        putus
+    lain maka
+        ketik("Entitas tidak dikenali.")
+        putus
+putus
+
+^^ 8. HUKUM SIKLUS (Looping) & MESIN WAKTU (Balikan)
+ketik("\n=== [5] SIKLUS DAN MESIN WAKTU ===")
+takdir.soft artefak = "Batu Kosong"
+effort 3 kali maka
+    takdir.soft artefak = "Batu Level {putaran}"
+    ketik("Menempa artefak... " + artefak)
+putus
+
+balikan(artefak)
+ketik("Memutar waktu artefak ke masa lalu: " + artefak)
+
+^^ 9. EVALUASI DINAMIS & EKSEKUSI FILE
+ketik("\n=== [6] META-PROGRAMMING ===")
+
+^^ MENGHINDARI BACKSLASH (\) KARENA LEXER FASE C BELUM MENGENALINYA
+takdir.soft kode_gaib = "takdir.soft angka_gaib = 777"
+takdir.soft pemicu_evaluasi = evaluasi(kode_gaib)  
+jalankan(kode_gaib)
+ketik("     [EVALUASI] Teks dieksekusi! Hasil angka_gaib: {angka_gaib}")
+
+jalankan(baca("pekerja.unul"))
+takdir.soft hasil_log = baca("data/log_pekerja.txt")
+ketik("Log pekerja dibaca kembali:\n" + hasil_log)
+
+^^ 10. PEMBEBASAN MEMORI (Pasrah Variabel)
+pasrah bos
+pasrah artefak
+ketik("\n=== 🦅 UJIAN KIAMAT SELESAI DENGAN SEMPURNA! 🦅 ===")
+
+pergi

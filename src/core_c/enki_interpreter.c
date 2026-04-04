@@ -15,6 +15,7 @@
 #include "enki_scheduler.h"
 #include "enki_network.h"
 #include "enki_file_system.h"
+#include "enki_os.h"
 
 // =================================================================
 // DAPUR MESIN INTERPRETER (EKSEKUTOR C)
@@ -1222,9 +1223,10 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             
             eksekusi_program(ast_run, ram); // Menjalankan langsung ke RAM
             
-            // Sapu bersih dimensi
-            bebaskan_ast(ast_run);
-            bebaskan_token_array(&token_run);
+            // 🔥 KOREKSI MUTLAK: JANGAN DIBEBASKAN JUGA!
+            // bebaskan_ast(ast_run);
+            // bebaskan_token_array(&token_run);
+            
             free(teks_kode);
             return strdup("");
         }
@@ -1294,7 +1296,6 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return strdup(""); 
         }
 
-        // 🟢 TEMPELKAN SIHIR SISTEM FILE DI SINI 🟢
         // --- SIHIR SISTEM FILE (BLOB/GLOB) ---
         if (strcmp(node->nilai_teks, "cari") == 0) {
             if (node->jumlah_anak < 1) {
@@ -1303,11 +1304,15 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     "Contoh penggunaan yang sah: cari(\"*.unul\") atau cari(\"tests/*\")");
                 return strdup(""); 
             }
-            char* pola = evaluasi_ekspresi(node->anak_anak[0], ram);
-            char* hasil = sihir_cari(pola);
-            free(pola);
+            char* pola_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* pola_final = ekspansi_jalur(pola_mentah); // 🌍 SIHIR EKSPANSI
+            
+            char* hasil = sihir_cari(pola_final);
+            
+            free(pola_mentah); free(pola_final);
             return hasil;
         }
+
         if (strcmp(node->nilai_teks, "baca") == 0) {
             if (node->jumlah_anak < 1) {
                 pemicu_kiamat_presisi(node, ram, "Fungsi baca() butuh nama file!", 
@@ -1315,9 +1320,12 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     "Contoh penggunaan yang sah: baca(\"konfigurasi.txt\")");
                 return strdup(""); 
             }
-            char* path = evaluasi_ekspresi(node->anak_anak[0], ram);
-            char* hasil = sihir_baca_file(path);
-            free(path);
+            char* path_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* path_final = ekspansi_jalur(path_mentah); // 🌍 SIHIR EKSPANSI
+            
+            char* hasil = sihir_baca_file(path_final);
+            
+            free(path_mentah); free(path_final);
             return hasil;
         }
 
@@ -1328,10 +1336,13 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     "Contoh: tulis(\"output.txt\", data)");
                 return strdup(""); 
             }
-            char* path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* path_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* path_final = ekspansi_jalur(path_mentah); // 🌍 SIHIR EKSPANSI
             char* konten = evaluasi_ekspresi(node->anak_anak[1], ram);
-            sihir_tulis_file(path, konten);
-            free(path); free(konten);
+            
+            sihir_tulis_file(path_final, konten);
+            
+            free(path_mentah); free(path_final); free(konten);
             return strdup(""); 
         }
 
@@ -1921,8 +1932,12 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     // 6. Sowan (Pemanggilan Dimensi / Import Pustaka)
     else if (node->jenis == AST_PERINTAH_SOWAN) {
         char* target_mentah = evaluasi_ekspresi(node->kiri, ram);
+        
+        // 🌍 GUNAKAN SIHIR EKSPANSI LINTAS DIMENSI!
+        char* target_ekspansi = ekspansi_jalur(target_mentah);
+        
         char target_file[512];
-        strncpy(target_file, target_mentah, sizeof(target_file) - 1);
+        strncpy(target_file, target_ekspansi, sizeof(target_file) - 1);
         target_file[sizeof(target_file) - 1] = '\0';
         
         const char* titik = strrchr(target_file, '.');
@@ -1939,35 +1954,47 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
                 "💡 SOLUSI: Gunakan 'baca()' jika ingin mengambil data.\n"
                 "Contoh: takdir.soft data = baca(\"%s\")", titik, target_file);
             pemicu_kiamat_presisi(node, ram, pesan_err, panduan);
-            free(target_mentah);
+            free(target_mentah); free(target_ekspansi);
             return;
         }
 
         if (!titik) strncat(target_file, ".unll", sizeof(target_file) - strlen(target_file) - 1);
 
         // 🟢 RADAR PENCARIAN PENUH (Dinamis & Statis)
-        char jalur_final[1024] = "";
+        char jalur_ditemukan[1024] = "";
         FILE* file = NULL;
 
-        // Jalur 1-4: Folder Lokal & Sistem
-        char* daftar_radar[] = {"./", "./lib/", "/usr/lib/unul/", "/opt/unul/lib/", NULL};
-        for (int i = 0; daftar_radar[i] != NULL; i++) {
-            snprintf(jalur_final, sizeof(jalur_final), "%s%s", daftar_radar[i], target_file);
-            file = fopen(jalur_final, "r");
-            if (file) break;
+        // Cek Langsung: Jika sudah jadi absolute path atau expand '~'
+        if (target_ekspansi[0] == '/' || target_ekspansi[0] == '\\' || target_mentah[0] == '~') {
+            snprintf(jalur_ditemukan, sizeof(jalur_ditemukan), "%s", target_file);
+            file = fopen(jalur_ditemukan, "r");
         }
 
-        // Jalur 5-6: Jalur Dinamis User ($HOME)
+        // Jalur 1-4: Folder Lokal & Sistem
         if (!file) {
-            char* home_user = getenv("HOME"); // 🟢 SIHIR DINAMIS KEMBALI!
-            if (home_user) {
-                // Cek di ~/.unul/lib/
-                snprintf(jalur_final, sizeof(jalur_final), "%s/.unul/lib/%s", home_user, target_file);
-                file = fopen(jalur_final, "r");
+            char* daftar_radar[] = {"./", "./lib/", "/usr/lib/unul/", "/opt/unul/lib/", NULL};
+            for (int i = 0; daftar_radar[i] != NULL; i++) {
+                snprintf(jalur_ditemukan, sizeof(jalur_ditemukan), "%s%s", daftar_radar[i], target_file);
+                file = fopen(jalur_ditemukan, "r");
+                if (file) break;
+            }
+        }
+
+        // Jalur 5-6: Jalur Dinamis LINTAS OS
+        if (!file) {
+            // 🌍 SIHIR OS: Menggantikan getenv("HOME") murni!
+            char* markas_user = dapatkan_jalur_markas_user(); 
+            if (markas_user) {
+                // Cek di ~/.unul/lib/ (Menggunakan PEMISAH_JALUR adaptif!)
+                snprintf(jalur_ditemukan, sizeof(jalur_ditemukan), "%s%c.unul%clib%c%s", 
+                         markas_user, PEMISAH_JALUR, PEMISAH_JALUR, PEMISAH_JALUR, target_file);
+                file = fopen(jalur_ditemukan, "r");
+                
                 // Jika belum ketemu, cek standar XDG (~/.local/lib/unul/)
                 if (!file) {
-                    snprintf(jalur_final, sizeof(jalur_final), "%s/.local/lib/unul/%s", home_user, target_file);
-                    file = fopen(jalur_final, "r");
+                    snprintf(jalur_ditemukan, sizeof(jalur_ditemukan), "%s%c.local%clib%cunul%c%s", 
+                             markas_user, PEMISAH_JALUR, PEMISAH_JALUR, PEMISAH_JALUR, PEMISAH_JALUR, target_file);
+                    file = fopen(jalur_ditemukan, "r");
                 }
             }
         }
@@ -1985,7 +2012,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
                 "5. Jalur Lokal User (~/.local/lib/unul/)\n\n"
                 "Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.");
             pemicu_kiamat_presisi(node, ram, pesan_gaib, panduan_radar);
-            free(target_mentah);
+            free(target_mentah); free(target_ekspansi);
             return;
         }
 
@@ -1994,13 +2021,22 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         char *kode_sowan = malloc(fsize + 1);
         fread(kode_sowan, 1, fsize, file); kode_sowan[fsize] = '\0';
         fclose(file);
-        TokenArray tk_sowan = enki_lexer(kode_sowan, jalur_final);
+        
+        TokenArray tk_sowan = enki_lexer(kode_sowan, jalur_ditemukan);
         Parser p_sowan = inisialisasi_parser(tk_sowan);
         ASTNode* ast_sowan = parse_program(&p_sowan);
         eksekusi_program(ast_sowan, ram);
-        bebaskan_ast(ast_sowan);
-        bebaskan_token_array(&tk_sowan);
-        free(kode_sowan); free(target_mentah);
+        
+        // 🔥 KOREKSI MUTLAK: JANGAN PERNAH MEMBEBASKAN AST ATAU KODE SOWAN!
+        // Pointer fungsi di RAM sangat bergantung pada keberadaan string kode ini di memori.
+        // Jika kode_sowan di-free, eksekusi fungsi pustaka akan menyebabkan Core Dumped!
+        // 
+        // bebaskan_ast(ast_sowan); 
+        // bebaskan_token_array(&tk_sowan); 
+        // free(kode_sowan); 
+        
+        free(target_mentah);
+        free(target_ekspansi);
     }
 
     // --- 8. PEMBEBASAN MEMORI (pasrah) ---
@@ -2136,6 +2172,10 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         } else {
             // [STATUS TERLONTAR (KERNEL PANIC)]
             
+            // 🔥 KUNCI PENGAMAN INFINITE LOOP: 
+            // Matikan perisai saat berada di dalam blok tabu!
+            ram->dalam_mode_coba = status_coba_lama; 
+            
             // (Opsional) Masukkan pesan error ke dalam wadah variabel UNUL
             if (node->nilai_teks != NULL) {
                 simpan_ke_ram(ram, node->nilai_teks, ram->pesan_error_tabu);
@@ -2145,8 +2185,9 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
 
         // BLOK TEBUS (FINALLY)
-        // Ini akan selalu tereksekusi, baik sistem dalam status normal maupun terlontar
         if (node->blok_tebus) {
+            // Matikan perisai juga saat menjalankan tebus
+            ram->dalam_mode_coba = status_coba_lama;
             eksekusi_program(node->blok_tebus, ram);
         }
         

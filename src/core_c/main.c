@@ -8,6 +8,7 @@
 #include "enki_lexer.h"
 #include "enki_parser.h"
 #include "enki_interpreter.h"
+#include "enki_os.h"
 
 // --- 1. DEKLARASI PEMBANTU (Agar tidak implicit declaration) ---
 
@@ -99,6 +100,8 @@ int main(int argc, char* argv[]) {
             if (kode) { jalankan_perintah(kode, &ram, argv[1]); free(kode); }
         }
     } else {
+        // 🌍 AKTIFKAN RADAR DIMENSI
+        cetak_info_dimensi();
         printf("🦅 OS LinuxDNC - UNUL CLI Interaktif 🦅\n");
         muat_ingatan(&ram);
         while (1) {
