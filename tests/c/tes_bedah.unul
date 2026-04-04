@@ -6,4 +6,4 @@ datang
 ketik("Senjata Anda : {senjata}")
 ketik("Zirah Anda   : {zirah}")
 
-pergi
+^^ pergi

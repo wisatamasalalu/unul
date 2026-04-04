@@ -209,16 +209,12 @@ ASTNode* parse_nilai_dasar(Parser* p) {
         return simpul_kiri;
     }
 
-    // 2. Tangkap Identitas (Variabel, Fungsi, dengar)
+    // 2. Tangkap Identitas (Variabel, Fungsi)
     else if (t.jenis == TOKEN_IDENTITAS) {
-        if (strcmp(t.isi, "dengar") == 0) {
-            simpul_kiri = buat_node(AST_FUNGSI_DENGAR, p);
-            maju(p); maju(p); maju(p); 
-        } else {
-            simpul_kiri = buat_node(AST_IDENTITAS, p);
-            simpul_kiri->nilai_teks = strdup(t.isi);
-            maju(p); 
-            
+        simpul_kiri = buat_node(AST_IDENTITAS, p);
+        simpul_kiri->nilai_teks = strdup(t.isi);
+        maju(p);
+
             // 🔥 SUNTIKAN BARU: Cek Akses Domain Bersarang (Titik) 🔥
             // Memungkinkan pembacaan dewa.nama atau bahkan dewa.nama.depan
             while (token_sekarang(p).jenis == TOKEN_TITIK) {
@@ -253,7 +249,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
                 maju(p);
                 simpul_kiri = node_akses;
             }
-        }
+        
         return simpul_kiri;
     }
 

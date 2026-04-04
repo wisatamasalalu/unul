@@ -14,4 +14,4 @@ takdir.soft jawaban = kalkulator_sakti(10, 5)
 ketik("Hasil perkalian:")
 ketik(jawaban)
 
-pergi
+^^ pergi

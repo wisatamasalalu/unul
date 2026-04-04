@@ -14,4 +14,4 @@ ketik("Menguji Jeda Indo (1d)...")
 jeda "1d"
 ketik("Selesai 1 detik (Indo)!")
 
-pergi
+^^ pergi

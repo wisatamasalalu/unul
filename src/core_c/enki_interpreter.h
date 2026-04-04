@@ -13,7 +13,8 @@ typedef struct JejakMasaLalu JejakMasaLalu;
 typedef enum {
     TIPE_TEKS = 0,   
     TIPE_OBJEK = 1,  
-    TIPE_ARRAY = 2   
+    TIPE_ARRAY = 2,   
+    TIPE_BLOB = 3   // <--- ALAM DATA MENTAH / BINER
 } TipeKavling;
 
 // 🔥 MESIN WAKTU: Kapsul penyimpan kenangan

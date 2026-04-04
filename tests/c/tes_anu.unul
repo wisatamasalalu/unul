@@ -5,6 +5,6 @@ ketik("Mengakses brankas rahasia...")
 ketik("Nama OS: " + NAMA_SISTEM)
 ketik("Token Kunci: " + TOKEN_API)
 
-pergi
+^^ pergi
 
 ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

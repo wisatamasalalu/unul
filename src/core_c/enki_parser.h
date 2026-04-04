@@ -13,7 +13,6 @@ typedef enum {
     AST_PROGRAM,          // Akar utama (Kumpulan seluruh baris kode)
     AST_DEKLARASI_TAKDIR, // takdir.soft x = ...
     AST_PERINTAH_KETIK,   // ketik(...)
-    AST_FUNGSI_DENGAR,    // dengar()
     AST_LITERAL_TEKS,     // "Sebuah Teks"
     AST_IDENTITAS,        // nama_variabel
     AST_TIDAK_DIKENAL,     // Node kosong/error

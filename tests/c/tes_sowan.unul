@@ -1,4 +1,4 @@
 datang
-sowan "pustaka.unll"
+sowan "list_test.csv"
 ketik("Dewa dari pustaka adalah: " + nama_dewa)
-pergi
+^^ pergi

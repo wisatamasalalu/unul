@@ -511,6 +511,51 @@ long baca_angka_universal(const char* teks) {
     return strtol(teks, NULL, 0); 
 }
 
+// =================================================================
+// 🟢 PEMBACA TERMINAL AMAN (Kapasitas 65KB + History + Panah Kursor)
+// =================================================================
+char* sihir_baca_terminal_aman(const char* prompt, int mode_rahasia) {
+    int batas = 65536; // 64KB
+    
+    if (mode_rahasia) {
+        // MODE BISIK (RAHASIA): Murni fgets, tanpa memori history!
+        if (prompt) {
+            printf("%s", prompt);
+            fflush(stdout);
+        }
+        char* buffer = malloc(batas);
+        if (!buffer) return strdup("");
+        if (fgets(buffer, batas, stdin) != NULL) {
+            size_t len = strlen(buffer);
+            if (len > 0 && buffer[len-1] == '\n') buffer[len-1] = '\0';
+            else if (len == (size_t)(batas - 1)) {
+                printf("\n⚠️ PERINGATAN: Teks rahasia dipotong karena melebihi batas %d karakter.\n", batas - 1);
+                int c; while ((c = getchar()) != '\n' && c != EOF);
+            }
+            return buffer;
+        }
+        free(buffer);
+        return strdup("");
+    } else {
+        // MODE NORMAL (TANYA/DENGAR): Gunakan readline agar panah & history aktif!
+        // readline() menggunakan malloc secara otomatis di Linux.
+        char* input = readline(prompt ? prompt : "");
+        if (input) {
+            size_t len = strlen(input);
+            if (len >= (size_t)(batas)) {
+                printf("\n⚠️ PERINGATAN: Teks yang Anda masukkan terlalu panjang. Batas karakter adalah %d sehingga teks Anda terpotong.\n", batas - 1);
+                input[batas - 1] = '\0'; // Potong paksa
+                printf("   Akhir teks Anda: ...%s\n", input + (batas - 40));
+            }
+            if (*input) {
+                add_history(input); // Simpan ke memori panah atas
+            }
+            return input; 
+        }
+        return strdup("");
+    }
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
@@ -650,16 +695,6 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             "3. Properti ('gaji') tidak ada di dalam objek tersebut.\n"
             "Pastikan Anda telah mendeklarasikannya dengan benar, contoh:\n"
             "takdir.soft bos = {\"gaji\": 5000}");
-        return strdup("");
-    }
-    
-    // 3. Fungsi Dengar (Input)
-    if (node->jenis == AST_FUNGSI_DENGAR) {
-        char* input = readline("> ");
-        if (input) {
-            if (*input) add_history(input); // Ingat ketikan ini agar panah atas berfungsi
-            return input; // readline menggunakan malloc, jadi aman langsung direturn
-        }
         return strdup("");
     }
 
@@ -1109,42 +1144,53 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return hasil_eval;
         }
 
-        // H. Fungsi tanya(teks) - Meminta input dengan pesan kustom
-        if (strcmp(node->nilai_teks, "tanya") == 0) {
-            char* teks_prompt = evaluasi_ekspresi(node->anak_anak[0], ram);
-            char* input = readline(teks_prompt);
-            free(teks_prompt); // Bebaskan teks prompt dari RAM
-            
-            if (input) {
-                if (*input) add_history(input); // Ingat ketikan
-                return input;
+        // --- TERMINAL I/O: DENGAR (Statis, History Aktif) ---
+        if (strcmp(node->nilai_teks, "dengar") == 0) {
+            if (node->jumlah_anak > 0) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi dengar() tidak menerima teks panduan!", 
+                    "Jika Anda ingin menampilkan pesan sebelum meminta input, gunakan fungsi tanya().\n"
+                    "Contoh: tanya(\"Siapa namamu? \")");
+                return strdup("");
             }
-            return strdup("");
+            // Kirim "> " langsung ke readline agar panah kiri tidak tembus batas
+            return sihir_baca_terminal_aman("> ", 0); 
         }
 
-        // --- SUNTIKAN BARU: TABLET OF DESTINIES: FUNGSI BISIK ---
-        if (strcmp(node->nilai_teks, "bisik") == 0) {
-            if (node->kiri) { 
-                char* pesan = evaluasi_ekspresi(node->kiri, ram);
-                printf("%s", pesan);
-                fflush(stdout); 
-                free(pesan);
+        // --- TERMINAL I/O: TANYA (Dinamis, History Aktif) ---
+        else if (strcmp(node->nilai_teks, "tanya") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi tanya() butuh pesan panduan!", 
+                    "Anda tidak memberikan teks pertanyaan.\n"
+                    "Contoh: tanya(\"Masukkan umur Anda: \")\n"
+                    "Atau gunakan dengar() jika Anda tidak butuh teks.");
+                return strdup("");
             }
-            char buffer[256];
-            struct termios terminal_lama, terminal_baru;
+            char* pesan = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* hasil = sihir_baca_terminal_aman(pesan, 0);
+            free(pesan);
+            return hasil;
+        }
+
+        // --- TERMINAL I/O: BISIK (Rahasia / Password) ---
+        else if (strcmp(node->nilai_teks, "bisik") == 0) {
+            char* pesan = NULL;
+            if (node->jumlah_anak > 0 && node->anak_anak[0] != NULL) { 
+                pesan = evaluasi_ekspresi(node->anak_anak[0], ram);
+            }
             
+            struct termios terminal_lama, terminal_baru;
             tcgetattr(STDIN_FILENO, &terminal_lama);
             terminal_baru = terminal_lama;
-            terminal_baru.c_lflag &= ~(ECHO); 
+            terminal_baru.c_lflag &= ~(ECHO); // Matikan layar
             tcsetattr(STDIN_FILENO, TCSANOW, &terminal_baru);
             
-            if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-                buffer[strcspn(buffer, "\n")] = 0; 
-            }
+            // Mode 1: Aktifkan mode rahasia (fgets tanpa history)
+            char* hasil_bisik = sihir_baca_terminal_aman(pesan, 1);
             
-            tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);
+            tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama); // Nyalakan layar
             printf("\n"); 
-            return strdup(buffer);
+            if (pesan) free(pesan);
+            return hasil_bisik;
         }
 
         // --- SIHIR JARINGAN (UNUL PACKAGE MANAGER) ---
@@ -1155,15 +1201,99 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             free(url);
             return hasil;
         }
-        if (strcmp(node->nilai_teks, "setor") == 0) {
-            if (node->jumlah_anak < 2) return strdup("🚨 ERROR: setor() butuh URL dan Data JSON.");
-            char* url = evaluasi_ekspresi(node->anak_anak[0], ram);
-            char* data = evaluasi_ekspresi(node->anak_anak[1], ram);
-            char* hasil = sihir_setor(url, data);
-            free(url); free(data);
-            return hasil;
+
+        // =======================================================
+        // G. SIHIR META-PROGRAMMING: JALANKAN PROGRAM UTUH
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "jalankan") == 0) {
+            // DETEKSI PELANGGARAN
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi jalankan() butuh kode!", 
+                    "Anda tidak memberikan teks kode yang akan dieksekusi.\n"
+                    "Contoh: jalankan(\"ketik(\\\"Halo\\\")\") atau jalankan(baca(\"file.unul\"))");
+                return strdup("");
+            }
+            char* teks_kode = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            // Lakukan eksekusi murni di dalam dimensi yang sama
+            TokenArray token_run = enki_lexer(teks_kode, "<dimensi_jalankan>");
+            Parser parser_run = inisialisasi_parser(token_run);
+            ASTNode* ast_run = parse_program(&parser_run);
+            
+            eksekusi_program(ast_run, ram); // Menjalankan langsung ke RAM
+            
+            // Sapu bersih dimensi
+            bebaskan_ast(ast_run);
+            bebaskan_token_array(&token_run);
+            free(teks_kode);
+            return strdup("");
         }
 
+      // =======================================================
+        // H. MANIPULASI TEKS (ARRAY SPLITTER)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "pecah_teks") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi pecah_teks() butuh 2 argumen!", "Contoh: pecah_teks(\"a,b\", \",\")");
+                return strdup("");
+            }
+            char* teks_asli = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* pemisah = evaluasi_ekspresi(node->anak_anak[1], ram);
+            
+            // 🔥 SIHIR UNESCAPE: Jika pemisahnya tulisan "\n" atau "\r\n", jadikan Enter sungguhan!
+            if (strcmp(pemisah, "\\n") == 0 || strcmp(pemisah, "\\r\\n") == 0) {
+                free(pemisah);
+                pemisah = strdup("\n"); 
+            }
+            
+            char buffer_array[8192] = ""; 
+            char* token = strtok(teks_asli, pemisah);
+            while (token != NULL) {
+                strcat(buffer_array, token);
+                strcat(buffer_array, "\x1F"); // Gunakan Karakter Gaib Unit Separator (ASCII 31)
+                token = strtok(NULL, pemisah);
+            }
+            free(teks_asli); free(pemisah);
+            return strdup(buffer_array);
+        }
+
+        // =======================================================
+        // I. PENGAMBIL DATA ARRAY SEMENTARA
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "ambil_array") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi ambil_array() butuh 2 argumen!", "Contoh: ambil_array(data, 1)");
+                return strdup("");
+            }
+            char* data_array = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* index_str = evaluasi_ekspresi(node->anak_anak[1], ram);
+            int target_index = atoi(index_str);
+            free(index_str);
+
+            char data_copy[8192];
+            strncpy(data_copy, data_array, sizeof(data_copy));
+            free(data_array);
+
+            int indeks_saat_ini = 1; 
+            char* token = strtok(data_copy, "\x1F"); 
+            while (token != NULL) {
+                if (indeks_saat_ini == target_index) {
+                    // 🔥 SIHIR PEMBERSIH: Buang \r atau \n gaib di ekor teks
+                    char* hasil_bersih = strdup(token);
+                    size_t len = strlen(hasil_bersih);
+                    while (len > 0 && (hasil_bersih[len-1] == '\n' || hasil_bersih[len-1] == '\r')) {
+                        hasil_bersih[len-1] = '\0';
+                        len--;
+                    }
+                    return hasil_bersih;
+                }
+                indeks_saat_ini++;
+                token = strtok(NULL, "\x1F");
+            }
+
+            return strdup(""); 
+        }
+        
         // 🟢 TEMPELKAN SIHIR SISTEM FILE DI SINI 🟢
         // --- SIHIR SISTEM FILE (BLOB/GLOB) ---
         if (strcmp(node->nilai_teks, "cari") == 0) {
@@ -1691,23 +1821,74 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // 5. Eksekusi HUKUM SIKLUS (Perulangan)
+    // 5. HUKUM SIKLUS (Looping: effort X kali maka)
     else if (node->jenis == AST_HUKUM_SIKLUS) {
-        char* nilai_batas = evaluasi_ekspresi(node->batas_loop, ram);
-        int batas = atoi(nilai_batas);
-        free(nilai_batas);
+        // PERISAI 1: Apakah batas loop eksis?
+        if (!node->batas_loop) {
+            pemicu_kiamat_presisi(node, ram, "Hukum Siklus cacat!", 
+                "Anda tidak memberikan jumlah perulangan.\n"
+                "Contoh yang sah: effort 5 kali maka");
+            return;
+        }
 
-        for (int i = 0; i < batas; i++) {
-            ram->status_terus = 0; // Matikan alarm sebelum putaran dimulai
+        char* batas_str = evaluasi_ekspresi(node->batas_loop, ram);
+        
+        // PERISAI 2: Apakah hasil evaluasinya kosong?
+        if (!batas_str || strlen(batas_str) == 0) {
+            pemicu_kiamat_presisi(node, ram, "Batas perulangan Gaib!", 
+                "Nilai batas perulangan tidak boleh kosong.");
+            if (batas_str) free(batas_str);
+            return;
+        }
+
+        int batas = atoi(batas_str);
+        
+        // PERISAI 3: Apakah angkanya masuk akal? (Cegah "kucing" atau angka minus)
+        if (batas <= 0) {
+            char panduan_error[512];
+            snprintf(panduan_error, sizeof(panduan_error), 
+                "Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0.\n"
+                "Anda memasukkan nilai teks atau angka yang tidak sah: '%s'", batas_str);
             
-            // Eksekusi isi blok
-            eksekusi_program(node->blok_siklus, ram);
+            pemicu_kiamat_presisi(node, ram, "Batas siklus tidak masuk akal!", panduan_error);
             
-            // Jika ada sinyal HENTI (Break), hancurkan loop di sini (Opsional)
-            if (ram->status_henti == 1) {
-                ram->status_henti = 0;
-                break;
+            free(batas_str);
+            return;
+        }
+        free(batas_str);
+
+        // --- RODA GIGI SIKLUS (Injeksi 'putaran' Otomatis) ---
+        for (int i = 1; i <= batas; i++) {
+            int ketemu = 0;
+            for (int j = 0; j < ram->jumlah; j++) {
+                if (strcmp(ram->kavling[j].nama, "putaran") == 0) {
+                    char buffer[32]; snprintf(buffer, sizeof(buffer), "%d", i);
+                    if (ram->kavling[j].nilai_teks) free(ram->kavling[j].nilai_teks);
+                    ram->kavling[j].nilai_teks = strdup(buffer);
+                    ketemu = 1;
+                    break;
+                }
             }
+            if (!ketemu) { 
+                if (ram->jumlah >= ram->kapasitas) {
+                    ram->kapasitas *= 2;
+                    ram->kavling = realloc(ram->kavling, ram->kapasitas * sizeof(KavlingMemori));
+                }
+                char buffer[32]; snprintf(buffer, sizeof(buffer), "%d", i);
+                ram->kavling[ram->jumlah].nama = strdup("putaran");
+                ram->kavling[ram->jumlah].tipe = TIPE_TEKS;
+                ram->kavling[ram->jumlah].nilai_teks = strdup(buffer);
+                ram->kavling[ram->jumlah].anak_anak = NULL;
+                ram->jumlah++;
+            }
+
+            // Eksekusi isi blok perulangan
+            eksekusi_program(node->blok_siklus, ram);
+
+            // Cek status Hukum Kendali (henti / terus)
+            if (ram->status_henti) { ram->status_henti = 0; break; }
+            if (ram->status_terus) { ram->status_terus = 0; continue; }
+            if (ram->status_pulang) { break; }
         }
     }
 

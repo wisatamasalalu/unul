@@ -236,3 +236,36 @@ Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
 Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.
 =================================
 
+=== [WAKTU KIAMAT: 1775315255] ===
+🚨 [batch_test.unul: Baris 8:27] KIAMAT SINTAKSIS: Fungsi gaib 'pecah_teks' tidak ditemukan!
+   Kode Penyebab: pecah_teks
+   Saran: Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1775315611] ===
+🚨 [batch_test.unul: Baris 12:58] KIAMAT SINTAKSIS: Variabel 'putaran' belum diciptakan di realita ini.
+   Kode Penyebab: putaran
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-04 22:50:05
+Pesan Alam     : Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+[INFO] Memanggil kasta 'pustaka.unll' ke dalam memori.
+[INFO] Memanggil kasta 'pustaka.unll' ke dalam memori.
+[INFO] Memanggil kasta 'pustaka.unll' ke dalam memori.
+=== [WAKTU KIAMAT: 1775321894] ===
+🚨 [tes_sowan.unul: Baris 3:38] KIAMAT SINTAKSIS: Variabel 'nama_dewa' belum diciptakan di realita ini.
+   Kode Penyebab: nama_dewa
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+

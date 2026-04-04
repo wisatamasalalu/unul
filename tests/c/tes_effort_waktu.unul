@@ -4,7 +4,7 @@ ketik("=== MENGUJI MESIN EFFORT INTERVAL WAKTU ===")
 ketik("Sistem ini tidak menghitung batas putaran, melainkan berdetak murni berdasarkan waktu!")
 
 ^^ Utas Paralel 1: Berdetak setiap 1 detik (menggunakan teks string)
-effort 1000 selalu maka
+effort "2s" maka
     ketik("⏳ [Utas 1] bunyi...")
 putus
 
@@ -19,4 +19,4 @@ jeda("5s")
 
 ketik("=== WAKTU HABIS! ===")
 ketik("Mandor utama pulang, semua Utas Waktu otomatis dimatikan oleh OS Linux.")
-pergi
+^^ pergi

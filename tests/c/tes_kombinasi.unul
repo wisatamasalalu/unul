@@ -6,4 +6,4 @@ takdir.soft huruf = tanya("Masukkan satu karakter: ")
 ^^ Menggunakan pipa untuk mengubah karakter -> angka desimal -> biner -> cetak
 huruf |> ke_ascii() |> ke_biner() |> ketik()
 
-pergi
+^^ pergi

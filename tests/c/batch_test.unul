@@ -1,0 +1,32 @@
+datang
+ketik("=== MESIN TESTER UNUL DARI CSV ===")
+
+takdir.soft isi_csv = baca("list_test.csv")
+takdir.soft daftar_file = pecah_teks(isi_csv, "\n")
+
+^^ Loop 3 kali sesuai jumlah baris di CSV Anda
+effort 8 kali maka
+    takdir.soft file_sekarang = ambil_array(daftar_file, putaran)
+    
+    ^^ Lewati jika nama filenya kebetulan kosong
+    jika file_sekarang == "" maka
+        terus
+    putus
+    
+    ketik("----------------------------------")
+    ketik("Menjalankan Misi: " + file_sekarang)
+    ketik("----------------------------------")
+    
+    takdir.soft kode = baca(file_sekarang)
+    
+    ^^ 🔥 PERISAI HUKUM TABU 🔥
+    coba maka
+        jalankan(kode)
+    tabu melanggar e maka
+        ketik("⚠️ MISI GAGAL (KIAMAT)! OS Tetap Hidup.")
+    pasrah
+
+putus
+
+ketik("=== SEMUA MISI SELESAI ===")
+pergi

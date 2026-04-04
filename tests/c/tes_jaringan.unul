@@ -3,4 +3,4 @@ ketik("--- MENCOBA KONEKSI ALAM SEMESTA ---")
 takdir.soft data = ambil("https://raw.githubusercontent.com/ajinabhan/unul/main/README.md")
 ketik("Isi README dari GitHub:")
 ketik(data)
-pergi
+^^ pergi
