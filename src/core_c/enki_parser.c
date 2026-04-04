@@ -81,6 +81,21 @@ void tambah_anak(ASTNode* induk, ASTNode* anak) {
     induk->anak_anak[induk->jumlah_anak++] = anak;
 }
 
+// Fungsi gaib untuk menyisipkan argumen di urutan pertama (Khusus Pipa Aliran)
+void sisip_anak_pertama(ASTNode* induk, ASTNode* anak) {
+    if (induk->jumlah_anak >= induk->kapasitas_anak) {
+        induk->kapasitas_anak = induk->kapasitas_anak == 0 ? 4 : induk->kapasitas_anak * 2;
+        induk->anak_anak = (ASTNode**)realloc(induk->anak_anak, induk->kapasitas_anak * sizeof(ASTNode*));
+    }
+    // Geser semua anak yang sudah ada ke kanan 1 langkah
+    for (int i = induk->jumlah_anak; i > 0; i--) {
+        induk->anak_anak[i] = induk->anak_anak[i - 1];
+    }
+    // Letakkan yang baru di urutan paling awal (Index 0)
+    induk->anak_anak[0] = anak;
+    induk->jumlah_anak++;
+}
+
 // Wajib: Mengembalikan seluruh ranting pohon ke OS agar RAM tidak bocor!
 void bebaskan_ast(ASTNode* node) {
     if (!node) return;
@@ -106,6 +121,7 @@ void bebaskan_ast(ASTNode* node) {
 // --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
 // Deklarasi Hierarki Matematika Mutlak
 ASTNode* parse_ekspresi(Parser* p);
+ASTNode* parse_pipa(Parser* p);
 ASTNode* parse_penjumlahan(Parser* p);
 ASTNode* parse_faktor(Parser* p);
 ASTNode* parse_pangkat(Parser* p);
@@ -339,10 +355,38 @@ ASTNode* parse_penjumlahan(Parser* p) {
 }
 
 // ==========================================================
+// TINGKAT 3.5: Kasta Pipa Aliran (|>) -> "Sihir Gula Sintaksis"
+// ==========================================================
+ASTNode* parse_pipa(Parser* p) {
+    ASTNode* simpul_kiri = parse_penjumlahan(p); 
+    
+    while (token_sekarang(p).jenis == TOKEN_PIPA) {
+        maju(p); // Lewati '|>'
+        
+        // Tangkap fungsi tujuan di kanannya
+        ASTNode* simpul_kanan = parse_penjumlahan(p); 
+        
+        // Pipa wajib dialirkan ke dalam sebuah Fungsi!
+        if (simpul_kanan == NULL || simpul_kanan->jenis != AST_PANGGILAN_FUNGSI) { // <--- TAMBAH == NULL
+            kiamat_sintaksis(p, "Tujuan Pipa Aliran '|>' wajib berupa fungsi!", 
+                "Pipa aliran digunakan untuk memasukkan data ke dalam fungsi.\n"
+                "Contoh yang sah:\n"
+                "\"halo\" |> huruf_besar() |> ketik()");
+        }
+        
+        // Sihir terjadi di sini: Masukkan KIRI ke dalam fungsi KANAN secara diam-diam!
+        sisip_anak_pertama(simpul_kanan, simpul_kiri);
+        
+        simpul_kiri = simpul_kanan; // Jadikan hasil ini sebagai "kiri" untuk pipa selanjutnya
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
 // TINGKAT 4: Kasta Mutasi / Penugasan Ulang (=) -> FUNGSI UTAMA
 // ==========================================================
 ASTNode* parse_ekspresi(Parser* p) {
-    ASTNode* simpul_kiri = parse_penjumlahan(p);
+    ASTNode* simpul_kiri = parse_pipa(p);
     
     // Jika menemukan tanda '=' setelah variabel / akses domain
     if (token_sekarang(p).jenis == TOKEN_ASSIGN || 
@@ -643,9 +687,10 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
-    // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI) ---
+    // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI & PIPA) ---
     // Mengizinkan: `entitas = {}`, `dewa.nama = "Enki"`, atau `sapa()`
-    if (t.jenis == TOKEN_IDENTITAS) {
+    if (t.jenis == TOKEN_IDENTITAS || t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA || 
+        t.jenis == TOKEN_KURUNG_B || t.jenis == TOKEN_KURUNG_S_B || t.jenis == TOKEN_KURUNG_K_B) {
         return parse_ekspresi(p);
     }
 

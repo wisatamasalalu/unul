@@ -126,13 +126,20 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
 
         // 6. Tangkap Operator Matematika, Logika & Assignment
         // 🔥 BUG FIX: Menambahkan c == '^' agar pangkat tidak dianggap Mismatch!
-        if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^') {
+        if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^' || c == '|') {
             int awal_kolom = kolom;
             char op_str[3] = {c, '\0', '\0'};
             
             // Cek Fungsi Panah (=>)
             if (c == '=' && kode_sumber[i+1] == '>') {
                 tambah_token(&token_list, TOKEN_PANAH, "=>", baris, awal_kolom, nama_file_sumber);
+                i += 2; kolom += 2;
+                continue;
+            }
+
+            // Cek Pipa Aliran (|>)
+            if (c == '|' && kode_sumber[i+1] == '>') {
+                tambah_token(&token_list, TOKEN_PIPA, "|>", baris, awal_kolom, nama_file_sumber);
                 i += 2; kolom += 2;
                 continue;
             }

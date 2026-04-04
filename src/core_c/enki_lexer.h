@@ -37,6 +37,7 @@ typedef enum {
     TOKEN_OPERATOR,      // +, -, *, /, %, ^
     TOKEN_ASSIGN,        // =
     TOKEN_PANAH,         // =>
+    TOKEN_PIPA,          // |>
 
     // Tipe Data Dasar & Identitas
     TOKEN_TEKS,          // "String teks" atau 'String'

@@ -799,6 +799,18 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     // --- PENANGKAP PANGGILAN FUNGSI ---
     if (node->jenis == AST_PANGGILAN_FUNGSI) {
         
+        // 🟢 SUNTIKAN: Izinkan ketik() menerima Pipa Aliran!
+        if (strcmp(node->nilai_teks, "ketik") == 0) {
+            if (node->jumlah_anak > 0 && node->anak_anak[0] != NULL) {
+                char* hasil = evaluasi_ekspresi(node->anak_anak[0], ram);
+                printf("%s\n", hasil);
+                free(hasil);
+            } else {
+                printf("\n"); 
+            }
+            return strdup("");
+        }
+        
         // =======================================================
         // 1. [TABLET OF DESTINIES] CEK FUNGSI BAWAAN (NATIVE) DULU!
         // =======================================================
@@ -838,12 +850,18 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
         // D. Fungsi huruf_besar(teks) dan huruf_kecil(teks)
         if (strcmp(node->nilai_teks, "huruf_besar") == 0 || strcmp(node->nilai_teks, "huruf_kecil") == 0) {
+            // 🟢 PERISAI ANTI-SEGFAULT: Cek apakah argumennya ada!
+            if (node->jumlah_anak == 0 || node->anak_anak[0] == NULL) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi kehilangan objek sasaran!", "Fungsi huruf_besar/kecil membutuhkan teks di dalamnya, atau dialiri data dari pipa '|>'.");
+                return strdup("");
+            }
+            
             char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
             int is_upper = (strcmp(node->nilai_teks, "huruf_besar") == 0);
             for(int i = 0; teks[i]; i++) {
                 teks[i] = is_upper ? toupper(teks[i]) : tolower(teks[i]);
             }
-            return teks; // Teks sudah di-malloc, kita langsung kembalikan
+            return teks; 
         }
 
         // E. Transmutasi Basis Matriks (ke_hex, ke_oktal)
