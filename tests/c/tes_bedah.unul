@@ -1,0 +1,9 @@
+datang
+
+^^ Sihir Pembedahan: Langsung bedah tanpa perlu takdir.soft!
+[senjata, zirah] = ["Pedang Plasma", "Jubah Baja"]
+
+ketik("Senjata Anda : {senjata}")
+ketik("Zirah Anda   : {zirah}")
+
+pergi

@@ -650,8 +650,44 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* hasil_akhir = (char*)malloc(1024);
             memset(hasil_akhir, 0, 1024);
 
-            // 🔥 0. EVALUASI SISI KANAN DULU! (Atasi Paradoks Penugasan Diri)
+            // 0. EVALUASI SISI KANAN DULU! (Atasi Paradoks Penugasan Diri)
             char* hasil_masa_depan = evaluasi_ekspresi(node->kanan, ram);
+
+            // 0.5 DESTRUCTURING ARRAY (Pembedahan Objek)
+            if (node->kiri->jenis == AST_STRUKTUR_ARRAY) {
+                if (hasil_masa_depan && hasil_masa_depan[0] == '[' && hasil_masa_depan[strlen(hasil_masa_depan)-1] == ']') {
+                    // 1. Bersihkan kurung siku '[' dan ']'
+                    char* isi_array = strdup(hasil_masa_depan + 1);
+                    isi_array[strlen(isi_array)-1] = '\0';
+                    
+                    // 2. Potong-potong isinya berdasarkan tanda koma ','
+                    char* potongan = strtok(isi_array, ",");
+                    int idx = 0;
+                    
+                    while (potongan != NULL && idx < node->kiri->jumlah_anak) {
+                        // Bersihkan spasi gaib di awal teks
+                        while(*potongan == ' ') potongan++; 
+                        
+                        ASTNode* var_kiri = node->kiri->anak_anak[idx];
+                        if (var_kiri->jenis == AST_IDENTITAS) {
+                            
+                            // 🟢 PAKSA CIPTAKAN KE RAM (Sihir Jalur VIP!)
+                            char* nilai_bersih = strdup(potongan);
+                            bersihkan_kutip(nilai_bersih); 
+                            
+                            // Simpan paksa ke EnkiRAM
+                            simpan_ke_ram(ram, var_kiri->nilai_teks, nilai_bersih);
+                            free(nilai_bersih);
+                        }
+                        potongan = strtok(NULL, ",");
+                        idx++;
+                    }
+                    free(isi_array);
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Gagal membedah Array!", "Sisi kanan harus berwujud murni Array [...].");
+                }
+                return hasil_masa_depan; // Kembalikan nilai Array aslinya agar mesin tidak meledak
+            }
 
             // 1. Dapatkan Induk Utama DULU!
             KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 

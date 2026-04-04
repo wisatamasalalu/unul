@@ -181,3 +181,30 @@ takdir.soft nama = "Enki"
 ketik("Halo {nama}")
 =================================
 
+=== [WAKTU KIAMAT: 1775279707] ===
+🚨 [tes_bedah.unul: Baris 6:7] KIAMAT SINTAKSIS: Variabel sisipan '{senjata}' belum diciptakan!
+   Kode Penyebab: "Senjata Anda : {senjata}"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775280073] ===
+🚨 [tes_bedah.unul: Baris 6:7] KIAMAT SINTAKSIS: Variabel sisipan '{senjata}' belum diciptakan!
+   Kode Penyebab: "Senjata Anda : {senjata}"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775280101] ===
+🚨 [tes_bedah.unul: Baris 6:7] KIAMAT SINTAKSIS: Variabel sisipan '{senjata}' belum diciptakan!
+   Kode Penyebab: "Senjata Anda : {senjata}"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
