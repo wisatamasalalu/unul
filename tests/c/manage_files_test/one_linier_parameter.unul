@@ -1,0 +1,11 @@
+datang
+
+ketik("=== ⚡ PENULIS KILAT SATU BARIS ===")
+ketik("Jawab dua pertanyaan di bawah ini, dan mesin akan langsung menuliskannya!")
+
+^^ Langsung dieksekusi di dalam parameter!
+tulis(tanya("Nama file target: "), tanya("Tuliskan isinya: "))
+
+ketik("✅ File kilat berhasil dibuat!")
+
+pergi

@@ -48,3 +48,14 @@ char* sihir_baca_file(const char* path) {
     string[fsize] = 0;
     return string;
 }
+
+void sihir_tulis_file(const char* path, const char* konten) {
+    // Mode "w" akan membuat file baru, atau menimpa jika sudah ada
+    FILE* f = fopen(path, "w");
+    if (f) {
+        fprintf(f, "%s", konten);
+        fclose(f);
+    } else {
+        printf("🚨 SISTEM FILE: Gagal menciptakan takdir pada '%s'\n", path);
+    }
+}

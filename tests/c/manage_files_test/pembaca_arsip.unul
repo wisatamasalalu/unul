@@ -1,0 +1,13 @@
+datang
+
+ketik("=== 📖 PEMBACA ARSIP OS ===")
+
+^^ Membaca file berdasarkan input pengguna
+takdir.soft target_baca = tanya("Masukkan nama file yang ingin dibaca: ")
+takdir.soft hasil_baca = baca(target_baca)
+
+ketik("--- ISI FILE ---")
+ketik(hasil_baca)
+ketik("----------------")
+
+pergi

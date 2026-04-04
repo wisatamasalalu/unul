@@ -1,0 +1,16 @@
+datang
+
+ketik("=== 📝 APLIKASI BUKU HARIAN UNUL ===")
+
+^^ 1. Meminta nama file target
+takdir.soft nama_file = tanya("Mau disimpan di file apa? (misal: jurnal.txt) : ")
+
+^^ 2. Meminta isi konten
+takdir.soft isi_konten = tanya("Tuliskan rahasia Anda hari ini: ")
+
+^^ 3. Menulis file secara dinamis!
+tulis(nama_file, isi_konten)
+
+ketik("✅ Rahasia berhasil disegel ke dalam " + nama_file)
+
+pergi

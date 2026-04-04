@@ -492,6 +492,25 @@ char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
 // Pengumuman Fungsi (Forward Declaration)
 int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram);
 
+// =================================================================
+// 🟢 CORONG TRANSMUTASI UNIVERSAL (Pembaca Multi-Basis)
+// =================================================================
+long baca_angka_universal(const char* teks) {
+    if (!teks) return 0;
+    
+    // Jika Biner (0b... atau 0B...)
+    if (strncmp(teks, "0b", 2) == 0 || strncmp(teks, "0B", 2) == 0) {
+        return strtol(teks + 2, NULL, 2);
+    }
+    // Jika Oktal Eksplisit gaya modern (0o... atau 0O...)
+    if (strncmp(teks, "0o", 2) == 0 || strncmp(teks, "0O", 2) == 0) {
+        return strtol(teks + 2, NULL, 8);
+    }
+    
+    // strtol basis 0 bawaan C akan otomatis membaca: "0x..." (Hex), "0..." (Oktal C), "1-9..." (Desimal)
+    return strtol(teks, NULL, 0); 
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return strdup(""); 
@@ -951,127 +970,82 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return teks; 
         }
 
-        // E. Transmutasi Basis Matriks (ke_hex, ke_oktal)
+        // =======================================================
+        // E. TRANSMUTASI MATRIKS 5x5 MUTLAK (Universal Cross-Conversion)
+        // =======================================================
+        
         if (strcmp(node->nilai_teks, "ke_hex") == 0) {
-            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
-            int angka = atoi(angka_str); free(angka_str);
-            char buffer[32]; snprintf(buffer, sizeof(buffer), "0x%X", angka);
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi ke_hex() butuh angka!", "Contoh: ke_hex(255) atau ke_hex(\"0b1111\")"); return strdup(""); }
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            long angka = baca_angka_universal(arg); free(arg);
+            char buffer[32]; snprintf(buffer, sizeof(buffer), "0x%lX", angka);
             return strdup(buffer);
         }
-
-        // --- TRANSMUTASI: KE BINER (0b...) ---
-        else if (strcmp(node->nilai_teks, "ke_biner") == 0) {
+        else if (strcmp(node->nilai_teks, "ke_oktal") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi ke_oktal() butuh angka!", "Contoh: ke_oktal(8)"); return strdup(""); }
             char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
-            
-            // 🔥 SIHIR PEMBACA HEX/DESIMAL OTOMATIS 🔥
-            // Menggunakan strtol basis 0 agar bisa menelan "15" maupun "0xFF"
-            long angka = 0;
-            if (strncmp(arg, "0x", 2) == 0 || strncmp(arg, "0X", 2) == 0) {
-                angka = strtol(arg, NULL, 16);
-            } else {
-                angka = strtol(arg, NULL, 10);
-            }
-            free(arg);
+            long angka = baca_angka_universal(arg); free(arg);
+            char buffer[32]; snprintf(buffer, sizeof(buffer), "0o%lo", angka);
+            return strdup(buffer);
+        }
+        else if (strcmp(node->nilai_teks, "ke_desimal") == 0 || strcmp(node->nilai_teks, "ke_angka") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi ke_desimal() butuh argumen!", "Contoh: ke_desimal(\"0xFF\")"); return strdup(""); }
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            long angka = baca_angka_universal(arg); free(arg);
+            char buffer[64]; snprintf(buffer, sizeof(buffer), "%ld", angka);
+            return strdup(buffer);
+        }
+        else if (strcmp(node->nilai_teks, "ke_biner") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi ke_biner() butuh angka!", "Contoh: ke_biner(10)"); return strdup(""); }
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            long angka = baca_angka_universal(arg); free(arg);
 
-            char buffer[128];
-            buffer[0] = '0';
-            buffer[1] = 'b';
-            int index = 2;
-            
+            char buffer[128]; buffer[0] = '0'; buffer[1] = 'b'; int index = 2;
             if (angka == 0) {
-                buffer[2] = '0';
-                buffer[3] = '\0';
+                buffer[2] = '0'; buffer[3] = '\0';
             } else {
-                long temp = angka;
-                int bits[64];
-                int bit_count = 0;
-                while(temp > 0) {
-                    bits[bit_count++] = temp % 2;
-                    temp /= 2;
-                }
-                for(int i = bit_count - 1; i >= 0; i--) {
-                    buffer[index++] = bits[i] + '0';
-                }
+                long temp = angka; int bits[64]; int bit_count = 0;
+                while(temp > 0) { bits[bit_count++] = temp % 2; temp /= 2; }
+                for(int i = bit_count - 1; i >= 0; i--) buffer[index++] = bits[i] + '0';
                 buffer[index] = '\0';
             }
             return strdup(buffer);
         }
 
-        // --- TRANSMUTASI: KE DESIMAL (Dari Hex/Biner ke Angka Biasa) ---
-        else if (strcmp(node->nilai_teks, "ke_desimal") == 0) {
-            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
-            long angka = 0;
-            
-            // Jika diawali 0b, baca sebagai biner (basis 2)
-            if (strncmp(arg, "0b", 2) == 0 || strncmp(arg, "0B", 2) == 0) {
-                angka = strtol(arg + 2, NULL, 2);
-            } else {
-                // Basis 0 otomatis membaca "0x..." sebagai heksadesimal
-                angka = strtol(arg, NULL, 0); 
-            }
-            free(arg);
-
-            char buffer[64];
-            snprintf(buffer, sizeof(buffer), "%ld", angka);
-            return strdup(buffer);
-        }
-
-        // --- TRANSMUTASI: KE KARAKTER (Sandi Angka -> Huruf) ---
-        else if (strcmp(node->nilai_teks, "ke_karakter") == 0) {
-            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
-            int ascii_val = atoi(arg);
-            free(arg);
-            
-            char buffer[2];
-            buffer[0] = (char)ascii_val;
-            buffer[1] = '\0';
-            return strdup(buffer);
-        }
-
         // --- TRANSMUTASI: BULATKAN ---
         else if (strcmp(node->nilai_teks, "bulatkan") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi bulatkan() butuh angka!", "Contoh: bulatkan(3.14)"); return strdup(""); }
             char* arg_angka = evaluasi_ekspresi(node->anak_anak[0], ram);
-            double angka = atof(arg_angka);
-            free(arg_angka);
+            double angka = atof(arg_angka); free(arg_angka);
 
             int presisi = 0;
-            // Gunakan jumlah_anak, BUKAN jumlah_argumen
             if (node->jumlah_anak > 1) {
                 char* arg_digit = evaluasi_ekspresi(node->anak_anak[1], ram);
-                presisi = atoi(arg_digit);
-                free(arg_digit);
+                presisi = atoi(arg_digit); free(arg_digit);
             }
-
             char buffer[64];
-            if (presisi <= 0) {
-                snprintf(buffer, sizeof(buffer), "%.0f", round(angka));
-            } else {
-                char format[16];
-                snprintf(format, sizeof(format), "%%.%df", presisi); 
+            if (presisi <= 0) snprintf(buffer, sizeof(buffer), "%.0f", round(angka));
+            else {
+                char format[16]; snprintf(format, sizeof(format), "%%.%df", presisi); 
                 snprintf(buffer, sizeof(buffer), format, angka);
             }
             return strdup(buffer);
         }
 
-        if (strcmp(node->nilai_teks, "ke_oktal") == 0) {
-            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
-            int angka = atoi(angka_str); free(angka_str);
-            char buffer[32]; snprintf(buffer, sizeof(buffer), "0o%o", angka);
-            return strdup(buffer);
-        }
-
-        // F. Transmutasi ASCII (ke_ascii, dari_ascii)
-        if (strcmp(node->nilai_teks, "ke_ascii") == 0) {
+        // F. TRANSMUTASI ASCII <-> ANGKA
+        else if (strcmp(node->nilai_teks, "ke_ascii") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi ke_ascii() butuh karakter!", "Contoh: ke_ascii(\"A\")"); return strdup(""); }
             char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
             char buffer[32];
             snprintf(buffer, sizeof(buffer), "%d", teks[0] != '\0' ? teks[0] : 0);
             free(teks);
             return strdup(buffer);
         }
-        if (strcmp(node->nilai_teks, "dari_ascii") == 0 || strcmp(node->nilai_teks, "ke_karakter") == 0) {
-            char* angka_str = evaluasi_ekspresi(node->anak_anak[0], ram);
-            int kode = atoi(angka_str); free(angka_str);
-            char buffer[2] = {(char)kode, '\0'};
+        else if (strcmp(node->nilai_teks, "dari_ascii") == 0 || strcmp(node->nilai_teks, "ke_karakter") == 0) {
+            if (node->jumlah_anak < 1) { pemicu_kiamat_presisi(node, ram, "Fungsi dari_ascii() butuh kode!", "Contoh: dari_ascii(65) atau dari_ascii(\"0x41\")"); return strdup(""); }
+            char* arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            long ascii_val = baca_angka_universal(arg); free(arg);
+            char buffer[2]; buffer[0] = (char)ascii_val; buffer[1] = '\0';
             return strdup(buffer);
         }
 
@@ -1215,6 +1189,20 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* hasil = sihir_baca_file(path);
             free(path);
             return hasil;
+        }
+
+        if (strcmp(node->nilai_teks, "tulis") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi tulis() butuh target dan isi!", 
+                    "Anda tidak memberikan tujuan atau data yang akan ditulis.\n"
+                    "Contoh: tulis(\"output.txt\", data)");
+                return strdup(""); 
+            }
+            char* path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* konten = evaluasi_ekspresi(node->anak_anak[1], ram);
+            sihir_tulis_file(path, konten);
+            free(path); free(konten);
+            return strdup(""); 
         }
 
         // =======================================================

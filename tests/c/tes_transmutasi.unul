@@ -1,0 +1,11 @@
+datang
+
+ketik("=== MESIN ENIGMA UNUL ===")
+takdir.soft sandi = tanya("Masukkan kode rahasia (bisa desimal, hex 0x, atau biner 0b): ")
+
+takdir.soft huruf = dari_ascii(sandi)
+
+ketik("Menerjemahkan...")
+ketik("Wujud Asli Karakter: " + huruf)
+
+pergi
