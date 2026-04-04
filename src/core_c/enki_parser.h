@@ -46,8 +46,9 @@ typedef enum {
     AST_KASUS,                  // Ranting kasus individu
     AST_TERNARI,                // Percabangan sebaris (jika A maka B lain C)
     AST_KECUALI,                // Logika terbalik (Unless)
-    AST_UTAS                    // Eksekusi Asinkron (Multithread)
-
+    AST_UTAS,                    // Eksekusi Asinkron (Multithread)
+    AST_JADWAL,                 // Cron-Job waktu absolut
+    AST_EFFORT_WAKTU            // Loop interval waktu asinkron
 } ASTJenis;
 
 // 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)

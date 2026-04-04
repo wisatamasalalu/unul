@@ -16,6 +16,7 @@ typedef enum {
     TOKEN_COCOKKAN,      // cocokkan
     TOKEN_KASUS,         // kasus
     TOKEN_SIKLUS,        // effort, kali
+    TOKEN_JADWAL,        // jadwal
     
     TOKEN_PENCIPTAAN,    // (Cadangan)
     TOKEN_CIPTAKAN,      // ciptakan

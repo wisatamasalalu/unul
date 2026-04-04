@@ -1,0 +1,15 @@
+datang
+
+ketik("=== MEMULAI PENGUJIAN MASSAL .unul ===")
+
+^^ Mencari semua file di folder tests
+takdir.soft daftar_file = cari("/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/tests/*.unul")
+
+ketik("Daftar file yang ditemukan:")
+ketik(daftar_file)
+
+^^ LOGIKA BATCH TEST:
+^^ Nantinya kita bisa menggunakan fungsi 'jalankan()' 
+^^ Untuk mengeksekusi isi dari file tersebut satu per satu.
+
+pergi

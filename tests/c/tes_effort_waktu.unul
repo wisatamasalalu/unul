@@ -1,0 +1,22 @@
+datang
+
+ketik("=== MENGUJI MESIN EFFORT INTERVAL WAKTU ===")
+ketik("Sistem ini tidak menghitung batas putaran, melainkan berdetak murni berdasarkan waktu!")
+
+^^ Utas Paralel 1: Berdetak setiap 1 detik (menggunakan teks string)
+effort 1000 selalu maka
+    ketik("⏳ [Utas 1] bunyi...")
+putus
+
+^^ Utas Paralel 2: Berdetak sangat cepat setiap 500 milidetik (menggunakan angka murni)
+effort 500 maka
+    ketik("   ⚡ [Utas 2] 500 ms berkedip!")
+putus
+
+^^ Tahan Mandor Utama (Program Utama) selama 5 detik saja
+^^ Dalam 5 detik, Utas 1 harusnya mencetak 5 kali, dan Utas 2 mencetak 10 kali!
+jeda("5s")
+
+ketik("=== WAKTU HABIS! ===")
+ketik("Mandor utama pulang, semua Utas Waktu otomatis dimatikan oleh OS Linux.")
+pergi

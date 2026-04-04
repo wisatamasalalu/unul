@@ -736,32 +736,107 @@ ASTNode* parse_pernyataan(Parser* p) {
     }
 
     // 4. Apakah ini HUKUM SIKLUS? (effort X kali maka ... putus)
+    // --- PENANGKAP SIKLUS EFFORT (DENGAN KIAMAT PRESISI) ---
     if (t.jenis == TOKEN_SIKLUS && strcmp(t.isi, "effort") == 0) {
-        ASTNode* node = buat_node(AST_HUKUM_SIKLUS, p);
         maju(p); // lewati kata 'effort'
+        
+        // 1. Tangkap tolok ukurnya (bisa angka atau teks interval)
+        ASTNode* batas = parse_ekspresi(p); 
+        
+        // 🚨 KIAMAT SINTAKSIS JIKA KOSONG!
+        if (batas == NULL) {
+            kiamat_sintaksis(p, "Siklus 'effort' kehilangan tolok ukur!", 
+                "UNUL tidak bisa melakukan effort tanpa batas yang jelas.\n"
+                "Untuk siklus angka : effort 5 kali maka ...\n"
+                "Untuk siklus waktu : effort \"2s\" maka ... (gunakan tanda kutip untuk s/m/h)\n"
+                "Untuk milidetik    : effort 300 maka ... (tanpa satuan dan tanpa kutip)");
+            return NULL;
+        }
 
-        // Tangkap jumlah (bisa angka "5" atau variabel "batas")
-        node->batas_loop = parse_ekspresi(p);
-
-        // Lewati 'kali' dan 'maka'
-        Token t_kali = token_sekarang(p);
-        if (t_kali.jenis == TOKEN_SIKLUS && strcmp(t_kali.isi, "kali") == 0) maju(p);
-        Token t_maka = token_sekarang(p);
-        if (t_maka.jenis == TOKEN_KARMA && strcmp(t_maka.isi, "maka") == 0) maju(p);
-
-        // Tangkap isi blok perulangan
+        ASTNode* node = NULL;
+        
+        // 2. Cek apakah ini siklus angka (pakai 'kali') atau waktu (tanpa 'kali')
+        if (token_sekarang(p).jenis == TOKEN_SIKLUS && strcmp(token_sekarang(p).isi, "kali") == 0) {
+            maju(p); // lewati 'kali'
+            node = buat_node(AST_HUKUM_SIKLUS, p); // Catatan: pastikan namanya sesuai dengan enum Anda (AST_HUKUM_SIKLUS)
+        } else {
+            node = buat_node(AST_EFFORT_WAKTU, p);
+        }
+        
+        node->batas_loop = batas;
+        
+        // 3. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Siklus 'effort' WAJIB dibuka dengan kata 'maka'.");
+            return NULL;
+        }
+        
+        // 4. Tangkap isi ruangan
         node->blok_siklus = buat_node(AST_PROGRAM, p);
         while (token_sekarang(p).jenis != TOKEN_EOF) {
-            Token t_cek = token_sekarang(p);
-            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) break;
             ASTNode* stmt = parse_pernyataan(p);
             if (stmt) tambah_anak(node->blok_siklus, stmt);
         }
+        
+        // 5. Wajib ada 'putus'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Siklus tak berujung!", "Blok perintah WAJIB diakhiri dengan kata kunci 'putus'.");
+            return NULL;
+        }
+        
+        return node;
+    }
 
-        // Lewati kata 'putus'
-        Token t_putus = token_sekarang(p);
-        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
+    // --- PENANGKAP JADWAL (CRON-JOB) DENGAN KIAMAT PRESISI ---
+    if (t.jenis == TOKEN_JADWAL) {
+        maju(p); // lewati kata 'jadwal'
+        
+        // 1. Tangkap waktu target (misal: "15:30:00")
+        ASTNode* waktu_target = parse_ekspresi(p); 
+        
+        // 🚨 KIAMAT SINTAKSIS JIKA WAKTU KOSONG!
+        if (waktu_target == NULL) {
+            kiamat_sintaksis(p, "Perintah 'jadwal' kehilangan target waktu!", 
+                "Anda harus menentukan kapan jadwal ini dieksekusi.\n"
+                "Contoh penggunaan yang sah:\n"
+                "jadwal \"15:30:00\" maka\n"
+                "   ketik(\"Waktu tiba!\")\n"
+                "putus");
+            return NULL;
+        }
 
+        ASTNode* node = buat_node(AST_JADWAL, p);
+        node->kiri = waktu_target;
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Perintah 'jadwal' WAJIB dibuka dengan kata 'maka'.");
+            return NULL;
+        }
+        
+        // 3. Tangkap isi ruangan
+        node->blok_maka = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_maka, stmt);
+        }
+        
+        // 4. Wajib ada 'putus'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Jadwal tak berujung!", "Blok perintah WAJIB diakhiri dengan kata kunci 'putus'.");
+            return NULL;
+        }
+        
         return node;
     }
 

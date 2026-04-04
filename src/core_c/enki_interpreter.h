@@ -61,6 +61,9 @@ struct EnkiRAM {
 EnkiRAM inisialisasi_ram();
 EnkiRAM* ciptakan_ram_mini(); // Fungsi pencipta dimensi anak
 
+// Fungsi bantuan Utas & Jadwal
+EnkiRAM* salin_ram_untuk_utas(EnkiRAM* sumber);
+
 // Manajemen Memori
 void bebaskan_ram(EnkiRAM* ram);
 void simpan_ke_ram(EnkiRAM* ram, const char* nama, const char* nilai);

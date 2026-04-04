@@ -12,6 +12,9 @@
 #include <regex.h>
 #include <pthread.h>
 #include "enki_interpreter.h"
+#include "enki_scheduler.h"
+#include "enki_network.h"
+#include "enki_file_system.h"
 
 // =================================================================
 // DAPUR MESIN INTERPRETER (EKSEKUTOR C)
@@ -1146,35 +1149,73 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // --- SUNTIKAN BARU: TABLET OF DESTINIES: FUNGSI BISIK ---
-    else if (node->jenis == AST_IDENTITAS && strcmp(node->nilai_teks, "bisik") == 0) {
-        // 1. Jika ada argumen teks (seperti tanya), cetak teksnya dulu
-        if (node->kiri) { 
-            char* pesan = evaluasi_ekspresi(node->kiri, ram);
-            printf("%s", pesan);
-            fflush(stdout); // Paksa terminal mencetak tanpa menunggu Enter
-            free(pesan);
+        if (strcmp(node->nilai_teks, "bisik") == 0) {
+            if (node->kiri) { 
+                char* pesan = evaluasi_ekspresi(node->kiri, ram);
+                printf("%s", pesan);
+                fflush(stdout); 
+                free(pesan);
+            }
+            char buffer[256];
+            struct termios terminal_lama, terminal_baru;
+            
+            tcgetattr(STDIN_FILENO, &terminal_lama);
+            terminal_baru = terminal_lama;
+            terminal_baru.c_lflag &= ~(ECHO); 
+            tcsetattr(STDIN_FILENO, TCSANOW, &terminal_baru);
+            
+            if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+                buffer[strcspn(buffer, "\n")] = 0; 
+            }
+            
+            tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);
+            printf("\n"); 
+            return strdup(buffer);
         }
-        
-        char buffer[256];
-        struct termios terminal_lama, terminal_baru;
-        
-        // 2. MATIKAN ECHO TERMINAL (Sihir Gaib)
-        tcgetattr(STDIN_FILENO, &terminal_lama);
-        terminal_baru = terminal_lama;
-        terminal_baru.c_lflag &= ~(ECHO); // Hapus bendera ECHO
-        tcsetattr(STDIN_FILENO, TCSANOW, &terminal_baru);
-        
-        // 3. Baca masukan dari keyboard
-        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
-            buffer[strcspn(buffer, "\n")] = 0; // Bersihkan \n
+
+        // --- SIHIR JARINGAN (UNUL PACKAGE MANAGER) ---
+        if (strcmp(node->nilai_teks, "ambil") == 0) {
+            if (node->jumlah_anak < 1) return strdup("🚨 ERROR: ambil() butuh URL.");
+            char* url = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* hasil = sihir_ambil(url);
+            free(url);
+            return hasil;
         }
-        
-        // 4. NYALAKAN LAGI ECHO (Sangat penting agar terminal Linux Anda tidak rusak!)
-        tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);
-        printf("\n"); // Turun baris secara manual karena user menekan enter secara gaib
-        
-        return strdup(buffer);
-    }
+        if (strcmp(node->nilai_teks, "setor") == 0) {
+            if (node->jumlah_anak < 2) return strdup("🚨 ERROR: setor() butuh URL dan Data JSON.");
+            char* url = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* data = evaluasi_ekspresi(node->anak_anak[1], ram);
+            char* hasil = sihir_setor(url, data);
+            free(url); free(data);
+            return hasil;
+        }
+
+        // 🟢 TEMPELKAN SIHIR SISTEM FILE DI SINI 🟢
+        // --- SIHIR SISTEM FILE (BLOB/GLOB) ---
+        if (strcmp(node->nilai_teks, "cari") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi cari() butuh peta pencarian!", 
+                    "Anda tidak memberikan pola file yang ingin dicari.\n"
+                    "Contoh penggunaan yang sah: cari(\"*.unul\") atau cari(\"tests/*\")");
+                return strdup(""); 
+            }
+            char* pola = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* hasil = sihir_cari(pola);
+            free(pola);
+            return hasil;
+        }
+        if (strcmp(node->nilai_teks, "baca") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi baca() butuh nama file!", 
+                    "Anda tidak memberikan jalur (path) file yang ingin dibaca.\n"
+                    "Contoh penggunaan yang sah: baca(\"konfigurasi.txt\")");
+                return strdup(""); 
+            }
+            char* path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* hasil = sihir_baca_file(path);
+            free(path);
+            return hasil;
+        }
 
         // =======================================================
         // 2. JIKA BUKAN FUNGSI BAWAAN, CARI DI RAM (FUNGSI KUSTOM)
@@ -1188,67 +1229,52 @@ char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
         }
         
-        // Jika di RAM juga tidak ada, BARU KITA PANIK!
         if (func_node == NULL) {
             char pesan_error[512];
             snprintf(pesan_error, sizeof(pesan_error), "Fungsi gaib '%s' tidak ditemukan!", node->nilai_teks);
             pemicu_kiamat_presisi(node, ram, pesan_error, 
                 "Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).\n"
                 "Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.");
-            return strdup(""); // Kembalikan teks kosong agar interpreter tidak crash
+            return strdup(""); 
         }
 
-        // 3. MENCIPTAKAN RAM SEMENTARA (LOCAL SCOPE DINAMIS)
         EnkiRAM ram_lokal = inisialisasi_ram();
         ram_lokal.butuh_anu_aktif = ram->butuh_anu_aktif;
         
-        // Kloning memori global
         for (int i = 0; i < ram->jumlah; i++) {
             simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
             ram_lokal.kavling[ram_lokal.jumlah - 1].simpul_fungsi = ram->kavling[i].simpul_fungsi;
         }
 
-        // 4. TRANSFER NILAI PARAMETER KE RAM LOKAL (Dengan Sihir Parameter Bawaan)
         for (int i = 0; i < func_node->jumlah_anak; i++) { 
             ASTNode* param = func_node->anak_anak[i];
             char* nama_param = "";
             char* nilai_akhir = NULL;
 
-            // 1. Cek Wujud Parameternya (Apakah punya Default Value '=')
             int punya_bawaan = (param->operator_math && strcmp(param->operator_math, "=") == 0);
             
             if (punya_bawaan) {
-                nama_param = param->kiri->nilai_teks; // Nama variabel ada di sebelah kiri '='
+                nama_param = param->kiri->nilai_teks; 
             } else {
-                nama_param = param->nilai_teks; // Parameter biasa (hanya nama)
+                nama_param = param->nilai_teks; 
             }
 
-            // 2. Tentukan Nilai Akhirnya!
             if (i < node->jumlah_anak) { 
-                // Jika pemanggil memberikan argumen, GUNAKAN!
                 nilai_akhir = evaluasi_ekspresi(node->anak_anak[i], ram);
             } else if (punya_bawaan) {
-                // Jika argumen kosong, tapi punya bawaan, GUNAKAN NILAI BAWAAN!
                 nilai_akhir = evaluasi_ekspresi(param->kanan, &ram_lokal); 
             } else {
-                // Jika argumen kosong dan tidak ada bawaan, KIAMAT!
                 pemicu_kiamat_presisi(node, ram, "Kekurangan Argumen!", "Fungsi ini membutuhkan lebih banyak argumen, dan tidak ada parameter bawaan yang bisa menyelamatkan.");
             }
 
-            // 3. Simpan ke RAM Lokal fungsi tersebut
             if (nilai_akhir) {
                 simpan_ke_ram(&ram_lokal, nama_param, nilai_akhir);
                 free(nilai_akhir);
             }
         }
 
-        // 5. JALANKAN MESIN!
         eksekusi_program(func_node->blok_maka, &ram_lokal);
-
-        // 6. AMBIL HASIL KEMBALIAN
         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
-
-        // 7. HANCURKAN RAM SEMENTARA
         bebaskan_ram(&ram_lokal);
 
         return hasil_akhir;
@@ -1713,6 +1739,14 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         } else {
             pemicu_kiamat_presisi(node, ram, "Sihir utas cacat!", "Sihir 'utas' atau 'gaib' hanya bisa digunakan untuk memanggil fungsi.");
         }
+    }
+
+    // --- EKSEKUSI JADWAL & EFFORT (Via Modul Scheduler) ---
+    else if (node->jenis == AST_JADWAL) {
+        eksekusi_jadwal_gaib(node, ram);
+    }
+    else if (node->jenis == AST_EFFORT_WAKTU) {
+        eksekusi_effort_gaib(node, ram);
     }
 
     // 6. Sowan (Pemanggilan Dimensi / Import)

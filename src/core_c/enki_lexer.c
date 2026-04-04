@@ -218,6 +218,7 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
             else if (strcmp(kata, "sowan") == 0) tambah_token(&token_list, TOKEN_SOWAN, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "utas") == 0 || strcmp(kata, "gaib") == 0) tambah_token(&token_list, TOKEN_UTAS, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0 || strcmp(kata, "terus") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "jadwal") == 0) tambah_token(&token_list, TOKEN_JADWAL, kata, baris, awal_kolom, nama_file_sumber);
             else tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, awal_kolom, nama_file_sumber);
 
             free(kata);

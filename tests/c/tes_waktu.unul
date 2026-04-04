@@ -1,0 +1,18 @@
+datang
+
+ketik("Sistem waktu aktif! Berjalan di latar belakang...")
+
+^^ Menjalankan siklus tanpa henti setiap 2 detik di dimensi paralel
+effort "2s" maka
+    ketik("⏱️ Detak: 2 detik berlalu...")
+putus
+
+^^ Mengeksekusi tugas pada jam dan menit spesifik (Ubah waktu ini!)
+jadwal "16:17:00" maka
+    ketik("🚀 WAKTU TIBA! CRON-JOB JADWAL DIEKSEKUSI!")
+putus
+
+^^ Mencegah program utama langsung mati agar kita bisa melihat hasil background
+jeda("65s") 
+
+pergi
