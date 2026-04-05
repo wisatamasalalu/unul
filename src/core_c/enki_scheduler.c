@@ -34,12 +34,19 @@ long hitung_ms_interval(const char* teks) {
 }
 
 // Pelari Utas (Thread Runners)
+// Pelari Utas (Thread Runners)
 void* pelari_jadwal(void* arg) {
     KapsulJadwal* kapsul = (KapsulJadwal*)arg;
-    char* target_str = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    char target_str[256] = ""; // Wadah statis yang aman
+    
+    if (target_obj && target_obj->tipe == ENKI_TEKS) {
+        strcpy(target_str, target_obj->nilai.teks);
+    }
+    if (target_obj) hancurkan_objek(target_obj);
     
     long jeda_ms = hitung_jeda_ke_jadwal(target_str);
-    free(target_str);
+    // 🟢 TIDAK ADA free(target_str) karena ini bukan malloc
     
     usleep(jeda_ms * 1000); // Hibernasi hingga waktu tiba
     eksekusi_program(kapsul->blok_eksekusi, kapsul->ram_paralel);
@@ -51,9 +58,18 @@ void* pelari_jadwal(void* arg) {
 
 void* pelari_effort(void* arg) {
     KapsulJadwal* kapsul = (KapsulJadwal*)arg;
-    char* interval_str = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    char interval_str[256] = ""; // 🟢 Wadah yang benar
+    
+    if (target_obj && target_obj->tipe == ENKI_TEKS) {
+        strcpy(interval_str, target_obj->nilai.teks);
+    } else if (target_obj && target_obj->tipe == ENKI_ANGKA) {
+        snprintf(interval_str, sizeof(interval_str), "%d", (int)target_obj->nilai.angka);
+    }
+    if (target_obj) hancurkan_objek(target_obj);
+    
     long jeda_ms = hitung_ms_interval(interval_str);
-    free(interval_str);
+    // 🟢 TIDAK ADA free(interval_str) karena ini bukan malloc
     
     while (1) {
         usleep(jeda_ms * 1000); // Hibernasi antar siklus

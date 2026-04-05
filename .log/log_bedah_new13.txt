@@ -1,0 +1,14 @@
+gcc -Wall -Wextra -g main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+enki_interpreter.c: In function ‘eksekusi_node’:
+enki_interpreter.c:1921:84: warning: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 1015 [-Wformat-truncation=]
+ 1921 |             char pesan_err[1024]; snprintf(pesan_err, sizeof(pesan_err), "Pustaka '%s' DITOLAK!", target_file);
+      |                                                                                    ^~             ~~~~~~~~~~~
+enki_interpreter.c:1921:35: note: ‘snprintf’ output between 20 and 1043 bytes into a destination of size 1024
+ 1921 |             char pesan_err[1024]; snprintf(pesan_err, sizeof(pesan_err), "Pustaka '%s' DITOLAK!", target_file);
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1953:87: warning: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size 1015 [-Wformat-truncation=]
+ 1953 |             char pesan_gaib[1024]; snprintf(pesan_gaib, sizeof(pesan_gaib), "Pustaka '%s' tidak ditemukan di alam manapun!", target_file);
+      |                                                                                       ^~                                     ~~~~~~~~~~~
+enki_interpreter.c:1953:36: note: ‘snprintf’ output between 44 and 1067 bytes into a destination of size 1024
+ 1953 |             char pesan_gaib[1024]; snprintf(pesan_gaib, sizeof(pesan_gaib), "Pustaka '%s' tidak ditemukan di alam manapun!", target_file);
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

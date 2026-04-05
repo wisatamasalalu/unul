@@ -302,3 +302,59 @@ Contoh: takdir.soft data = baca("list_test.csv")
 2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
 =================================
 
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-05 13:48:46
+Pesan Alam     : 🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (PHI) tidak bisa diubah!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+=== [WAKTU KIAMAT: 1775371752] ===
+🚨 [<unul-cli>: Baris 1:20] KIAMAT SINTAKSIS: Variabel 'keras' belum diciptakan di realita ini.
+   Kode Penyebab: keras
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775371772] ===
+🚨 [<unul-cli>: Baris 1:20] KIAMAT SINTAKSIS: Variabel 'keras' belum diciptakan di realita ini.
+   Kode Penyebab: keras
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775371835] ===
+🚨 [<unul-cli>: Baris 1:19] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan!
+   Saran: Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.
+Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371878] ===
+🚨 [<unul-cli>: Baris 1:20] KIAMAT SINTAKSIS: Variabel 'keras' belum diciptakan di realita ini.
+   Kode Penyebab: keras
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775371917] ===
+🚨 [<unul-cli>: Baris 1:19] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan!
+   Saran: Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.
+Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.
+=================================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-05 13:52:48
+Pesan Alam     : 🚨 KIAMAT! Pelanggaran Hukum Takdir: Variabel 'hard' (batu) tidak bisa diubah!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+=== [WAKTU KIAMAT: 1775371995] ===
+🚨 [<unul-cli>: Baris 1:20] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan!
+   Saran: Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.
+Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.
+=================================
+

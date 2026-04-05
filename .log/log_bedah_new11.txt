@@ -1,0 +1,19 @@
+gcc -Wall -Wextra -g main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+enki_interpreter.c: In function ‘proses_sisipan_teks’:
+enki_interpreter.c:473:30: warning: unused variable ‘pesan’ [-Wunused-variable]
+  473 |                         char pesan[256];
+      |                              ^~~~~
+enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+enki_interpreter.c:920:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  920 |                 char* hasil = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:926:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  926 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1299:13: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1299 |             if (obj_teks) hancurkan_objek(obj_teks); if (obj_pemisah) hancurkan_objek(obj_pemisah);
+      |             ^~
+enki_interpreter.c:1299:54: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1299 |             if (obj_teks) hancurkan_objek(obj_teks); if (obj_pemisah) hancurkan_objek(obj_pemisah);
+      |                                                      ^~
+make: *** [Makefile:16: build] Error 1

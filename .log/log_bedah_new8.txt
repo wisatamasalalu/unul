@@ -1,0 +1,338 @@
+gcc -Wall -Wextra -g main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+enki_interpreter.c: In function ‘proses_sisipan_teks’:
+enki_interpreter.c:469:30: warning: unused variable ‘pesan’ [-Wunused-variable]
+  469 |                         char pesan[256];
+      |                              ^~~~~
+enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+enki_interpreter.c:916:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  916 |                 char* hasil = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:922:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  922 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:931:29: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  931 |             char* str_min = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                             ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:932:29: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  932 |             char* str_max = evaluasi_ekspresi(node->anak_anak[1], ram);
+      |                             ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:941:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  941 |             return strdup(buffer);
+      |                    ^~~~~~~~~~~~~~
+enki_interpreter.c:946:30: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  946 |             char* isi_teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                              ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:952:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  952 |             return strdup(buffer);
+      |                    ^~~~~~~~~~~~~~
+enki_interpreter.c:959:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  959 |             return strdup(buffer);
+      |                    ^~~~~~~~~~~~~~
+enki_interpreter.c:967:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  967 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:970:26: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  970 |             char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:975:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  975 |             return teks;
+      |                    ^~~~
+enki_interpreter.c:1067:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1067 |                 return strdup("0");
+      |                        ^~~~~~~~~~~
+enki_interpreter.c:1070:26: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1070 |             char* teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1071:26: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1071 |             char* pola = evaluasi_ekspresi(node->anak_anak[1], ram);
+      |                          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1095:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1095 |             return strdup(hasil_akhir);
+      |                    ^~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1100:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1100 |             char* teks_kode = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1112:32: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1112 |             char* hasil_eval = evaluasi_ekspresi(ast_eval, ram);
+      |                                ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1119:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1119 |             return hasil_eval;
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1128:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1128 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1131:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1131 |             return sihir_baca_terminal_aman("> ", 0);
+      |                    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1141:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1141 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1143:27: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1143 |             char* pesan = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                           ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1146:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1146 |             return hasil;
+      |                    ^~~~~
+enki_interpreter.c:1153:23: error: assignment to ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1153 |                 pesan = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                       ^
+enki_interpreter.c:1168:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1168 |             return hasil_bisik;
+      |                    ^~~~~~~~~~~
+enki_interpreter.c:1173:47: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1173 |             if (node->jumlah_anak < 1) return strdup("🚨 ERROR: ambil() butuh URL.");
+      |                                               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1174:25: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1174 |             char* url = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                         ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1177:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1177 |             return hasil;
+      |                    ^~~~~
+enki_interpreter.c:1189:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1189 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1191:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1191 |             char* teks_kode = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1205:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1205 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1214:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1214 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1216:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1216 |             char* teks_asli = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1217:29: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1217 |             char* pemisah = evaluasi_ekspresi(node->anak_anak[1], ram);
+      |                             ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1233:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1233 |             return strdup(buffer_array);
+      |                    ^~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1242:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1242 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1244:32: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1244 |             char* data_array = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                                ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1245:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1245 |             char* index_str = evaluasi_ekspresi(node->anak_anak[1], ram);
+      |                               ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1264:28: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1264 |                     return hasil_bersih;
+      |                            ^~~~~~~~~~~~
+enki_interpreter.c:1270:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1270 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1279:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1279 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1281:33: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1281 |             char* pola_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                                 ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1287:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1287 |             return hasil;
+      |                    ^~~~~
+enki_interpreter.c:1295:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1295 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1297:33: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1297 |             char* path_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                                 ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1303:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1303 |             return hasil;
+      |                    ^~~~~
+enki_interpreter.c:1311:24: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1311 |                 return strdup("");
+      |                        ^~~~~~~~~~
+enki_interpreter.c:1313:33: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1313 |             char* path_mentah = evaluasi_ekspresi(node->anak_anak[0], ram);
+      |                                 ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1315:28: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1315 |             char* konten = evaluasi_ekspresi(node->anak_anak[1], ram);
+      |                            ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1320:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1320 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1341:20: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1341 |             return strdup("");
+      |                    ^~~~~~~~~~
+enki_interpreter.c:1348:76: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1348 |             simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+      |                                                                            ^
+enki_interpreter.c:1366:29: error: assignment to ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1366 |                 nilai_akhir = evaluasi_ekspresi(node->anak_anak[i], ram);
+      |                             ^
+enki_interpreter.c:1368:29: error: assignment to ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1368 |                 nilai_akhir = evaluasi_ekspresi(param->kanan, &ram_lokal);
+      |                             ^
+enki_interpreter.c:1374:55: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1374 |                 simpan_ke_ram(&ram_lokal, nama_param, nilai_akhir);
+      |                                                       ^~~~~~~~~~~
+      |                                                       |
+      |                                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1380:93: error: pointer type mismatch in conditional expression [-Wincompatible-pointer-types]
+ 1380 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                                             ^
+enki_interpreter.c:1380:67: note: first expression has type ‘EnkiObject *’
+ 1380 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1380:95: note: second expression has type ‘char *’
+ 1380 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                                               ^~~~~~~~
+enki_interpreter.c:1383:16: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1383 |         return hasil_akhir;
+      |                ^~~~~~~~~~~
+enki_interpreter.c:1386:12: error: returning ‘char *’ from a function with incompatible return type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1386 |     return strdup(""); // Default return yang HALAL (berada di dalam fungsi)
+      |            ^~~~~~~~~~
+enki_interpreter.c: In function ‘evaluasi_kondisi’:
+enki_interpreter.c:1411:18: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1411 |     char* kiri = evaluasi_ekspresi(kondisi->kiri, ram);
+      |                  ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1412:19: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1412 |     char* kanan = evaluasi_ekspresi(kondisi->kanan, ram);
+      |                   ^~~~~~~~~~~~~~~~~
+enki_interpreter.c: In function ‘pemicu_kernel_panic’:
+enki_interpreter.c:1436:27: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1436 |         const char* val = baca_dari_ram(ram, "MODE_DEBUG");
+      |                           ^~~~~~~~~~~~~
+enki_interpreter.c:1462:45: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+ 1462 |                 if (ram->kavling[i].tipe == TIPE_OBJEK) {
+      |                                             ^~~~~~~~~~
+enki_interpreter.c:1462:45: note: each undeclared identifier is reported only once for each function it appears in
+enki_interpreter.c:1468:105: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1468 |                     fprintf(log, "  -> [%s] %s = \"%s\"\n", sifat, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+      |                                                                                                         ^
+enki_interpreter.c: In function ‘muat_anu’:
+enki_interpreter.c:1521:42: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1521 |     simpan_ke_ram(ram, "__STATUS_ANU__", "ADA");
+      |                                          ^~~~~
+      |                                          |
+      |                                          char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1535:39: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1535 |             simpan_ke_ram(ram, kunci, nilai);
+      |                                       ^~~~~
+      |                                       |
+      |                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘salin_ram_untuk_utas’:
+enki_interpreter.c:1552:21: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+ 1552 |     EnkiRAM* baru = ciptakan_ram_mini();
+      |                     ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1557:52: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1557 |         const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+      |                                                    ^
+enki_interpreter.c:1557:84: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1557 |         const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+      |                                                                                    ^
+enki_interpreter.c:1558:54: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1558 |         simpan_ke_ram(baru, sumber->kavling[i].nama, nilai_aman);
+      |                                                      ^~~~~~~~~~
+      |                                                      |
+      |                                                      const char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘const char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘pelari_utas_gaib’:
+enki_interpreter.c:1572:19: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1572 |     char* hasil = evaluasi_ekspresi(kapsul->simpul_panggilan, kapsul->ram_paralel);
+      |                   ^~~~~~~~~~~~~~~~~
+enki_interpreter.c: In function ‘eksekusi_node’:
+enki_interpreter.c:1589:23: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1589 |         char* hasil = evaluasi_ekspresi(node->kanan, ram);
+      |                       ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1614:22: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 1614 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                      ^~
+enki_interpreter.c:1614:42: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1614 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                          ^~
+enki_interpreter.c:1614:69: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1614 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                                                     ^~
+enki_interpreter.c:1615:52: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+ 1615 |                 jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
+      |                                                    ^~~~~~~~~~
+enki_interpreter.c:1630:38: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1630 |             simpan_ke_ram(ram, nama, "[Proses Penciptaan Objek]");
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                      |
+      |                                      char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1643:53: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+ 1643 |                 ram->kavling[id_target].anak_anak = ciptakan_ram_mini();
+      |                                                     ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1655:40: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1655 |                     char* nilai_anak = evaluasi_ekspresi(pasangan->kiri, ram);
+      |                                        ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1657:56: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1657 |                         simpan_ke_ram(ram_anak, kunci, nilai_anak);
+      |                                                        ^~~~~~~~~~
+      |                                                        |
+      |                                                        char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1670:53: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1670 |             simpan_ke_ram(ram, nama, sumber ? sumber->nilai_teks : "KOSONG");
+      |                                                     ^~
+enki_interpreter.c:1687:27: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1687 |             char* nilai = evaluasi_ekspresi(node->kanan, ram);
+      |                           ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1689:42: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1689 |                 simpan_ke_ram(ram, nama, nilai);
+      |                                          ^~~~~
+      |                                          |
+      |                                          char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1747:30: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1747 |         char* nilai_target = evaluasi_ekspresi(node->kiri, ram);
+      |                              ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1753:33: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1753 |             char* nilai_kasus = evaluasi_ekspresi(kasus->kiri, ram);
+      |                                 ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1802:34: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1802 |             const char* status = baca_dari_ram(ram, "__STATUS_ANU__");
+      |                                  ^~~~~~~~~~~~~
+enki_interpreter.c:1819:27: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1819 |         char* batas_str = evaluasi_ekspresi(node->batas_loop, ram);
+      |                           ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1851:40: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1851 |                     if (ram->kavling[j].nilai_teks) free(ram->kavling[j].nilai_teks);
+      |                                        ^
+enki_interpreter.c:1851:73: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1851 |                     if (ram->kavling[j].nilai_teks) free(ram->kavling[j].nilai_teks);
+      |                                                                         ^
+enki_interpreter.c:1852:36: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1852 |                     ram->kavling[j].nilai_teks = strdup(buffer);
+      |                                    ^
+enki_interpreter.c:1864:50: error: ‘TIPE_TEKS’ undeclared (first use in this function); did you mean ‘TOKEN_TEKS’?
+ 1864 |                 ram->kavling[ram->jumlah].tipe = TIPE_TEKS;
+      |                                                  ^~~~~~~~~
+      |                                                  TOKEN_TEKS
+enki_interpreter.c:1865:42: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1865 |                 ram->kavling[ram->jumlah].nilai_teks = strdup(buffer);
+      |                                          ^
+enki_interpreter.c:1908:31: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1908 |         char* target_mentah = evaluasi_ekspresi(node->kiri, ram);
+      |                               ^~~~~~~~~~~~~~~~~
+make: *** [Makefile:16: build] Error 1

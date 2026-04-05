@@ -53,11 +53,15 @@ void suntik_data_ke_ram(const char* path, EnkiRAM* ram) {
     if (!isi) return;
 
     char* nama_var = buat_nama_variabel(path);
-    // Sesuai header: simpan_ke_ram(ram, nama, nilai)
-    simpan_ke_ram(ram, nama_var, isi);
+    
+    // 🟢 SUNTIKAN JANTUNG: Bungkus teks mentah menjadi Objek Dewa!
+    EnkiObject* obj_isi = ciptakan_teks(isi);
+    
+    // Simpan ke RAM menggunakan objek yang baru diciptakan
+    simpan_ke_ram(ram, nama_var, obj_isi);
     
     free(nama_var);
-    free(isi);
+    free(isi); // Aman dibebaskan karena ciptakan_teks sudah menduplikasi isinya
 }
 
 void muat_ingatan(EnkiRAM* ram) {

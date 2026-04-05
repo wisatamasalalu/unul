@@ -1,0 +1,13 @@
+gcc -Wall -Wextra -g main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+enki_interpreter.c: In function ‘proses_sisipan_teks’:
+enki_interpreter.c:483:25: error: implicit declaration of function ‘objek_ke_string’ [-Wimplicit-function-declaration]
+  483 |                         objek_ke_string(obj_nilai, buf_temp, sizeof(buf_temp));
+      |                         ^~~~~~~~~~~~~~~
+enki_interpreter.c: At top level:
+enki_interpreter.c:571:6: warning: conflicting types for ‘objek_ke_string’; have ‘void(EnkiObject *, char *, size_t)’ {aka ‘void(EnkiObject *, char *, long unsigned int)’}
+  571 | void objek_ke_string(EnkiObject* obj, char* buffer, size_t ukuran) {
+      |      ^~~~~~~~~~~~~~~
+enki_interpreter.c:483:25: note: previous implicit declaration of ‘objek_ke_string’ with type ‘void(EnkiObject *, char *, size_t)’ {aka ‘void(EnkiObject *, char *, long unsigned int)’}
+  483 |                         objek_ke_string(obj_nilai, buf_temp, sizeof(buf_temp));
+      |                         ^~~~~~~~~~~~~~~
+make: *** [Makefile:16: build] Error 1

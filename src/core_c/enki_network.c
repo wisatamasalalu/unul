@@ -35,7 +35,8 @@ char* sihir_ambil(const char* url) {
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tulis_memori_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-        curl_easy_setopt(curl, CURLOPT_USERAGENT, "UNUL-OS-Engine/1.0");
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
+        // curl_easy_setopt(curl, CURLOPT_USERAGENT, "UNUL-OS-Engine/1.0");
         
         res = curl_easy_perform(curl);
         if(res != CURLE_OK) {

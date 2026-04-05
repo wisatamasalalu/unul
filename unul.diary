@@ -1,0 +1,99 @@
+=== [WAKTU KIAMAT: 1775371461] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka '.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah menyisir lokasi berikut:
+1. Folder Lokal (./)
+2. Folder Pustaka Aplikasi (./lib/)
+3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)
+4. Jalur User (~/.unul/lib/)
+5. Jalur Lokal User (~/.local/lib/unul/)
+
+Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371469] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'pustaka.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah menyisir lokasi berikut:
+1. Folder Lokal (./)
+2. Folder Pustaka Aplikasi (./lib/)
+3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)
+4. Jalur User (~/.unul/lib/)
+5. Jalur Lokal User (~/.local/lib/unul/)
+
+Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371483] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'pustaka.unul' DITOLAK!
+   Saran: ⚠️ PERINGATAN DIMENSI:
+Sesuai Hukum Dasar UNUL, perintah 'sowan' HANYA untuk pustaka (.unll).
+Ekstensi '.unul' tidak diizinkan di jalur ini.
+
+💡 SOLUSI: Gunakan 'baca()' jika ingin mengambil data.
+Contoh: takdir.soft data = baca("pustaka.unul")
+=================================
+
+=== [WAKTU KIAMAT: 1775371515] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'pustaka.unul' DITOLAK!
+   Saran: ⚠️ PERINGATAN DIMENSI:
+Sesuai Hukum Dasar UNUL, perintah 'sowan' HANYA untuk pustaka (.unll).
+Ekstensi '.unul' tidak diizinkan di jalur ini.
+
+💡 SOLUSI: Gunakan 'baca()' jika ingin mengambil data.
+Contoh: takdir.soft data = baca("pustaka.unul")
+=================================
+
+=== [WAKTU KIAMAT: 1775371532] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'pustaka.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah menyisir lokasi berikut:
+1. Folder Lokal (./)
+2. Folder Pustaka Aplikasi (./lib/)
+3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)
+4. Jalur User (~/.unul/lib/)
+5. Jalur Lokal User (~/.local/lib/unul/)
+
+Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371540] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka '"pustaka.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah menyisir lokasi berikut:
+1. Folder Lokal (./)
+2. Folder Pustaka Aplikasi (./lib/)
+3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)
+4. Jalur User (~/.unul/lib/)
+5. Jalur Lokal User (~/.local/lib/unul/)
+
+Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371548] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Pustaka 'pustaka.unll' tidak ditemukan di alam manapun!
+   Saran: Radar UNUL sudah menyisir lokasi berikut:
+1. Folder Lokal (./)
+2. Folder Pustaka Aplikasi (./lib/)
+3. Jalur Sistem (/usr/lib/unul/ atau /opt/unul/lib/)
+4. Jalur User (~/.unul/lib/)
+5. Jalur Lokal User (~/.local/lib/unul/)
+
+Hasil: NIHIL. Pastikan file ada atau gunakan 'cari()' untuk melacak koordinatnya.
+=================================
+
+=== [WAKTU KIAMAT: 1775371589] ===
+🚨 [<unul-cli>: Baris 1:8] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan!
+   Saran: Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.
+Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.
+=================================
+
+=== [TABU DILANGGAR] ===
+Waktu Kejadian : 2026-04-05 13:47:07
+Pesan Alam     : Pelanggaran Hukum Takdir: Variabel 'hard' (=) tidak boleh diubah!
+Status         : MODE PRODUKSI (Minimal Log)
+Saran          : Aktifkan MODE_DEBUG=1 di file .anu untuk melihat tumpahan RAM.
+========================
+
+=== [WAKTU KIAMAT: 1775371681] ===
+🚨 [<unul-cli>: Baris 1:13] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan!
+   Saran: Anda mencoba mengubah nilai sebuah variabel (menggunakan tanda '='), tetapi variabel tersebut tidak ditemukan di RAM.
+Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu untuk menciptakannya.
+=================================
+

@@ -1,0 +1,349 @@
+gcc -Wall -Wextra -g main.c enki_os.c enki_lexer.c enki_parser.c enki_interpreter.c enki_scheduler.c enki_network.c enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+main.c: In function ‘suntik_data_ke_ram’:
+main.c:57:34: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+   57 |     simpan_ke_ram(ram, nama_var, isi);
+      |                                  ^~~
+      |                                  |
+      |                                  char *
+In file included from main.c:10:
+enki_interpreter.h:73:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+   73 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek); // 🟢 UBAH PARAMETER
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘inisialisasi_ram’:
+enki_interpreter.c:40:5: error: expected ‘;’ before ‘ram’
+   40 |     ram.nilai_kembalian = NULL;
+      |     ^~~
+enki_interpreter.c: In function ‘cari_kavling_domain’:
+enki_interpreter.c:301:37: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+  301 |         if (induk && induk->tipe == TIPE_OBJEK && induk->anak_anak) {
+      |                                     ^~~~~~~~~~
+enki_interpreter.c:301:37: note: each undeclared identifier is reported only once for each function it appears in
+enki_interpreter.c: In function ‘temukan_atau_ciptakan_kavling’:
+enki_interpreter.c:334:32: error: ‘TIPE_TEKS’ undeclared (first use in this function); did you mean ‘TOKEN_TEKS’?
+  334 |             if (induk->tipe == TIPE_TEKS) {
+      |                                ^~~~~~~~~
+      |                                TOKEN_TEKS
+enki_interpreter.c:335:26: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  335 |                 if (induk->nilai_teks) { free(induk->nilai_teks); induk->nilai_teks = NULL; }
+      |                          ^~
+enki_interpreter.c:335:52: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  335 |                 if (induk->nilai_teks) { free(induk->nilai_teks); induk->nilai_teks = NULL; }
+      |                                                    ^~
+enki_interpreter.c:335:72: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  335 |                 if (induk->nilai_teks) { free(induk->nilai_teks); induk->nilai_teks = NULL; }
+      |                                                                        ^~
+enki_interpreter.c:336:31: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+  336 |                 induk->tipe = TIPE_OBJEK;
+      |                               ^~~~~~~~~~
+enki_interpreter.c:337:36: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+  337 |                 induk->anak_anak = ciptakan_ram_mini();
+      |                                    ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:350:55: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+  350 |             simpan_ke_ram(ram_anak, node->nilai_teks, "[MUTASI]");
+      |                                                       ^~~~~~~~~~
+      |                                                       |
+      |                                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘proses_sisipan_teks’:
+enki_interpreter.c:460:41: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  460 |                     const char* nilai = baca_dari_ram(ram, nama_var);
+      |                                         ^~~~~~~~~~~~~
+enki_interpreter.c: At top level:
+enki_interpreter.c:559:7: error: conflicting types for ‘evaluasi_ekspresi’; have ‘char *(ASTNode *, EnkiRAM *)’
+  559 | char* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
+      |       ^~~~~~~~~~~~~~~~~
+In file included from enki_interpreter.c:14:
+enki_interpreter.h:77:13: note: previous declaration of ‘evaluasi_ekspresi’ with type ‘EnkiObject *(ASTNode *, EnkiRAM *)’
+   77 | EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram);                  // 🟢 UBAH RETURN TYPE
+      |             ^~~~~~~~~~~~~~~~~
+enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+enki_interpreter.c:607:39: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+  607 |         simpan_ke_ram(ram, nama_anon, "<fungsi_panah>");
+      |                                       ^~~~~~~~~~~~~~~~
+      |                                       |
+      |                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:665:30: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+  665 |         if (kavling->tipe == TIPE_OBJEK) {
+      |                              ^~~~~~~~~~
+enki_interpreter.c:668:30: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  668 |         return strdup(kavling->nilai_teks ? kavling->nilai_teks : "");
+      |                              ^~
+enki_interpreter.c:668:52: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  668 |         return strdup(kavling->nilai_teks ? kavling->nilai_teks : "");
+      |                                                    ^~
+enki_interpreter.c:681:23: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  681 |             if (target->nilai_teks) {
+      |                       ^~
+enki_interpreter.c:682:37: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  682 |                 return strdup(target->nilai_teks);
+      |                                     ^~
+enki_interpreter.c:736:70: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+  736 |                             simpan_ke_ram(ram, var_kiri->nilai_teks, nilai_bersih);
+      |                                                                      ^~~~~~~~~~~~
+      |                                                                      |
+      |                                                                      char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:760:22: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+  760 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                      ^~
+enki_interpreter.c:760:42: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  760 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                          ^~
+enki_interpreter.c:760:69: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  760 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                                                     ^~
+enki_interpreter.c:781:37: error: ‘TIPE_TEKS’ undeclared (first use in this function); did you mean ‘TOKEN_TEKS’?
+  781 |                 if (target->tipe == TIPE_TEKS && target->nilai_teks) {
+      |                                     ^~~~~~~~~
+      |                                     TOKEN_TEKS
+enki_interpreter.c:781:56: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  781 |                 if (target->tipe == TIPE_TEKS && target->nilai_teks) {
+      |                                                        ^~
+enki_interpreter.c:782:32: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  782 |                     free(target->nilai_teks);
+      |                                ^~
+enki_interpreter.c:783:27: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  783 |                     target->nilai_teks = NULL;
+      |                           ^~
+enki_interpreter.c:795:31: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  795 |                         target->nilai_teks = strdup(sumber->nilai_teks ? sumber->nilai_teks : "KOSONG");
+      |                               ^~
+enki_interpreter.c:795:59: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  795 |                         target->nilai_teks = strdup(sumber->nilai_teks ? sumber->nilai_teks : "KOSONG");
+      |                                                           ^~
+enki_interpreter.c:795:80: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  795 |                         target->nilai_teks = strdup(sumber->nilai_teks ? sumber->nilai_teks : "KOSONG");
+      |                                                                                ^~
+enki_interpreter.c:802:45: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  802 |                         return strdup(target->nilai_teks ? target->nilai_teks : "[Wujud Objek]");
+      |                                             ^~
+enki_interpreter.c:802:66: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  802 |                         return strdup(target->nilai_teks ? target->nilai_teks : "[Wujud Objek]");
+      |                                                                  ^~
+enki_interpreter.c:809:41: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+  809 |                     target->anak_anak = ciptakan_ram_mini();
+      |                                         ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:820:69: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+  820 |                             simpan_ke_ram(target->anak_anak, kunci, nilai_anak);
+      |                                                                     ^~~~~~~~~~
+      |                                                                     |
+      |                                                                     char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:830:27: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  830 |                     target->nilai_teks = hasil_masa_depan ? strdup(hasil_masa_depan) : strdup("");
+      |                           ^~
+enki_interpreter.c:831:61: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+  831 |                     snprintf(hasil_akhir, 1024, "%s", target->nilai_teks);
+      |                                                             ^~
+enki_interpreter.c:927:31: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+  927 |         const char* mem_arr = baca_dari_ram(ram, node->kiri->nilai_teks);
+      |                               ^~~~~~~~~~~~~
+enki_interpreter.c:1372:76: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1372 |             simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+      |                                                                            ^
+enki_interpreter.c:1398:55: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1398 |                 simpan_ke_ram(&ram_lokal, nama_param, nilai_akhir);
+      |                                                       ^~~~~~~~~~~
+      |                                                       |
+      |                                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1404:93: error: pointer type mismatch in conditional expression [-Wincompatible-pointer-types]
+ 1404 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                                             ^
+enki_interpreter.c:1404:67: note: first expression has type ‘EnkiObject *’
+ 1404 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+enki_interpreter.c:1404:95: note: second expression has type ‘char *’
+ 1404 |         char* hasil_akhir = strdup(ram_lokal.status_pulang == 1 ? ram_lokal.nilai_kembalian : "KOSONG");
+      |                                                                                               ^~~~~~~~
+enki_interpreter.c: In function ‘pemicu_kernel_panic’:
+enki_interpreter.c:1460:27: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1460 |         const char* val = baca_dari_ram(ram, "MODE_DEBUG");
+      |                           ^~~~~~~~~~~~~
+enki_interpreter.c:1486:45: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+ 1486 |                 if (ram->kavling[i].tipe == TIPE_OBJEK) {
+      |                                             ^~~~~~~~~~
+enki_interpreter.c:1492:105: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1492 |                     fprintf(log, "  -> [%s] %s = \"%s\"\n", sifat, ram->kavling[i].nama, ram->kavling[i].nilai_teks);
+      |                                                                                                         ^
+enki_interpreter.c: In function ‘muat_anu’:
+enki_interpreter.c:1545:42: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1545 |     simpan_ke_ram(ram, "__STATUS_ANU__", "ADA");
+      |                                          ^~~~~
+      |                                          |
+      |                                          char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1559:39: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1559 |             simpan_ke_ram(ram, kunci, nilai);
+      |                                       ^~~~~
+      |                                       |
+      |                                       char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘salin_ram_untuk_utas’:
+enki_interpreter.c:1576:21: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+ 1576 |     EnkiRAM* baru = ciptakan_ram_mini();
+      |                     ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1581:52: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1581 |         const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+      |                                                    ^
+enki_interpreter.c:1581:84: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1581 |         const char* nilai_aman = sumber->kavling[i].nilai_teks ? sumber->kavling[i].nilai_teks : "KOSONG";
+      |                                                                                    ^
+enki_interpreter.c:1582:54: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1582 |         simpan_ke_ram(baru, sumber->kavling[i].nama, nilai_aman);
+      |                                                      ^~~~~~~~~~
+      |                                                      |
+      |                                                      const char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘const char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c: In function ‘eksekusi_node’:
+enki_interpreter.c:1638:22: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 1638 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                      ^~
+enki_interpreter.c:1638:42: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1638 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                          ^~
+enki_interpreter.c:1638:69: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1638 |                 jejak->nilai_teks = induk->nilai_teks ? strdup(induk->nilai_teks) : NULL;
+      |                                                                     ^~
+enki_interpreter.c:1639:52: error: ‘TIPE_OBJEK’ undeclared (first use in this function)
+ 1639 |                 jejak->anak_anak = (induk->tipe == TIPE_OBJEK && induk->anak_anak) ? salin_ram_rekursif(induk->anak_anak) : NULL;
+      |                                                    ^~~~~~~~~~
+enki_interpreter.c:1654:38: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1654 |             simpan_ke_ram(ram, nama, "[Proses Penciptaan Objek]");
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                                      |
+      |                                      char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1667:53: error: too few arguments to function ‘ciptakan_ram_mini’; expected 1, have 0
+ 1667 |                 ram->kavling[id_target].anak_anak = ciptakan_ram_mini();
+      |                                                     ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:145:10: note: declared here
+  145 | EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) { // 🟢 DITAMBAH PARAMETER INDUK
+      |          ^~~~~~~~~~~~~~~~~
+enki_interpreter.c:1681:56: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1681 |                         simpan_ke_ram(ram_anak, kunci, nilai_anak);
+      |                                                        ^~~~~~~~~~
+      |                                                        |
+      |                                                        char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1694:53: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1694 |             simpan_ke_ram(ram, nama, sumber ? sumber->nilai_teks : "KOSONG");
+      |                                                     ^~
+enki_interpreter.c:1713:42: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 1713 |                 simpan_ke_ram(ram, nama, nilai);
+      |                                          ^~~~~
+      |                                          |
+      |                                          char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:1826:34: error: initialization of ‘const char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+ 1826 |             const char* status = baca_dari_ram(ram, "__STATUS_ANU__");
+      |                                  ^~~~~~~~~~~~~
+enki_interpreter.c:1875:40: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1875 |                     if (ram->kavling[j].nilai_teks) free(ram->kavling[j].nilai_teks);
+      |                                        ^
+enki_interpreter.c:1875:73: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1875 |                     if (ram->kavling[j].nilai_teks) free(ram->kavling[j].nilai_teks);
+      |                                                                         ^
+enki_interpreter.c:1876:36: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1876 |                     ram->kavling[j].nilai_teks = strdup(buffer);
+      |                                    ^
+enki_interpreter.c:1888:50: error: ‘TIPE_TEKS’ undeclared (first use in this function); did you mean ‘TOKEN_TEKS’?
+ 1888 |                 ram->kavling[ram->jumlah].tipe = TIPE_TEKS;
+      |                                                  ^~~~~~~~~
+      |                                                  TOKEN_TEKS
+enki_interpreter.c:1889:42: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 1889 |                 ram->kavling[ram->jumlah].nilai_teks = strdup(buffer);
+      |                                          ^
+enki_interpreter.c:2063:77: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2063 |                     if (ram->kavling[i].tipe == TIPE_TEKS && ram->kavling[i].nilai_teks) {
+      |                                                                             ^
+enki_interpreter.c:2064:45: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2064 |                         free(ram->kavling[i].nilai_teks);
+      |                                             ^
+enki_interpreter.c:2073:36: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2073 |                     ram->kavling[i].nilai_teks = strdup("KOSONG");
+      |                                    ^
+enki_interpreter.c:2135:50: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2135 |             if (induk->tipe == TIPE_TEKS && induk->nilai_teks) free(induk->nilai_teks);
+      |                                                  ^~
+enki_interpreter.c:2135:74: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2135 |             if (induk->tipe == TIPE_TEKS && induk->nilai_teks) free(induk->nilai_teks);
+      |                                                                          ^~
+enki_interpreter.c:2142:18: error: ‘KavlingMemori’ has no member named ‘nilai_teks’
+ 2142 |             induk->nilai_teks = masa_lalu->nilai_teks ? strdup(masa_lalu->nilai_teks) : NULL;
+      |                  ^~
+enki_interpreter.c:2142:42: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 2142 |             induk->nilai_teks = masa_lalu->nilai_teks ? strdup(masa_lalu->nilai_teks) : NULL;
+      |                                          ^~
+enki_interpreter.c:2142:73: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 2142 |             induk->nilai_teks = masa_lalu->nilai_teks ? strdup(masa_lalu->nilai_teks) : NULL;
+      |                                                                         ^~
+enki_interpreter.c:2146:26: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 2146 |             if (masa_lalu->nilai_teks) free(masa_lalu->nilai_teks);
+      |                          ^~
+enki_interpreter.c:2146:54: error: ‘JejakMasaLalu’ has no member named ‘nilai_teks’
+ 2146 |             if (masa_lalu->nilai_teks) free(masa_lalu->nilai_teks);
+      |                                                      ^~
+enki_interpreter.c:2179:57: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 2179 |                 simpan_ke_ram(ram, node->nilai_teks, ram->pesan_error_tabu);
+      |                                                      ~~~^~~~~~~~~~~~~~~~~~
+      |                                                         |
+      |                                                         char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:2201:46: error: passing argument 3 of ‘simpan_ke_ram’ from incompatible pointer type [-Wincompatible-pointer-types]
+ 2201 |         simpan_ke_ram(ram, node->nilai_teks, "<fungsi_kustom>");
+      |                                              ^~~~~~~~~~~~~~~~~
+      |                                              |
+      |                                              char *
+enki_interpreter.c:197:64: note: expected ‘EnkiObject *’ but argument is of type ‘char *’
+  197 | void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
+      |                                                    ~~~~~~~~~~~~^~~~~~~~~~~
+enki_interpreter.c:2224:38: error: assignment to ‘EnkiObject *’ from incompatible pointer type ‘char *’ [-Wincompatible-pointer-types]
+ 2224 |                 ram->nilai_kembalian = strdup(hasil); // Duplikasi tanpa batas
+      |                                      ^
+enki_interpreter.c:2229:34: error: assignment to ‘EnkiObject *’ from incompatible pointer type ‘char *’ [-Wincompatible-pointer-types]
+ 2229 |             ram->nilai_kembalian = strdup("KOSONG");
+      |                                  ^
+enki_scheduler.c: In function ‘pelari_jadwal’:
+enki_scheduler.c:39:24: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+   39 |     char* target_str = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+      |                        ^~~~~~~~~~~~~~~~~
+enki_scheduler.c: In function ‘pelari_effort’:
+enki_scheduler.c:54:26: error: initialization of ‘char *’ from incompatible pointer type ‘EnkiObject *’ [-Wincompatible-pointer-types]
+   54 |     char* interval_str = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+      |                          ^~~~~~~~~~~~~~~~~
+make: *** [Makefile:16: build] Error 1
