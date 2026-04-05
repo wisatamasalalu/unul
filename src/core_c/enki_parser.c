@@ -43,6 +43,23 @@ void kiamat_sintaksis(Parser* p, const char* pesan, const char* panduan_cerdas) 
     exit(1); 
 }
 
+// Fungsi Pemaksa Hukum Enlil
+void harapkan_token(Parser* p, TokenJenis jenis_harapan, const char* pesan_error) {
+    Token t = token_sekarang(p);
+    
+    if (t.jenis == jenis_harapan) {
+        // Jika token sesuai harapan (misal: kurung tutup), makan dan lanjut!
+        maju(p); 
+    } else {
+        // Jika tidak sesuai harapan, KIAMAT SINTAKSIS terjadi seketika!
+        char pesan_detail[512];
+        snprintf(pesan_detail, sizeof(pesan_detail), 
+            "%s\n(Mendapatkan '%s' alih-alih token yang sah)", pesan_error, t.isi);
+            
+        kiamat_sintaksis(p, "Hukum Tata Bahasa Dilanggar!", pesan_detail);
+    }
+}
+
 // --- 2. PENCIPTAAN NODE ---
 ASTNode* buat_node(ASTJenis jenis, Parser* p) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
@@ -195,8 +212,8 @@ ASTNode* parse_nilai_dasar(Parser* p) {
         maju(p); // Lewati '('
         simpul_kiri = parse_ekspresi(p); 
         
-        if (token_sekarang(p).jenis == TOKEN_KURUNG_T) maju(p); 
-        else kiamat_sintaksis(p, "Kurung hilang!", "Tutup dengan ')'");
+        // 🟢 SUNTIKAN 4
+        harapkan_token(p, TOKEN_KURUNG_T, "Operasi dalam kurung kehilangan kurung tutup ')'.\n💡 SOLUSI: Pastikan jumlah kurung buka dan tutup seimbang.");
         
         return simpul_kiri;
     }
@@ -232,13 +249,22 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             // Cek Panggilan Fungsi
             if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
                 simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
-                maju(p); 
+                maju(p); // Lewati '('
+                
                 while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
                     ASTNode* arg = parse_ekspresi(p); 
                     if (arg) tambah_anak(simpul_kiri, arg); 
                     if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
                 }
-                maju(p); 
+                
+                // 🟢 SUNTIKAN 2: Dinamis sesuai nama fungsi yang dipanggil
+                char pesan_fungsi[256];
+                snprintf(pesan_fungsi, sizeof(pesan_fungsi), 
+                    "Pemanggilan fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
+                    "💡 SOLUSI: Pastikan setiap fungsi ditutup dengan benar. Contoh: %s()", 
+                    simpul_kiri->nilai_teks, simpul_kiri->nilai_teks);
+                    
+                harapkan_token(p, TOKEN_KURUNG_T, pesan_fungsi);
             }
             // Cek Akses Array
             else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
@@ -246,7 +272,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
                 node_akses->kiri = simpul_kiri;
                 maju(p);
                 node_akses->indeks_array = parse_ekspresi(p);
-                maju(p);
+                harapkan_token(p, TOKEN_KURUNG_S_T, "Akses elemen array kehilangan kurung siku penutup ']'.\n💡 CONTOH: nama_variabel[0]");
                 simpul_kiri = node_akses;
             }
         
@@ -262,7 +288,8 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             if (elemen) tambah_anak(simpul_kiri, elemen); 
             if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
         }
-        maju(p); 
+        // 🟢 SUNTIKAN SIKU (ARRAY LITERAL) YANG BENAR!
+        harapkan_token(p, TOKEN_KURUNG_S_T, "Kehilangan kurung siku penutup ']' pada pembuatan Array.\n💡 SOLUSI: Pastikan daftar elemen Anda ditutup dengan benar."); 
         return simpul_kiri;
     }
 
@@ -294,7 +321,8 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             
             if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // Lewati koma antar properti
         }
-        maju(p); // Lewati '}'
+        // 🟢 SUNTIKAN KURAWAL (OBJEK/DOMAIN) - Menggantikan maju(p); di sini!
+        harapkan_token(p, TOKEN_KURUNG_K_T, "Kehilangan kurung kurawal penutup '}' pada pembuatan Objek/Domain.\n💡 PANDUAN: Pastikan format Anda sesuai. Contoh: { \"nama\": \"Enki\" }");
         return simpul_kiri;
     }
 
@@ -613,11 +641,13 @@ ASTNode* parse_pernyataan(Parser* p) {
     if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "ketik") == 0) {
         ASTNode* node = buat_node(AST_PERINTAH_KETIK, p);
         maju(p); // lewati kata 'ketik'
-        maju(p); // lewati '('
+        // 🟢 SUNTIKAN 1 (Buka)
+        harapkan_token(p, TOKEN_KURUNG_B, "Fungsi 'ketik' membutuhkan tanda '(' untuk memulai argumen.");
         
         node->kanan = parse_ekspresi(p); // Tangkap apapun yang ada di dalam kurung
         
-        maju(p); // lewati ')'
+        // 🟢 SUNTIKAN 1 (Tutup)
+        harapkan_token(p, TOKEN_KURUNG_T, "Fungsi 'ketik' kehilangan tanda kurung tutup ')'.\n💡 SOLUSI: Pastikan Anda menutup fungsi dengan benar.");
         return node;
     }
     
@@ -855,13 +885,20 @@ ASTNode* parse_pernyataan(Parser* p) {
             maju(p); // lewati '('
             while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
                 
-                // Gunakan parse_ekspresi agar mesin bisa membaca tanda '='
                 ASTNode* param = parse_ekspresi(p); 
-                tambah_anak(node, param); // Masukkan ke daftar parameter
+                tambah_anak(node, param);
 
                 if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
             }
-            maju(p); // lewati ')'
+            
+            // 🟢 SUNTIKAN 3: Kiamat Kurung Tutup Parameter
+            char pesan_param[256];
+            snprintf(pesan_param, sizeof(pesan_param), 
+                "Deklarasi fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
+                "💡 SOLUSI: Pastikan parameter fungsi ditutup sebelum kata 'maka'.", 
+                node->nilai_teks ? node->nilai_teks : "kustom");
+                
+            harapkan_token(p, TOKEN_KURUNG_T, pesan_param);
         }
 
         // Lewati 'maka'
@@ -1048,10 +1085,25 @@ ASTNode* parse_pernyataan(Parser* p) {
             "Kata 'maka' dan 'lain' hanya bisa digunakan sebagai pasangan dari perintah 'jika'.");
     }
 
-    // Jika bukan apa-apa, maju 1 langkah agar tidak infinite loop
-    maju(p);
+    // ... (blok if untuk TOKEN_TAKDIR, TOKEN_KARMA, dll) ...
+
+    // 🟢 SUNTIKAN KIAMAT MUTLAK (CATCH-ALL) 🟢
+    // Jika kode sampai di titik ini, berarti token sama sekali tidak dikenali 
+    // atau posisinya melanggar Hukum Enlil (misal: takdir*)
+    char pesan_kiamat[256];
+    snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Sintaksis tersesat pada token: '%s'", t.isi);
+        
+    kiamat_sintaksis(p, pesan_kiamat, 
+        "Mesin tidak memahami maksud dari ejaan ini.\n"
+        "💡 PENYEBAB MUNGKIN:\n"
+        "1. Ada karakter ilegal (seperti %s, *, @, atau °) di luar tanda kutip teks.\n"
+        "2. Anda salah mengetik Hukum Takdir, Siklus, atau Karma.\n"
+        "Mesin dihentikan untuk mencegah kerusakan dimensi!");
+            
+    // WAJIB: Hentikan program agar tidak infinite loop!
+    exit(1); 
     return NULL;
-}
+}    
 
 // Pintu Masuk Parser: Membaca seluruh file hingga ketemu EOF
 ASTNode* parse_program(Parser* p) {

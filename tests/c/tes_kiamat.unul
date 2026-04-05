@@ -2,6 +2,14 @@ datang
 
 ketik("=== MENGUJI PERISAI KIAMAT UNUL ===")
 
+ketik("Selamat datang")
+^^ takdir*
+^^ # comentar ala python
+^^ $ bash
+^^ * hei 
+^^ %s
+^ cuma 1 ini ^ nya hehee
+
 ^^ DOSA 1: Lupa tanda kutip (Interpreter Error - Variabel Gaib)
 ^^ ketik(Halo Dunia)
 

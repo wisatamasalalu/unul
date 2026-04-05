@@ -1,0 +1,7 @@
+=== [WAKTU KIAMAT: 1775358266] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Fungsi tulis() butuh target dan isi!
+   Kode Penyebab: tulis
+   Saran: Anda tidak memberikan tujuan atau data yang akan ditulis.
+Contoh: tulis("output.txt", data)
+=================================
+

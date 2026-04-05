@@ -3,36 +3,58 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-// --- 1. ENUMERASI TIPE (Identitas Zat) ---
+// 1. Identitas Zat Dimensi
 typedef enum {
-    ENKI_TEKS,      // String biasa
-    ENKI_ANGKA,     // Double / Desimal
-    ENKI_ARRAY,     // Daftar berindeks (1, 2, 3...)
-    ENKI_OBJEK,     // Peta Kunci-Nilai (Map/JSON)
-    ENKI_BLOB,      // Data Biner Mentah (Untuk .unuls atau File)
-    ENKI_KOSONG     // Status hampa (NULL/VOID)
+    ENKI_ANGKA,     // Desimal / Integer (1, 3.14)
+    ENKI_TEKS,      // String ("Halo")
+    ENKI_ARRAY,     // Daftar berindeks biasa ([1, 2, 3]) -> Hanya punya .ko
+    ENKI_OBJEK,     // Peta Kunci-Nilai (JSON) -> Punya .ku dan .ko
+    ENKI_BLOB,      // Biner/Berkas Mentah
+    ENKI_KOSONG     // Void / Null
 } TipeEnki;
 
-// --- 2. STRUKTUR UTAMA (EnkiObject) ---
+// 2. Struktur Anatomi Gabungan (Sintesis Hemat Memori & Fitur Ku/Ko)
 typedef struct EnkiObject {
     TipeEnki tipe;
     
-    // Data Tunggal (Untuk Teks/Angka)
-    char* v_teks;
-    double v_angka;
-
-    // Data Kolektif (Inilah jantung .ku dan .ko)
-    // Kita menggunakan pointer ke pointer agar bisa menampung list of objects
-    struct EnkiObject** kunci;   // Wadah untuk .ku
-    struct EnkiObject** konten;  // Wadah untuk .ko
+    // RAM HANYA akan memesan memori untuk SALAH SATU bentuk di bawah ini!
+    union {
+        double angka;
+        char* teks;
+        
+        // Wujud untuk ENKI_ARRAY
+        struct EnkiObject** array_elemen; 
+        
+        // Wujud untuk ENKI_OBJEK (Sintesis dari kode lama Anda: Mendukung .ku dan .ko)
+        struct {
+            struct EnkiObject** kunci;
+            struct EnkiObject** konten;
+        } objek_peta;
+        
+        // Wujud untuk ENKI_BLOB
+        struct {
+            unsigned char* data;
+            size_t ukuran;
+        } blob;
+        
+    } nilai;
     
-    int jumlah;                  // Wadah untuk .panjang
-    size_t ukuran_biner;         // Khusus untuk ENKI_BLOB
+    int panjang; // Ukuran (Bisa untuk panjang teks, jumlah array, atau jumlah objek)
 } EnkiObject;
 
-// --- 3. PROTOTIPE FUNGSI DASAR ---
-EnkiObject* ciptakan_objek(TipeEnki tipe);
+// 3. Mantra Penciptaan
+EnkiObject* ciptakan_angka(double nilai);
+EnkiObject* ciptakan_teks(const char* nilai);
+EnkiObject* ciptakan_array(int kapasitas);
+EnkiObject* ciptakan_objek_peta(int kapasitas); // Untuk Dictionary/JSON
+EnkiObject* ciptakan_kosong();
+
+// 4. Mantra Penghancur
 void hancurkan_objek(EnkiObject* obj);
+
+// 5. Utilitas
+void cetak_objek(EnkiObject* obj);
 
 #endif

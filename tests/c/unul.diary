@@ -286,3 +286,19 @@ Ekstensi '.csv' tidak diizinkan di jalur ini.
 Contoh: takdir.soft data = baca("list_test.csv")
 =================================
 
+=== [WAKTU KIAMAT: 1775361294] ===
+🚨 [tes_kiamat.unul: Baris 8:3] KIAMAT SINTAKSIS: Variabel 'bash' belum diciptakan di realita ini.
+   Kode Penyebab: bash
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775366230] ===
+🚨 [tes_kiamat.unul: Baris 6:1] KIAMAT SINTAKSIS: Variabel 'takdir' belum diciptakan di realita ini.
+   Kode Penyebab: takdir
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+

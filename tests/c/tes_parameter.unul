@@ -12,6 +12,6 @@ sapa()
 sapa("Enki")
 
 ^^ Menguji dengan argumen lengkap
-sapa("Nabhan", "Arsitek Agung")
+sapa("Hello Kitty", "Arsitek Agung")
 
 pergi

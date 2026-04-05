@@ -1,46 +1,117 @@
 #include "enki_object.h"
-#include <string.h>
 
-// --- FUNGSI UNTUK MELAHIRKAN OBJEK BARU ---
-EnkiObject* ciptakan_objek(TipeEnki tipe) {
-    // 1. Alokasikan ruang di RAM sebesar struktur EnkiObject
+// ==========================================
+// 🏭 PABRIK PENCIPTAAN (CONSTRUCTORS)
+// ==========================================
+
+EnkiObject* ciptakan_angka(double nilai) {
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
-    
-    if (obj == NULL) {
-        printf("🚨 BENCANA MEMORI: Gagal melahirkan objek baru!\n");
-        return NULL;
-    }
-
-    // 2. Tentukan identitasnya
-    obj->tipe = tipe;
-    
-    // 3. Inisialisasi awal (Nol-kan semua agar tidak ada data sampah)
-    obj->v_teks = NULL;
-    obj->v_angka = 0.0;
-    obj->kunci = NULL;
-    obj->konten = NULL;
-    obj->jumlah = 0;
-    obj->ukuran_biner = 0;
-
+    obj->tipe = ENKI_ANGKA;
+    obj->nilai.angka = nilai;
+    obj->panjang = 0;
     return obj;
 }
 
-// --- FUNGSI UNTUK MENGHAPUS OBJEK (PEMBERSIH DIMENSI) ---
+EnkiObject* ciptakan_teks(const char* nilai) {
+    EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
+    obj->tipe = ENKI_TEKS;
+    if (nilai) {
+        obj->nilai.teks = strdup(nilai);
+        obj->panjang = strlen(nilai);
+    } else {
+        obj->nilai.teks = strdup("");
+        obj->panjang = 0;
+    }
+    return obj;
+}
+
+EnkiObject* ciptakan_array(int kapasitas) {
+    EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
+    obj->tipe = ENKI_ARRAY;
+    obj->panjang = 0; // Mulai dari 0, bertambah saat diisi
+    if (kapasitas > 0) {
+        obj->nilai.array_elemen = (EnkiObject**)calloc(kapasitas, sizeof(EnkiObject*));
+    } else {
+        obj->nilai.array_elemen = NULL;
+    }
+    return obj;
+}
+
+EnkiObject* ciptakan_objek_peta(int kapasitas) {
+    EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
+    obj->tipe = ENKI_OBJEK;
+    obj->panjang = 0;
+    if (kapasitas > 0) {
+        obj->nilai.objek_peta.kunci = (EnkiObject**)calloc(kapasitas, sizeof(EnkiObject*));
+        obj->nilai.objek_peta.konten = (EnkiObject**)calloc(kapasitas, sizeof(EnkiObject*));
+    } else {
+        obj->nilai.objek_peta.kunci = NULL;
+        obj->nilai.objek_peta.konten = NULL;
+    }
+    return obj;
+}
+
+EnkiObject* ciptakan_kosong() {
+    EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
+    obj->tipe = ENKI_KOSONG;
+    obj->panjang = 0;
+    return obj;
+}
+
+// ==========================================
+// ☠️ PENGHANCUR DIMENSI (DESTRUCTOR)
+// ==========================================
+
 void hancurkan_objek(EnkiObject* obj) {
     if (obj == NULL) return;
 
-    // Jika ada teks, bebaskan
-    if (obj->v_teks) free(obj->v_teks);
-
-    // Jika ini Array/Objek, kita harus menghapus anak-anaknya juga (Rekursif)
-    if (obj->jumlah > 0) {
-        for (int i = 0; i < obj->jumlah; i++) {
-            if (obj->kunci && obj->kunci[i]) hancurkan_objek(obj->kunci[i]);
-            if (obj->konten && obj->konten[i]) hancurkan_objek(obj->konten[i]);
+    if (obj->tipe == ENKI_TEKS && obj->nilai.teks != NULL) {
+        free(obj->nilai.teks);
+    } 
+    else if (obj->tipe == ENKI_ARRAY && obj->nilai.array_elemen != NULL) {
+        for (int i = 0; i < obj->panjang; i++) {
+            hancurkan_objek(obj->nilai.array_elemen[i]);
         }
-        if (obj->kunci) free(obj->kunci);
-        if (obj->konten) free(obj->konten);
+        free(obj->nilai.array_elemen);
+    }
+    else if (obj->tipe == ENKI_OBJEK) {
+        for (int i = 0; i < obj->panjang; i++) {
+            if (obj->nilai.objek_peta.kunci) hancurkan_objek(obj->nilai.objek_peta.kunci[i]);
+            if (obj->nilai.objek_peta.konten) hancurkan_objek(obj->nilai.objek_peta.konten[i]);
+        }
+        if (obj->nilai.objek_peta.kunci) free(obj->nilai.objek_peta.kunci);
+        if (obj->nilai.objek_peta.konten) free(obj->nilai.objek_peta.konten);
+    }
+    else if (obj->tipe == ENKI_BLOB && obj->nilai.blob.data != NULL) {
+        free(obj->nilai.blob.data);
     }
 
     free(obj);
+}
+
+// ==========================================
+// 🖨️ UTILITAS TAMPILAN
+// ==========================================
+void cetak_objek(EnkiObject* obj) {
+    if (!obj) return;
+    
+    if (obj->tipe == ENKI_ANGKA) {
+        if (obj->nilai.angka == (int)obj->nilai.angka) {
+            printf("%d", (int)obj->nilai.angka);
+        } else {
+            printf("%g", obj->nilai.angka);
+        }
+    } 
+    else if (obj->tipe == ENKI_TEKS) {
+        printf("%s", obj->nilai.teks);
+    } 
+    else if (obj->tipe == ENKI_ARRAY) {
+        printf("[Array: %d elemen]", obj->panjang);
+    }
+    else if (obj->tipe == ENKI_OBJEK) {
+        printf("{Objek: %d entri}", obj->panjang);
+    }
+    else if (obj->tipe == ENKI_KOSONG) {
+        printf("(kosong)");
+    }
 }
