@@ -1063,46 +1063,56 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         
         // 1. Fungsi ko(objek) -> Mengambil Nilai / Konten
         if (strcmp(node->nilai_teks, "ko") == 0) {
-            // Cek apakah saklar array dinamis sudah dinyalakan!
             if (ram->status_array_dinamis == 0) {
-                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", 
-                    "Anda belum mengaktifkan modul Array Dinamis.\n"
-                    "Tambahkan 'untuk array.dinamis' di bawah kata 'datang' di awal skrip.");
+                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", "Gunakan 'untuk array.dinamis'.");
                 return ciptakan_kosong();
             }
-            if (node->jumlah_anak < 1) {
-                pemicu_kiamat_presisi(node, ram, "Fungsi ko() butuh objek!", "Contoh: ko(bos)");
-                return ciptakan_kosong();
+
+            // 🟢 TAHAP 1: Cari Dimensi/Mini RAM dulu!
+            KavlingMemori* kav = cari_kavling_domain(node->anak_anak[0], ram);
+            if (kav && kav->anak_anak) {
+                EnkiRAM* mini = kav->anak_anak;
+                EnkiObject* arr = ciptakan_array(mini->jumlah);
+                arr->panjang = mini->jumlah;
+                for (int i = 0; i < mini->jumlah; i++) {
+                    arr->nilai.array_elemen[i] = ciptakan_salinan_objek(mini->kavling[i].objek);
+                }
+                return arr;
             }
-            
+
+            // 🟢 TAHAP 2: Jika bukan dimensi, baru ambil dari Object Data biasa
             EnkiObject* target = evaluasi_ekspresi(node->anak_anak[0], ram);
-            EnkiObject* hasil = ambil_konten_objek(target); // Memanggil fungsi dari ko.c
-            
+            EnkiObject* hasil = ambil_konten_objek(target);
             if (target) hancurkan_objek(target);
-            return hasil; // Akan mengembalikan EnkiObject bertipe ENKI_ARRAY
+            return hasil;
         }
 
         // 2. Fungsi ku(objek) -> Mengambil Kunci
         if (strcmp(node->nilai_teks, "ku") == 0) {
-            // Cek apakah saklar array statis sudah dinyalakan!
             if (ram->status_array_statis == 0) {
-                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", 
-                    "Anda belum mengaktifkan modul Array Statis.\n"
-                    "Tambahkan 'untuk array.statis' di bawah kata 'datang' di awal skrip.");
+                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", "Gunakan 'untuk array.statis'.");
                 return ciptakan_kosong();
             }
-            if (node->jumlah_anak < 1) {
-                pemicu_kiamat_presisi(node, ram, "Fungsi ku() butuh objek!", "Contoh: ku(bos)");
-                return ciptakan_kosong();
-            }
-            
-            EnkiObject* target = evaluasi_ekspresi(node->anak_anak[0], ram);
-            EnkiObject* hasil = ambil_kunci_objek(target); // Memanggil fungsi dari ku.c
-            
-            if (target) hancurkan_objek(target);
-            return hasil; // Akan mengembalikan EnkiObject bertipe ENKI_ARRAY
-        }
 
+            // 🟢 TAHAP 1: Cari Kunci dari Dimensi/Mini RAM!
+            KavlingMemori* kav = cari_kavling_domain(node->anak_anak[0], ram);
+            if (kav && kav->anak_anak) {
+                EnkiRAM* mini = kav->anak_anak;
+                EnkiObject* arr = ciptakan_array(mini->jumlah);
+                arr->panjang = mini->jumlah;
+                for (int i = 0; i < mini->jumlah; i++) {
+                    arr->nilai.array_elemen[i] = ciptakan_teks(mini->kavling[i].nama);
+                }
+                return arr;
+            }
+
+            // 🟢 TAHAP 2: Fallback ke data objek murni
+            EnkiObject* target = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ambil_kunci_objek(target);
+            if (target) hancurkan_objek(target);
+            return hasil;
+        }
+        
         // D. Fungsi huruf_besar(teks) dan huruf_kecil(teks)
         if (strcmp(node->nilai_teks, "huruf_besar") == 0 || strcmp(node->nilai_teks, "huruf_kecil") == 0) {
             // 🟢 PERISAI ANTI-SEGFAULT: Cek apakah argumennya ada!
@@ -1825,7 +1835,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
             else if (obj_hasil->tipe == ENKI_ANGKA) {
                 printf("%g\n", obj_hasil->nilai.angka);
             } 
-            // 🟢 AJARI MESIN MENCETAK ARRAY DAN OBJEK!
+            // 🟢 TAMBAHAN BARU UNTUK MENCETAK ARRAY / OBJEK
             else if (obj_hasil->tipe == ENKI_ARRAY || obj_hasil->tipe == ENKI_OBJEK) {
                 cetak_objek(obj_hasil); 
                 printf("\n");

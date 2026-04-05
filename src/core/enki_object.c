@@ -90,7 +90,7 @@ void hancurkan_objek(EnkiObject* obj) {
 }
 
 // ==========================================
-// 🖨️ UTILITAS TAMPILAN
+// 🖨️ UTILITAS TAMPILAN (VERSI REKURSIF)
 // ==========================================
 void cetak_objek(EnkiObject* obj) {
     if (!obj) return;
@@ -103,13 +103,32 @@ void cetak_objek(EnkiObject* obj) {
         }
     } 
     else if (obj->tipe == ENKI_TEKS) {
+        // Kita cetak teks apa adanya
         printf("%s", obj->nilai.teks);
     } 
     else if (obj->tipe == ENKI_ARRAY) {
-        printf("[Array: %d elemen]", obj->panjang);
+        // 🟢 BEDAH ARRAY: Cetak kurung siku dan isinya
+        printf("[");
+        for (int i = 0; i < obj->panjang; i++) {
+            cetak_objek(obj->nilai.array_elemen[i]); // Panggil diri sendiri (Sihir Rekursif)
+            if (i < obj->panjang - 1) {
+                printf(", "); // Kasih koma jika bukan elemen terakhir
+            }
+        }
+        printf("]");
     }
     else if (obj->tipe == ENKI_OBJEK) {
-        printf("{Objek: %d entri}", obj->panjang);
+        // 🟢 BEDAH OBJEK: Cetak kurung kurawal, kunci, dan konten
+        printf("{");
+        for (int i = 0; i < obj->panjang; i++) {
+            cetak_objek(obj->nilai.objek_peta.kunci[i]);
+            printf(": ");
+            cetak_objek(obj->nilai.objek_peta.konten[i]);
+            if (i < obj->panjang - 1) {
+                printf(", ");
+            }
+        }
+        printf("}");
     }
     else if (obj->tipe == ENKI_KOSONG) {
         printf("(kosong)");
