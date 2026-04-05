@@ -43,7 +43,7 @@ ketik(hasil_kacau)
 
 jika hasil_kacau > 0 maka
     ketik("STATUS: Parser berhasil membedah ekspresi kompleks tanpa tersedak!")
-lain
+lain maka
     ketik("STATUS: Operasi gagal atau menghasilkan nilai tak terduga.")
 putus
 

@@ -115,3 +115,34 @@ void cetak_objek(EnkiObject* obj) {
         printf("(kosong)");
     }
 }
+
+// Sihir Pengganda Objek (Deep Copy)
+EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) {
+    if (!sumber) return ciptakan_kosong();
+
+    if (sumber->tipe == ENKI_ANGKA) {
+        return ciptakan_angka(sumber->nilai.angka);
+    } 
+    else if (sumber->tipe == ENKI_TEKS) {
+        return ciptakan_teks(sumber->nilai.teks);
+    } 
+    else if (sumber->tipe == ENKI_ARRAY) {
+        EnkiObject* salinan = ciptakan_array(sumber->panjang);
+        salinan->panjang = sumber->panjang;
+        for (int i = 0; i < sumber->panjang; i++) {
+            salinan->nilai.array_elemen[i] = ciptakan_salinan_objek(sumber->nilai.array_elemen[i]);
+        }
+        return salinan;
+    } 
+    else if (sumber->tipe == ENKI_OBJEK) {
+        EnkiObject* salinan = ciptakan_objek_peta(sumber->panjang);
+        salinan->panjang = sumber->panjang;
+        for (int i = 0; i < sumber->panjang; i++) {
+            salinan->nilai.objek_peta.kunci[i] = ciptakan_salinan_objek(sumber->nilai.objek_peta.kunci[i]);
+            salinan->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(sumber->nilai.objek_peta.konten[i]);
+        }
+        return salinan;
+    }
+    
+    return ciptakan_kosong();
+}

@@ -268,7 +268,7 @@ EnkiObject* baca_dari_ram(EnkiRAM* ram, const char* nama) {
     return NULL;
 }
 
-// ⏳ MESIN WAKTU: Menyimpan Jejak Objek (Untuk Fitur balikan dan mutasi)
+// ⏳ MESIN WAKTU: Menyimpan Salinan Dimensi Objek
 void simpan_jejak_mesin_waktu(KavlingMemori* kavling) {
     if (kavling->jumlah_riwayat >= kavling->kapasitas_riwayat) {
         kavling->kapasitas_riwayat = (kavling->kapasitas_riwayat == 0) ? 4 : kavling->kapasitas_riwayat * 2;
@@ -276,8 +276,10 @@ void simpan_jejak_mesin_waktu(KavlingMemori* kavling) {
     }
     JejakMasaLalu* jejak = &kavling->riwayat[kavling->jumlah_riwayat++];
     jejak->tipe = kavling->tipe;
-    jejak->objek = kavling->objek; 
-    jejak->anak_anak = kavling->anak_anak; 
+    
+    // 🟢 SUNTIKAN ANTI-PARADOKS: Ambil foto salinan murni (Deep Copy)
+    jejak->objek = kavling->objek ? ciptakan_salinan_objek(kavling->objek) : NULL; 
+    jejak->anak_anak = kavling->anak_anak ? salin_ram_rekursif(kavling->anak_anak) : NULL; 
 }
 
 void pulihkan_jejak_mesin_waktu(KavlingMemori* kavling) {
@@ -589,10 +591,19 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // 1. Literal Teks (Kini mendukung Sihir Interpolasi / Sisipan Teks!)
+    // 1. Literal Teks / Angka (Kini mendukung Deteksi Angka Murni!)
     if (node->jenis == AST_LITERAL_TEKS) {
-        // A. Bersihkan kutipan terlebih dahulu ("Halo {nama}" menjadi Halo {nama})
-        char* teks_bersih = strdup(node->nilai_teks);
+        char* teks_mentah = node->nilai_teks;
+        if (!teks_mentah) return ciptakan_kosong();
+
+        // 🟢 SIHIR DETEKSI: Jika tidak diawali kutip dan diawali angka/minus, ini ANGKA!
+        if (teks_mentah[0] != '"' && teks_mentah[0] != '\'' && 
+           (isdigit(teks_mentah[0]) || (teks_mentah[0] == '-' && isdigit(teks_mentah[1])))) {
+            return ciptakan_angka(atof(teks_mentah)); // 🪄 Ubah string "2.0" jadi double 2.0
+        }
+
+        // Jika berwujud teks (pakai kutip), lakukan prosedur normal
+        char* teks_bersih = strdup(teks_mentah);
         bersihkan_kutip(teks_bersih);
         
         // B. Masukkan teks yang sudah bersih ke dalam mesin sisipan
@@ -685,7 +696,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
         // Jika ketemu, kembalikan teksnya
         if (kavling->objek) {
-        return kavling->objek;
+            return ciptakan_salinan_objek(kavling->objek); // 🟢 Salinan Aman!
         }
         return ciptakan_kosong();
     }
@@ -697,7 +708,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         if (target) {
             // Langsung kembalikan Objeknya jika ada
             if (target->objek) {
-                return target->objek;
+                return ciptakan_salinan_objek(target->objek); // 🟢 Salinan Aman!
             }
             return ciptakan_kosong();
         }
@@ -811,12 +822,22 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // ==========================================================
 
         // JIKA BUKAN PENUGASAN '=' (Melainkan +, -, *, /)
+        double hasil_akhir = 0; 
         EnkiObject* obj_kiri = evaluasi_ekspresi(node->kiri, ram);
         EnkiObject* obj_kanan = evaluasi_ekspresi(node->kanan, ram);
 
-        double angka_kiri = (obj_kiri && obj_kiri->tipe == ENKI_ANGKA) ? obj_kiri->nilai.angka : 0;
-        double angka_kanan = (obj_kanan && obj_kanan->tipe == ENKI_ANGKA) ? obj_kanan->nilai.angka : 0;
-        double hasil_akhir = 0;
+        // 🟢 SIHIR TRANSMUTASI: Ambil angka, jika teks coba ubah jadi angka!
+        double angka_kiri = 0;
+        if (obj_kiri) {
+            if (obj_kiri->tipe == ENKI_ANGKA) angka_kiri = obj_kiri->nilai.angka;
+            else if (obj_kiri->tipe == ENKI_TEKS) angka_kiri = atof(obj_kiri->nilai.teks);
+        }
+
+        double angka_kanan = 0;
+        if (obj_kanan) {
+            if (obj_kanan->tipe == ENKI_ANGKA) angka_kanan = obj_kanan->nilai.angka;
+            else if (obj_kanan->tipe == ENKI_TEKS) angka_kanan = atof(obj_kanan->nilai.teks);
+        }
 
         if (node->operator_math) {
             if (strcmp(node->operator_math, "+") == 0) {
@@ -828,7 +849,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     if (obj_kanan && obj_kanan->tipe == ENKI_TEKS) strcpy(buf_kanan, obj_kanan->nilai.teks);
                     else if (obj_kanan && obj_kanan->tipe == ENKI_ANGKA) snprintf(buf_kanan, 1024, "%g", obj_kanan->nilai.angka);
                     
-                    char gabungan[2048]; snprintf(gabungan, 2048, "%s%s", buf_kiri, buf_kanan);
+                    char gabungan[4096]; snprintf(gabungan, 4096, "%s%s", buf_kiri, buf_kanan);
                     if (obj_kiri) hancurkan_objek(obj_kiri);
                     if (obj_kanan) hancurkan_objek(obj_kanan);
                     return ciptakan_teks(gabungan);
@@ -838,16 +859,16 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             else if (strcmp(node->operator_math, "-") == 0) hasil_akhir = angka_kiri - angka_kanan;
             else if (strcmp(node->operator_math, "*") == 0) hasil_akhir = angka_kiri * angka_kanan;
             else if (strcmp(node->operator_math, "/") == 0 || strcmp(node->operator_math, ":") == 0) {
-                if (angka_kanan == 0) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
+                if (fabs(angka_kanan) < 0.0000001) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
                 else hasil_akhir = angka_kiri / angka_kanan;
             }
             else if (strcmp(node->operator_math, "^") == 0) hasil_akhir = pow(angka_kiri, angka_kanan);
             else if (strcmp(node->operator_math, "//") == 0) {
-                if (angka_kanan == 0) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Pembagian bulat dengan nol (0) dilarang oleh Hukum Enlil!");
+                if (fabs(angka_kanan) < 0.0000001) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
                 else hasil_akhir = floor(angka_kiri / angka_kanan);
             }
             else if (strcmp(node->operator_math, "%") == 0) {
-                if (angka_kanan == 0) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Modulus dengan nol (0) dilarang oleh Hukum Enlil!");
+                if (fabs(angka_kanan) < 0.0000001) pemicu_kiamat_presisi(node, ram, "Kehancuran Dimensi!", "Pembagian dengan nol (0) dilarang oleh Hukum Enlil!");
                 else hasil_akhir = fmod(angka_kiri, angka_kanan);
             }
         }
@@ -857,57 +878,120 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         return ciptakan_angka(hasil_akhir);
     }
 
-    // 5. Struktur Array [a, b, c]
+    // 5. EVALUASI PEMBUATAN ARRAY LITERAl ( misal: [1, "dua", 3.5] )
     else if (node->jenis == AST_STRUKTUR_ARRAY) {
         EnkiObject* obj_array = ciptakan_array(node->jumlah_anak);
         obj_array->panjang = node->jumlah_anak;
         
         for (int i = 0; i < node->jumlah_anak; i++) {
             EnkiObject* elemen = evaluasi_ekspresi(node->anak_anak[i], ram);
-            obj_array->nilai.array_elemen[i] = elemen; // Masukkan pointernya langsung
+            if (elemen) {
+                // Simpan ke dalam array C murni!
+                if (elemen->tipe == ENKI_TEKS) obj_array->nilai.array_elemen[i] = ciptakan_teks(elemen->nilai.teks);
+                else if (elemen->tipe == ENKI_ANGKA) obj_array->nilai.array_elemen[i] = ciptakan_angka(elemen->nilai.angka);
+                else obj_array->nilai.array_elemen[i] = ciptakan_kosong();
+                
+                hancurkan_objek(elemen); 
+            } else {
+                obj_array->nilai.array_elemen[i] = ciptakan_kosong();
+            }
         }
         return obj_array;
     }
 
-    // 6. AKSES ELEMEN ARRAY / OBJEK JSON ( data[0] atau dewa["nama"] )
+    // 6. AKSES ELEMEN ARRAY / OBJEK JSON ( data[1] atau dewa["nama"] )
     else if (node->jenis == AST_AKSES_ARRAY) {
         EnkiObject* obj_target = baca_dari_ram(ram, node->kiri->nilai_teks);
         if (!obj_target) {
-            pemicu_kiamat_presisi(node, ram, "Gagal mengakses Elemen!", "Variabel induk belum diciptakan.");
+            char pesan_err[1024]; // 🟢 Wadah raksasa
+            snprintf(pesan_err, sizeof(pesan_err), "Induk '%s' Gaib!", node->kiri->nilai_teks);
+            pemicu_kiamat_presisi(node, ram, pesan_err, "Variabel induk belum diciptakan di RAM. Pastikan Anda sudah mendeklarasikannya.");
             return ciptakan_kosong();
         }
 
         EnkiObject* obj_indeks = evaluasi_ekspresi(node->indeks_array, ram);
         EnkiObject* hasil = ciptakan_kosong();
 
-        // A. JIKA MENGAKSES ARRAY BIASA (Menggunakan Angka)
-        if (obj_target->tipe == ENKI_ARRAY) {
-            int indeks = (obj_indeks && obj_indeks->tipe == ENKI_ANGKA) ? (int)obj_indeks->nilai.angka : -1;
-            
-            // Mengikuti Tradisi Komputer (0-based)
-            if (indeks >= 0 && indeks < obj_target->panjang) {
-                EnkiObject* elemen = obj_target->nilai.array_elemen[indeks];
-                if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
-                else if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks);
-                // (Untuk array di dalam array bisa dikembangkan nanti dengan Deep Copy)
-            } else {
-                pemicu_kiamat_presisi(node, ram, "Indeks Keluar Batas!", "Anda mencoba memanggil urutan yang tidak ada di dalam array.");
+        // --- 🟢 TAHAP 1: SIHIR TRANSMUTASI (Soft Typing) ---
+        // Agar teks "1" bisa otomatis dianggap angka 1 (Seperti di Python dulu)
+        double indeks_angka = -1;
+        int indeks_valid_angka = 0;
+
+        if (obj_indeks) {
+            if (obj_indeks->tipe == ENKI_ANGKA) {
+                indeks_angka = obj_indeks->nilai.angka;
+                indeks_valid_angka = 1;
+            } else if (obj_indeks->tipe == ENKI_TEKS) {
+                char* endptr;
+                indeks_angka = strtod(obj_indeks->nilai.teks, &endptr);
+                if (endptr != obj_indeks->nilai.teks) indeks_valid_angka = 1; 
             }
-        } 
-        // B. JIKA MENGAKSES OBJEK / JSON (Menggunakan Teks)
-        else if (obj_target->tipe == ENKI_OBJEK) {
-            char kunci_str[256] = "";
-            objek_ke_string(obj_indeks, kunci_str, sizeof(kunci_str)); // Menggunakan helper dari pesan sebelumnya
-            
-            for (int i = 0; i < obj_target->panjang; i++) {
-                EnkiObject* k = obj_target->nilai.objek_peta.kunci[i];
-                if (k && k->tipe == ENKI_TEKS && strcmp(k->nilai.teks, kunci_str) == 0) {
-                    EnkiObject* elemen = obj_target->nilai.objek_peta.konten[i];
+        }
+
+        // --- 🟢 TAHAP 2: EKSEKUSI BERDASARKAN WUJUD DATA ---
+
+        // A. JIKA TARGET ADALAH ARRAY
+        if (obj_target->tipe == ENKI_ARRAY) {
+            if (!indeks_valid_angka) {
+                pemicu_kiamat_presisi(node, ram, "Indeks Array Cacat!", 
+                    "Array hanya bisa dipanggil menggunakan angka (Contoh: data[1]).\n"
+                    "Anda mencoba memasukkan kunci teks yang bukan angka.");
+            } else {
+                int indeks_unul = (int)indeks_angka;
+                int indeks_c = indeks_unul - 1; // 🟢 Konversi 1-based ke 0-based
+                
+                if (indeks_c >= 0 && indeks_c < obj_target->panjang) {
+                    EnkiObject* elemen = obj_target->nilai.array_elemen[indeks_c];
                     if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
                     else if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks);
-                    break;
+                } else {
+                    char pesan_kiamat[1024]; // 🟢 Wadah raksasa
+                    snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Indeks %d Keluar Batas!", indeks_unul);
+                    char hint[2048]; // 🟢 Wadah info lebih lega
+                    snprintf(hint, sizeof(hint), 
+                        "Array '%s' hanya memiliki %d elemen. Anda tidak bisa memanggil urutan ke-%d.\n"
+                        "💡 Tips: UNUL menghitung urutan mulai dari angka 1.", 
+                        node->kiri->nilai_teks, obj_target->panjang, indeks_unul);
+                    pemicu_kiamat_presisi(node, ram, pesan_kiamat, hint);
                 }
             }
+        } 
+        // B. JIKA TARGET ADALAH OBJEK (Kamus / Dictionary / JSON)
+        else if (obj_target->tipe == ENKI_OBJEK) {
+            if (!obj_indeks || obj_indeks->tipe != ENKI_TEKS) {
+                 pemicu_kiamat_presisi(node, ram, "Kunci Objek Cacat!", 
+                    "Objek Kamus (Dictionary) hanya bisa dipanggil menggunakan teks kutip.\n"
+                    "Contoh: dewa[\"nama\"]");
+            } else {
+                char kunci_str[512] = "";
+                objek_ke_string(obj_indeks, kunci_str, sizeof(kunci_str)); 
+                
+                int ketemu = 0;
+                for (int i = 0; i < obj_target->panjang; i++) {
+                    EnkiObject* k = obj_target->nilai.objek_peta.kunci[i];
+                    if (k && k->tipe == ENKI_TEKS && strcmp(k->nilai.teks, kunci_str) == 0) {
+                        EnkiObject* elemen = obj_target->nilai.objek_peta.konten[i];
+                        if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
+                        else if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks);
+                        ketemu = 1; break;
+                    }
+                }
+                if (!ketemu) {
+                    char pesan_kiamat[1024]; // 🟢 512 + format > 512, jadi kita pakai 1024!
+                    snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Kunci '%s' Tidak Ditemukan!", kunci_str);
+                    pemicu_kiamat_presisi(node, ram, pesan_kiamat, 
+                        "Objek tersebut tidak memiliki data dengan nama kunci yang Anda minta.\n"
+                        "Gunakan 'periksa(objek)' untuk melihat daftar kunci.");
+                }
+            }
+        }
+        // C. JIKA BUKAN KEDUANYA (Proteksi Dimensi)
+        else {
+            char pesan_kiamat[1024];
+            snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Pelanggaran Dimensi Data pada '%s'!", node->kiri->nilai_teks);
+            pemicu_kiamat_presisi(node, ram, pesan_kiamat, 
+                "Anda menggunakan kurung siku [...] pada variabel yang BUKAN Array atau Objek (Kamus).\n"
+                "Variabel ini mungkin hanya berisi teks tunggal atau angka.");
         }
 
         if (obj_indeks) hancurkan_objek(obj_indeks);
@@ -1438,8 +1522,8 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         
         // Salin seluruh isi semesta RAM induk ke RAM lokal fungsi
         for (int i = 0; i < ram->jumlah; i++) {
-            // 🟢 Gunakan EnkiObject! Jika kosong, amankan dengan ciptakan_kosong()
-            EnkiObject* obj_salinan = ram->kavling[i].objek ? ram->kavling[i].objek : ciptakan_kosong();
+            // 🟢 WAJIB DEEP COPY! Jika tidak, RAM global ikut hancur saat fungsi selesai!
+            EnkiObject* obj_salinan = ram->kavling[i].objek ? ciptakan_salinan_objek(ram->kavling[i].objek) : ciptakan_kosong();
             simpan_ke_ram(&ram_lokal, ram->kavling[i].nama, obj_salinan);
             ram_lokal.kavling[ram_lokal.jumlah - 1].simpul_fungsi = ram->kavling[i].simpul_fungsi;
         }
@@ -1521,8 +1605,18 @@ int evaluasi_kondisi(ASTNode* kondisi, EnkiRAM* ram) {
     int hasil_sah = 0;
 
     // 🟢 Ekstrak Angka untuk perbandingan matematis
-    double num_kiri = (obj_kiri && obj_kiri->tipe == ENKI_ANGKA) ? obj_kiri->nilai.angka : 0.0;
-    double num_kanan = (obj_kanan && obj_kanan->tipe == ENKI_ANGKA) ? obj_kanan->nilai.angka : 0.0;
+    // 🟢 Ekstrak Angka dengan Transmutasi Otomatis
+    double num_kiri = 0;
+    if (obj_kiri) {
+        if (obj_kiri->tipe == ENKI_ANGKA) num_kiri = obj_kiri->nilai.angka;
+        else if (obj_kiri->tipe == ENKI_TEKS) num_kiri = atof(obj_kiri->nilai.teks);
+    }
+
+    double num_kanan = 0;
+    if (obj_kanan) {
+        if (obj_kanan->tipe == ENKI_ANGKA) num_kanan = obj_kanan->nilai.angka;
+        else if (obj_kanan->tipe == ENKI_TEKS) num_kanan = atof(obj_kanan->nilai.teks);
+    }
     
     // 🟢 Ekstrak String untuk perbandingan kesetaraan Teks
     char teks_kiri[2048] = ""; 
@@ -1918,7 +2012,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         
         const char* titik = strrchr(target_file, '.');
         if (titik && strcmp(titik, ".unll") != 0) {
-            char pesan_err[1024]; snprintf(pesan_err, sizeof(pesan_err), "Pustaka '%s' DITOLAK!", target_file);
+            char pesan_err[2048]; snprintf(pesan_err, sizeof(pesan_err), "Pustaka '%s' DITOLAK!", target_file);
             char panduan[2048]; snprintf(panduan, sizeof(panduan), "Sesuai Hukum Dasar UNUL, perintah 'sowan' HANYA untuk pustaka (.unll).\nEkstensi '%s' tidak diizinkan di jalur ini.", titik);
             pemicu_kiamat_presisi(node, ram, pesan_err, panduan);
             free(target_ekspansi); return;
@@ -1950,7 +2044,7 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
 
         if (!file) {
-            char pesan_gaib[1024]; snprintf(pesan_gaib, sizeof(pesan_gaib), "Pustaka '%s' tidak ditemukan di alam manapun!", target_file);
+            char pesan_gaib[2048]; snprintf(pesan_gaib, sizeof(pesan_gaib), "Pustaka '%s' tidak ditemukan di alam manapun!", target_file);
             pemicu_kiamat_presisi(node, ram, pesan_gaib, "Radar UNUL sudah menyisir lokasi sistem dan lokal. Hasil: NIHIL.");
             free(target_ekspansi); return;
         }
@@ -2012,23 +2106,42 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     else if (node->jenis == AST_PERINTAH_BALIKAN) {
         KavlingMemori* target = NULL; KavlingMemori* induk = NULL;
         
-        if (node->kiri) { target = temukan_atau_ciptakan_kavling(node->kiri, ram); induk = cari_induk_utama(node->kiri, ram); } 
+        if (node->kiri) { 
+            target = temukan_atau_ciptakan_kavling(node->kiri, ram); 
+            induk = cari_induk_utama(node->kiri, ram); 
+        } 
         else if (node->nilai_teks) {
             char nama_root[256]; strncpy(nama_root, node->nilai_teks, 255); nama_root[255] = '\0';
             char* titik = strchr(nama_root, '.'); if (titik) *titik = '\0'; 
             
             for (int i = 0; i < ram->jumlah; i++) {
-                if (strcmp(ram->kavling[i].nama, nama_root) == 0) { induk = &(ram->kavling[i]); target = induk; break; }
+                if (strcmp(ram->kavling[i].nama, nama_root) == 0) { 
+                    induk = &(ram->kavling[i]); 
+                    target = induk; 
+                    break; 
+                }
             }
         }
         
         if (induk && target && induk->jumlah_riwayat > 0) {
-            induk->jumlah_riwayat--; JejakMasaLalu* masa_lalu = &induk->riwayat[induk->jumlah_riwayat];
+            // Mundurkan kursor waktu
+            induk->jumlah_riwayat--; 
+            JejakMasaLalu* masa_lalu = &induk->riwayat[induk->jumlah_riwayat];
+            
+            // 1. Hancurkan memori masa kini (Target)
             if (induk->objek) hancurkan_objek(induk->objek);
-            if (induk->anak_anak) { bebaskan_ram(induk->anak_anak); free(induk->anak_anak); }
-            induk->tipe = masa_lalu->tipe; induk->objek = masa_lalu->objek; 
+            if (induk->anak_anak) { 
+                bebaskan_ram(induk->anak_anak); 
+                free(induk->anak_anak); 
+                induk->anak_anak = NULL;
+            }
+            
+            // 2. 🟢 Pulihkan memori dari masa lalu menggunakan DEEP COPY!
+            induk->tipe = masa_lalu->tipe; 
+            induk->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL; 
             induk->anak_anak = masa_lalu->anak_anak ? salin_ram_rekursif(masa_lalu->anak_anak) : NULL;
-            if (masa_lalu->anak_anak) { bebaskan_ram(masa_lalu->anak_anak); free(masa_lalu->anak_anak); }
+            
+            // 🟢 JANGAN menghancurkan masa_lalu! Biarkan tersimpan di riwayat agar aman!
         }
     }
 

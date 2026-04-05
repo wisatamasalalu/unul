@@ -1,0 +1,38 @@
+=== [WAKTU KIAMAT: 1775407619] ===
+🚨 [math_madness.unul: Baris 39:38] KIAMAT SINTAKSIS: Indeks Keluar Batas!
+   Saran: Anda mencoba memanggil urutan yang tidak ada di dalam array.
+=================================
+
+=== [WAKTU KIAMAT: 1775407655] ===
+🚨 [math_madness.unul: Baris 39:38] KIAMAT SINTAKSIS: Indeks Keluar Batas!
+   Saran: Anda mencoba memanggil urutan yang tidak ada di dalam array.
+=================================
+
+=== [WAKTU KIAMAT: 1775408855] ===
+🚨 [math_madness.unul: Baris 39:38] KIAMAT SINTAKSIS: Indeks Array Cacat!
+   Saran: Array hanya bisa dipanggil menggunakan angka. Contoh: data[1]
+=================================
+
+=== [WAKTU KIAMAT: 1775409991] ===
+🚨 [math_madness.unul: Baris 10:21] KIAMAT SINTAKSIS: Kehancuran Dimensi!
+   Saran: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+=================================
+
+=== [WAKTU KIAMAT: 1775412575] ===
+🚨 [pelanggaran_tabu.unul: Baris 36:14] KIAMAT SINTAKSIS: Hukum Takdir Dilanggar: Variabel 'HUKUM_ALAM' tidak bisa diubah!
+   Saran: Variabel 'HUKUM_ALAM' diciptakan menggunakan 'takdir.hard' sehingga abadi.
+Silakan gunakan 'takdir.soft' saat menciptakannya jika Anda ingin nilainya bisa dimutasi.
+=================================
+
+=== [WAKTU KIAMAT: 1775412898] ===
+🚨 [pelanggaran_tabu.unul: Baris 36:14] KIAMAT SINTAKSIS: Hukum Takdir Dilanggar: Variabel 'HUKUM_ALAM' tidak bisa diubah!
+   Saran: Variabel 'HUKUM_ALAM' diciptakan menggunakan 'takdir.hard' sehingga abadi.
+Silakan gunakan 'takdir.soft' saat menciptakannya jika Anda ingin nilainya bisa dimutasi.
+=================================
+
+=== [WAKTU KIAMAT: 1775413186] ===
+🚨 [pelanggaran_tabu.unul: Baris 36:14] KIAMAT SINTAKSIS: Hukum Takdir Dilanggar: Variabel 'HUKUM_ALAM' tidak bisa diubah!
+   Saran: Variabel 'HUKUM_ALAM' diciptakan menggunakan 'takdir.hard' sehingga abadi.
+Silakan gunakan 'takdir.soft' saat menciptakannya jika Anda ingin nilainya bisa dimutasi.
+=================================
+

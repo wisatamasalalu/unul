@@ -9,7 +9,7 @@ untuk array.dinamis
 ciptakan fungsi analisis_inti(kedalaman) maka
     jika kedalaman > 5 maka
         pulang "Abyss Terlalu Gelap!"
-    lain
+    lain maka
         pulang "Masih dalam batas wajar."
     putus
 putus
@@ -40,7 +40,7 @@ effort 2 kali maka
                 ^^ LEVEL 6: Hukum Karma Terdalam
                 jika laporan == "Masih dalam batas wajar." maka
                     ketik("Pesan dari inti: " + laporan)
-                lain
+                lain maka
                     ketik("PERINGATAN KRITIS: " + laporan)
                     henti ^^ Mendobrak siklus terdalam!
                 putus ^^ Putus Level 6
