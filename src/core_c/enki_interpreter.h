@@ -59,6 +59,11 @@ struct EnkiRAM {
     EnkiObject* nilai_kembalian; // 🟢 GANTI: Agar fungsi bisa me-return Array/Objek JSON!
     int status_terus;            // lompat ke putaran berikutnya
     int status_henti;            // hancurkan loop sepenuhnya  
+
+    // 🟢 SAKLAR MODUL ARRAY (DITAMBAHKAN DI SINI)
+    int status_array_dinamis;    // Saklar untuk fitur .ko
+    int status_array_statis;     // Saklar untuk fitur .ku
+
 };
 
 // 3. DEKLARASI FUNGSI UTAMA

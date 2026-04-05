@@ -1,0 +1,7 @@
+datang
+untuk array.dinamis
+
+ketik("Apakah saklar menyala?")
+^^ Kita panggil tanpa variabel penugasan untuk memastikan evaluasi langsung!
+ko({}) 
+pergi

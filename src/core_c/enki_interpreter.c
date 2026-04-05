@@ -45,6 +45,8 @@ EnkiRAM inisialisasi_ram() {
     ram.status_pulang = 0;
     ram.status_terus = 0;
     ram.status_henti = 0;
+    ram.status_array_dinamis = 0; 
+    ram.status_array_statis = 0;
 
     ram.induk = NULL;
     
@@ -241,6 +243,11 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
 EnkiRAM* salin_ram_rekursif(EnkiRAM* sumber) {
     if (!sumber) return NULL;
     EnkiRAM* baru = ciptakan_ram_mini(sumber->induk);
+    
+    // 🟢 BAWA SAKLAR ARRAY KE DUNIA MASA LALU/BERSARANG!
+    baru->status_array_dinamis = sumber->status_array_dinamis;
+    baru->status_array_statis = sumber->status_array_statis;
+    
     for (int i = 0; i < sumber->jumlah; i++) {
         // ⚠️ PERHATIAN: Di masa depan butuh deep copy objek murni, sementara kita pinjam pointernya
         EnkiObject* obj_salinan = sumber->kavling[i].objek; 
@@ -1050,6 +1057,52 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return ciptakan_angka((double)time(NULL));
         }
 
+        // =======================================================
+        // 🟢 SUNTIKAN: ARRAY NON-DUALISME (ko & ku)
+        // =======================================================
+        
+        // 1. Fungsi ko(objek) -> Mengambil Nilai / Konten
+        if (strcmp(node->nilai_teks, "ko") == 0) {
+            // Cek apakah saklar array dinamis sudah dinyalakan!
+            if (ram->status_array_dinamis == 0) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", 
+                    "Anda belum mengaktifkan modul Array Dinamis.\n"
+                    "Tambahkan 'untuk array.dinamis' di bawah kata 'datang' di awal skrip.");
+                return ciptakan_kosong();
+            }
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi ko() butuh objek!", "Contoh: ko(bos)");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* target = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ambil_konten_objek(target); // Memanggil fungsi dari ko.c
+            
+            if (target) hancurkan_objek(target);
+            return hasil; // Akan mengembalikan EnkiObject bertipe ENKI_ARRAY
+        }
+
+        // 2. Fungsi ku(objek) -> Mengambil Kunci
+        if (strcmp(node->nilai_teks, "ku") == 0) {
+            // Cek apakah saklar array statis sudah dinyalakan!
+            if (ram->status_array_statis == 0) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", 
+                    "Anda belum mengaktifkan modul Array Statis.\n"
+                    "Tambahkan 'untuk array.statis' di bawah kata 'datang' di awal skrip.");
+                return ciptakan_kosong();
+            }
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi ku() butuh objek!", "Contoh: ku(bos)");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* target = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ambil_kunci_objek(target); // Memanggil fungsi dari ku.c
+            
+            if (target) hancurkan_objek(target);
+            return hasil; // Akan mengembalikan EnkiObject bertipe ENKI_ARRAY
+        }
+
         // D. Fungsi huruf_besar(teks) dan huruf_kecil(teks)
         if (strcmp(node->nilai_teks, "huruf_besar") == 0 || strcmp(node->nilai_teks, "huruf_kecil") == 0) {
             // 🟢 PERISAI ANTI-SEGFAULT: Cek apakah argumennya ada!
@@ -1520,6 +1573,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         EnkiRAM ram_lokal = inisialisasi_ram();
         ram_lokal.butuh_anu_aktif = ram->butuh_anu_aktif;
         
+        // 🟢 WARISKAN SAKLAR KE DALAM FUNGSI!
+        ram_lokal.status_array_dinamis = ram->status_array_dinamis;
+        ram_lokal.status_array_statis = ram->status_array_statis;
+
         // Salin seluruh isi semesta RAM induk ke RAM lokal fungsi
         for (int i = 0; i < ram->jumlah; i++) {
             // 🟢 WAJIB DEEP COPY! Jika tidak, RAM global ikut hancur saat fungsi selesai!
@@ -1726,6 +1783,10 @@ EnkiRAM* salin_ram_untuk_utas(EnkiRAM* sumber) {
     EnkiRAM* baru = ciptakan_ram_mini(NULL); 
     baru->butuh_anu_aktif = sumber->butuh_anu_aktif;
     
+    // 🟢 BAWA SAKLAR ARRAY KE DUNIA PARALEL!
+    baru->status_array_dinamis = sumber->status_array_dinamis;
+    baru->status_array_statis = sumber->status_array_statis;
+
     for (int i = 0; i < sumber->jumlah; i++) {
         EnkiObject* obj_aman = sumber->kavling[i].objek ? sumber->kavling[i].objek : ciptakan_kosong();
         simpan_ke_ram(baru, sumber->kavling[i].nama, obj_aman);
@@ -1757,16 +1818,25 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     if (node->jenis == AST_PERINTAH_KETIK) {
         EnkiObject* obj_hasil = evaluasi_ekspresi(node->kanan, ram);
         
-        // 🟢 Cetak LANGSUNG dari pointer objek jika teks (Unlimited), atau format jika angka
-        if (obj_hasil && obj_hasil->tipe == ENKI_TEKS && obj_hasil->nilai.teks) {
-            printf("%s\n", obj_hasil->nilai.teks);
-        } else if (obj_hasil && obj_hasil->tipe == ENKI_ANGKA) {
-            printf("%g\n", obj_hasil->nilai.angka);
+        if (obj_hasil) {
+            if (obj_hasil->tipe == ENKI_TEKS && obj_hasil->nilai.teks) {
+                printf("%s\n", obj_hasil->nilai.teks);
+            } 
+            else if (obj_hasil->tipe == ENKI_ANGKA) {
+                printf("%g\n", obj_hasil->nilai.angka);
+            } 
+            // 🟢 AJARI MESIN MENCETAK ARRAY DAN OBJEK!
+            else if (obj_hasil->tipe == ENKI_ARRAY || obj_hasil->tipe == ENKI_OBJEK) {
+                cetak_objek(obj_hasil); 
+                printf("\n");
+            }
+            else {
+                printf("\n"); 
+            }
+            hancurkan_objek(obj_hasil); 
         } else {
-            printf("\n"); // Kosong
+            printf("\n");
         }
-        
-        if (obj_hasil) hancurkan_objek(obj_hasil); 
     }
     
     // 2. DEKLARASI TAKDIR (takdir.soft x = y ATAU takdir.soft dewa = {})
@@ -1919,14 +1989,22 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     else if (node->jenis == AST_PERINTAH_HENTI) { ram->status_henti = 1; return; }
     else if (node->jenis == AST_DEKLARASI_DATANG) {} // [Opsional] Bisa diam saja
 
-    // --- EVALUASI PRAGMA (ATURAN MESIN) ---
+    // --- EVALUASI PRAGMA (ATURAN MESIN & IMPORT MODUL) ---
     else if (node->jenis == AST_PRAGMA_MEMORI) {
-        if (strcmp(node->nilai_teks, "butuh .anu") == 0) {
+        if (node->nilai_teks == NULL) return; // Keamanan Ekstra
+        
+        if (strstr(node->nilai_teks, "array.dinamis") != NULL) {
+            ram->status_array_dinamis = 1; // 🟢 Aktifkan sihir .ko
+        } 
+        else if (strstr(node->nilai_teks, "array.statis") != NULL) {
+            ram->status_array_statis = 1;  // 🟢 Aktifkan sihir .ku
+        }
+        else if (strcmp(node->nilai_teks, "butuh .anu") == 0) {
             ram->butuh_anu_aktif = 1; 
-            // 🟢 GUNAKAN OBJEK
             EnkiObject* status = baca_dari_ram(ram, "__STATUS_ANU__");
             if (status == NULL) pemicu_kernel_panic(ram, "Kitab ini mewajibkan file rahasia '.anu', tapi tidak ditemukan!");
         }
+        // Jangan di-return di sini, biarkan jalan ke bawah jika perlu
     }
 
     // --- 5. HUKUM SIKLUS (Looping: effort X kali maka) ---

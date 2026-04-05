@@ -4,8 +4,8 @@ ketik("=== MENGUJI PERISAI KIAMAT UNUL ===")
 
 ketik("Selamat datang")
 ^^ takdir*
-^^ # comentar ala python
-^^ $ bash
+# comentar ala python
+$ bash
 ^^ * hei 
 ^^ %s
 ^ cuma 1 ini ^ nya hehee

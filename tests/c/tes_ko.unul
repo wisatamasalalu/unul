@@ -1,0 +1,13 @@
+datang
+untuk array.dinamis
+
+takdir.soft dewa = {}
+dewa.elemen = "Api"
+dewa.senjata = "Petir"
+
+takdir.soft daftar_isi = ko(dewa)
+ketik(daftar_isi)
+
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
