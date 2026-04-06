@@ -463,3 +463,23 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
    Saran: File biner tidak ditemukan atau akses ditolak OS.
 =================================
 
+=== [WAKTU KIAMAT: 1775513775] ===
+🚨 [tes_kripto.unul: Baris 6:1] KIAMAT SINTAKSIS: Gagal Membaca Berkas!
+   Kode Penyebab: enkripsi_berkas
+   Saran: File sumber tidak ditemukan di dimensi ini.
+=================================
+
+=== [WAKTU KIAMAT: 1775514429] ===
+🚨 [tes_kripto.unul: Baris 11:1] KIAMAT SINTAKSIS: Sihir Kriptografi Berkas Cacat!
+   Kode Penyebab: enkripsi_berkas
+   Saran: Butuh 3 parameter: (sumber, kunci, target)
+=================================
+
+=== [WAKTU KIAMAT: 1775514760] ===
+🚨 [tes_kripto.unul: Baris 11:1] KIAMAT SINTAKSIS: Sihir Kriptografi Berkas Cacat!
+   Kode Penyebab: enkripsi_berkas
+   Saran: Butuh 3 parameter: (sumber, kunci, target).
+Gunakan fungsi bisik() untuk meminta kunci rahasia secara aman.
+Contoh: enkripsi_berkas("rahasia.txt", kunci_rahasia, "rahasia.choe")
+=================================
+

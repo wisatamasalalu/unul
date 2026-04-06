@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "enki_os.h"
 
 // ====================================================================
@@ -78,4 +81,34 @@ char* ekspansi_jalur(const char* jalur_mentah) {
 
     // Jika tidak ada '~', kembalikan duplikat jalur aslinya
     return strdup(jalur_mentah);
+}
+
+char* os_eksekusi_perintah(const char* perintah) {
+    char buffer[256];
+    char* hasil = malloc(1); 
+    if (hasil) hasil[0] = '\0';
+    int ukuran = 1;
+
+    // Kompatibilitas Lintas Dimensi (Windows vs POSIX)
+#ifdef _WIN32
+    FILE* pipe = _popen(perintah, "r");
+#else
+    FILE* pipe = popen(perintah, "r");
+#endif
+
+    if (!pipe) return NULL;
+
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+        ukuran += strlen(buffer);
+        hasil = realloc(hasil, ukuran);
+        strcat(hasil, buffer);
+    }
+
+#ifdef _WIN32
+    _pclose(pipe);
+#else
+    pclose(pipe);
+#endif
+
+    return hasil;
 }

@@ -77,4 +77,7 @@ void cetak_info_dimensi();
 // Mengekspansi simbol '~' menjadi jalur markas mutlak
 char* ekspansi_jalur(const char* jalur_mentah);
 
+// Fungsi Eksekusi Perintah Lintas OS
+char* os_eksekusi_perintah(const char* perintah);
+
 #endif // ENKI_OS_H

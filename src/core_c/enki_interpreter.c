@@ -22,6 +22,15 @@
 #include "../core/array/ko.h"
 #include "../core/enki_object.h"
 
+// Helper Enkripsi Simetris (XOR Cipher)
+void mutasi_xor(char* data, size_t panjang, const char* kunci) {
+    size_t panjang_kunci = strlen(kunci);
+    if (panjang_kunci == 0) return;
+    for (size_t i = 0; i < panjang; i++) {
+        data[i] ^= kunci[i % panjang_kunci];
+    }
+}
+
 // 🟢 SUNTIKAN: Pencetak Angka Presisi Tinggi (Anti Scientific Notation)
 void cetak_angka_presisi(double angka, char* buffer, size_t ukuran) {
     snprintf(buffer, ukuran, "%.15f", angka);
@@ -1308,8 +1317,20 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // C. Fungsi waktu_sekarang()
-        if (strcmp(node->nilai_teks, "waktu_sekarang") == 0) {
-            return ciptakan_angka((double)time(NULL));
+        // if (strcmp(node->nilai_teks, "waktu_sekarang") == 0) {
+        //    return ciptakan_angka((double)time(NULL));
+        // }
+
+        // =======================================================
+        // 🕰️ SIHIR WAKTU (MENGAMBIL WAKTU DIMENSI SAAT INI)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "waktu") == 0 || strcmp(node->nilai_teks, "waktu_sekarang") == 0) {
+            time_t t = time(NULL);
+            struct tm *tm_info = localtime(&t);
+            char buffer[30];
+            // Mengubah waktu ke format yang indah: YYYY-MM-DD HH:MM:SS
+            strftime(buffer, 30, "%Y-%m-%d %H:%M:%S", tm_info);
+            return ciptakan_teks(buffer);
         }
 
         // =======================================================
@@ -1699,6 +1720,136 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             // bebaskan_token_array(&token_run);
             
             if (obj_kode) hancurkan_objek(obj_kode);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // J. SIHIR EKSEKUSI: PANGGILAN LINTAS OS & BAHASA
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "eksekusi") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi eksekusi() butuh perintah yang memanggil kode dalam OS!", 
+                    "Contoh: eksekusi(\"node script.js\") atau eksekusi(\"ls -la\")");
+                return ciptakan_kosong();
+            }
+            EnkiObject* obj_arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            if (obj_arg && obj_arg->tipe == ENKI_TEKS && obj_arg->nilai.teks) {
+                char* output = os_eksekusi_perintah(obj_arg->nilai.teks);
+                EnkiObject* hasil = ciptakan_teks(output ? output : "");
+                if (output) free(output);
+                hancurkan_objek(obj_arg);
+                return hasil;
+            }
+            if (obj_arg) hancurkan_objek(obj_arg);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // 🔐 ENKRIPSI & DEKRIPSI (KOLOM / TEKS)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "enkripsi") == 0 || strcmp(node->nilai_teks, "dekripsi") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Kriptografi Cacat!", "Butuh 2 parameter: (teks_target, kunci_rahasia).\nAnda juga bisa menggunakan fungsi takdir dan memunculkan input I/O dengan fungsi bisik() atau tanya().\nContoh: takdir.soft sandi = bisik(\"Masukkan password: \")");
+                return ciptakan_kosong();
+            }
+            EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[1], ram);
+            
+            if (obj_teks && obj_teks->tipe == ENKI_TEKS && obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+                int is_enkripsi = (strcmp(node->nilai_teks, "enkripsi") == 0);
+                EnkiObject* hasil = ciptakan_kosong();
+
+                if (is_enkripsi) {
+                    // ENKRIPSI: Teks -> XOR -> Base64
+                    char* teks_copy = strdup(obj_teks->nilai.teks);
+                    mutasi_xor(teks_copy, strlen(teks_copy), obj_kunci->nilai.teks);
+                    
+                    // 🟢 KOREKSI 1: Tampung hasil string mentah, ubah jadi Objek, lalu bebaskan mentahnya
+                    char* b64_mentah = proses_ke_base64((unsigned char*)teks_copy, strlen(teks_copy));
+                    hasil = ciptakan_teks(b64_mentah);
+                    free(b64_mentah); 
+                    free(teks_copy);
+                } else {
+                    // DEKRIPSI: Base64 -> Biner -> XOR -> Teks
+                    // 🟢 KOREKSI 2: Gunakan penampung ukuran untuk fungsi Base64
+                    size_t ukuran_biner = 0;
+                    unsigned char* biner_mentah = proses_dari_base64(obj_teks->nilai.teks, &ukuran_biner);
+                    
+                    if (biner_mentah) {
+                        mutasi_xor((char*)biner_mentah, ukuran_biner, obj_kunci->nilai.teks);
+                        
+                        // Ubah blob kembali jadi teks
+                        char* teks_pulih = malloc(ukuran_biner + 1);
+                        memcpy(teks_pulih, biner_mentah, ukuran_biner);
+                        teks_pulih[ukuran_biner] = '\0';
+                        
+                        hasil = ciptakan_teks(teks_pulih);
+                        free(teks_pulih);
+                        free(biner_mentah); // Aman!
+                    }
+                }
+                hancurkan_objek(obj_teks); hancurkan_objek(obj_kunci);
+                return hasil;
+            }
+            if (obj_teks) hancurkan_objek(obj_teks);
+            if (obj_kunci) hancurkan_objek(obj_kunci);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // 🗃️ ENKRIPSI BERKAS UNIVERSAL (.choe & Obfuscate)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "enkripsi_berkas") == 0 || strcmp(node->nilai_teks, "dekripsi_berkas") == 0) {
+            if (node->jumlah_anak < 3) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Kriptografi Berkas Cacat!", 
+                    "Butuh 3 parameter: (sumber, kunci, target).\n"
+                    "Gunakan fungsi bisik() untuk meminta kunci rahasia secara aman.\n"
+                    "Contoh: enkripsi_berkas(\"rahasia.txt\", kunci_rahasia, \"rahasia.choe\")");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* obj_sumber = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* obj_target = evaluasi_ekspresi(node->anak_anak[2], ram);
+            
+            if (obj_sumber->tipe == ENKI_TEKS && obj_kunci->tipe == ENKI_TEKS && obj_target->tipe == ENKI_TEKS) {
+                // 🟢 SIHIR AUTO EKSTENSI .choe
+                char* nama_target = obj_target->nilai.teks;
+                char* target_final = NULL;
+                
+                // Jika tidak ada titik (.), anggap tidak ada ekstensi, tempelkan .choe
+                if (strrchr(nama_target, '.') == NULL) {
+                    target_final = malloc(strlen(nama_target) + 6); // + ".choe" + NULL terminator
+                    sprintf(target_final, "%s.choe", nama_target);
+                } else {
+                    target_final = strdup(nama_target);
+                }
+
+                FILE* f_in = fopen(obj_sumber->nilai.teks, "rb");
+                if (f_in) {
+                    fseek(f_in, 0, SEEK_END);
+                    long ukuran = ftell(f_in);
+                    fseek(f_in, 0, SEEK_SET);
+                    
+                    char* buffer = malloc(ukuran);
+                    fread(buffer, 1, ukuran, f_in);
+                    fclose(f_in);
+                    
+                    mutasi_xor(buffer, ukuran, obj_kunci->nilai.teks);
+                    
+                    FILE* f_out = fopen(target_final, "wb");
+                    if (f_out) {
+                        fwrite(buffer, 1, ukuran, f_out);
+                        fclose(f_out);
+                    }
+                    free(buffer);
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Gagal Membaca Berkas!", "File sumber tidak ditemukan di dimensi ini.");
+                }
+                free(target_final);
+            }
+            hancurkan_objek(obj_sumber); hancurkan_objek(obj_kunci); hancurkan_objek(obj_target);
             return ciptakan_kosong();
         }
 

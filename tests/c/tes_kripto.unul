@@ -1,0 +1,20 @@
+datang
+ketik("===============================================")
+ketik(" 🔐 UJI COBA KRIPTOGRAFI MUTLAK DIMENSI UNUL 🔐")
+ketik("===============================================")
+
+takdir.soft password_user = bisik("Masukkan Kunci Rahasia: ")
+
+^^ [1] FASE ENKRIPSI
+ketik("\n[1] Menyegel 'list_test.csv' menjadi format eksklusif (.choe)...")
+^^ Karena targetnya "list_rahasia" (tanpa ekstensi), mesin otomatis memberinya ".choe"
+enkripsi_berkas("list_test.csv", password_user, "list_rahasia")
+ketik("✅ Selesai! Coba lihat isinya, pasti sudah menjadi bahasa alien!")
+
+^^ [2] FASE DEKRIPSI (PEMULIHAN)
+ketik("\n[2] Memulihkan 'list_rahasia.choe' kembali menjadi CSV...")
+^^ Kita gunakan XOR bolak-balik untuk membuka segelnya
+enkripsi_berkas("list_rahasia.choe", password_user, "list_pulih.csv")
+ketik("✅ Selesai! Berkas berhasil dibangkitkan kembali!")
+
+pergi

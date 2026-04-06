@@ -741,9 +741,15 @@ ASTNode* parse_pernyataan(Parser* p) {
             }
         }
 
-        // E. Lewati kata 'putus'
+        // E. WAJIB ADA KATA 'PUTUS' (HUKUM DISIPLIN MUTLAK)
         Token t_putus = token_sekarang(p);
-        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) maju(p);
+        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) {
+            maju(p); // lewati 'putus' dengan selamat
+        } else {
+            kiamat_sintaksis(p, "Hukum Karma kehilangan ujung ('putus')!", 
+                             "Sebuah blok 'jika' atau 'lain' wajib ditutup dengan kata kunci 'putus'.\n"
+                             "Jika tidak, mesin akan menganggap seluruh sisa file berada di dalam blok ini.");
+        }
 
         return node;
     }
@@ -803,15 +809,25 @@ ASTNode* parse_pernyataan(Parser* p) {
         
         // 3. Tangkap isi ruangan siklus (Aman menelan anak-anak di dalamnya)
         node->blok_siklus = buat_node(AST_PROGRAM, p);
+        int ketemu_putus = 0; // 🟢 ALARM PENANDA
+
         while (token_sekarang(p).jenis != TOKEN_EOF) {
             Token t_cek = token_sekarang(p);
+            
             // 4. Inilah gerbang penutupnya, sama seperti '}' di C!
             if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) {
                 maju(p); // lewati 'putus' khusus milik SIKLUS
+                ketemu_putus = 1; // 🟢 ALARM DIMATIKAN KARENA AMAN
                 break;
             }
             ASTNode* stmt = parse_pernyataan(p);
             if (stmt) tambah_anak(node->blok_siklus, stmt);
+        }
+
+        // 🟢 EKSEKUSI ALARM KIAMAT
+        if (!ketemu_putus) {
+            kiamat_sintaksis(p, "Hukum Siklus kehilangan ujung ('putus')!", 
+                             "Sebuah blok siklus wajib ditutup dengan kata kunci 'putus'.");
         }
         return node;
     }

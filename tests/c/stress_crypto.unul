@@ -1,0 +1,81 @@
+datang
+untuk array.dinamis
+untuk array.statis
+
+ketik("==========================================================")
+ketik(" 🕵️‍♂️ UJIAN STRESS CYBER ESPIONAGE: KRIPTOGRAFI UNUL 🕵️‍♂️ ")
+ketik("==========================================================")
+
+^^ Menggunakan kunci keras untuk tes otomatis (tanpa bisik)
+takdir.soft kunci_agen = "EnkiAlpha99"
+
+ketik("\n[1] OBJEK DIMENSI BERSARANG (KOLOM, BARIS, BLOK)...")
+^^ Menyembunyikan kata sandi dan token di dalam database lokal
+takdir.soft database_agen = {
+    "id": 1001,
+    "nama": "Agen Nol",
+    "kredensial": {
+        "sandi_login": enkripsi("SandiSangatRahasia123!", kunci_agen), ^^ Enkripsi Kolom
+        "token_api": enkripsi("eyJhbGciOiJIUzI1NiIsIn", kunci_agen) 
+    },
+    "daftar_kontak": [
+        enkripsi("Komandan: +628111111", kunci_agen), ^^ Enkripsi Baris Array
+        enkripsi("Sniper: +628222222", kunci_agen)
+    ]
+}
+
+^^ Mencetak bukti bahwa data di RAM sudah menjadi alien (Base64 XOR)
+ketik("Bukti Enkripsi Kolom: " + database_agen.kredensial.sandi_login)
+
+ketik("\n[2] MENYIMPAN DATABASE KE .IMAH & ENKRIPSI TOTAL...")
+^^ Ekspor dulu ke wujud normal (hanya kolomnya yang terenkripsi)
+ekspor(database_agen, "database_agen_lokal.imah")
+
+^^ SEKARANG, KITA ENKRIPSI SELURUH FILE .IMAH-NYA!
+^^ Ekstensi otomatis .choe akan bekerja di sini!
+enkripsi_berkas("database_agen_lokal.imah", kunci_agen, "brankas_mutlak")
+ketik("✅ File 'database_agen_lokal.imah' telah disegel ganda menjadi 'brankas_mutlak.choe'!")
+
+
+ketik("\n[3] MANIPULASI EKSTENSI (OBFUSCATION & SPOOFING)...")
+^^ Syarat: Pastikan file list_test.csv ADA.
+coba maka
+    ^^ 3A: OBFUSCATION (Menimpa file asli, ekstensi tetap .csv tapi isinya rusak di mata OS)
+    enkripsi_berkas("list_test.csv", kunci_agen, "list_test_rusak.csv")
+    ketik("✅ Obfuscation selesai: 'list_test_rusak.csv' tercipta.")
+
+    ^^ 3B: SPOOFING (Menipu Sistem OS)
+    ^^ Kita ubah file teks menjadi .jpg. Jika dibuka di galeri, akan error ("Image Corrupted")
+    enkripsi_berkas("list_test.csv", kunci_agen, "foto_palsu.jpg")
+    ketik("✅ Spoofing selesai: File menyamar menjadi 'foto_palsu.jpg'!")
+tabu melanggar e maka
+    ketik("Gagal memanipulasi berkas! Pastikan 'list_test.csv' ada. Alasan: " + e)
+pasrah
+
+
+ketik("\n[4] FASE KEBANGKITAN (RESTORASI TOTAL)...")
+coba maka
+    ^^ Memulihkan brankas mutlak
+    dekripsi_berkas("brankas_mutlak.choe", kunci_agen, "database_pulih.imah")
+    
+    ^^ Mengimpor kembali kapsul waktu yang sudah pulih
+    takdir.soft data_pulih = impor("database_pulih.imah")
+    
+    ^^ Mendekripsi data di dalam RAM
+    takdir.soft sandi_asli = dekripsi(data_pulih.kredensial.sandi_login, kunci_agen)
+    takdir.soft kontak_1 = dekripsi(data_pulih.daftar_kontak[1], kunci_agen)
+    
+    ketik("✅ Restorasi Berhasil!")
+    ketik(" -> Sandi Login Asli: " + sandi_asli)
+    ketik(" -> Kontak Asli     : " + kontak_1)
+
+    ^^ Memulihkan file foto_palsu.jpg kembali menjadi csv
+    dekripsi_berkas("foto_palsu.jpg", kunci_agen, "pesan_rahasia_terbongkar.csv")
+tabu melanggar err maka
+    ketik("Gagal memulihkan dimensi! " + err)
+pasrah
+
+ketik("\n==========================================================")
+ketik(" ✅ UJIAN CYBER ESPIONAGE SELESAI: TIDAK ADA KEBOCORAN! ")
+ketik("==========================================================")
+pergi

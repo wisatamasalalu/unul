@@ -4,3 +4,11 @@
 💡 Tips: UNUL menghitung urutan mulai dari angka 1.
 =================================
 
+=== [WAKTU KIAMAT: 1775511556] ===
+🚨 [<unul-cli>: Baris 1:10] KIAMAT SINTAKSIS: Variabel 'complex_screening' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: complex_screening
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
