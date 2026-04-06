@@ -29,6 +29,49 @@ void objek_ke_string(EnkiObject* obj, char* buffer, size_t ukuran) {
     else buffer[0] = '\0';
 }
 
+// PENGUBAH \n MENJADI ENTER NYATA
+void proses_escape_teks(char* teks) {
+    char* tulis = teks;
+    char* baca = teks;
+    while (*baca) {
+        if (*baca == '\\' && *(baca + 1) == 'n') {
+            *tulis++ = '\n'; // Ubah jadi Enter beneran
+            baca += 2;
+        } else if (*baca == '\\' && *(baca + 1) == 't') {
+            *tulis++ = '\t'; // Ubah jadi Tab beneran
+            baca += 2;
+        } else {
+            *tulis++ = *baca++;
+        }
+    }
+    *tulis = '\0';
+}
+
+// 🌌 FUNGSI HELPER: PEMBANGUN DIMENSI URANTIA (REKURSIF)
+// Menggali objek terdalam dan membuatkan Mini RAM untuk masing-masing lapisan
+void sihir_bangun_dimensi(KavlingMemori* kavling, EnkiObject* nilai, EnkiRAM* ram_pusat) {
+    if (!nilai || nilai->tipe != ENKI_OBJEK) return;
+    
+    if (kavling->anak_anak) bebaskan_ram(kavling->anak_anak);
+    kavling->anak_anak = ciptakan_ram_mini(ram_pusat);
+    
+    for (int j = 0; j < nilai->panjang; j++) {
+        char* k = nilai->nilai.objek_peta.kunci[j]->nilai.teks;
+        EnkiObject* v = ciptakan_salinan_objek(nilai->nilai.objek_peta.konten[j]);
+        simpan_ke_ram(kavling->anak_anak, k, v);
+        
+        // 🟢 JIKA WUJUDNYA OBJEK LAGI, BANGUN DIMENSI DI DALAMNYA! (REKURSIF TINGKAT DEWA)
+        if (v->tipe == ENKI_OBJEK) {
+            for (int m = 0; m < kavling->anak_anak->jumlah; m++) {
+                if (strcmp(kavling->anak_anak->kavling[m].nama, k) == 0) {
+                    sihir_bangun_dimensi(&(kavling->anak_anak->kavling[m]), v, kavling->anak_anak);
+                    break;
+                }
+            }
+        }
+    }
+}
+
 // =================================================================
 // 🧊 SIHIR SEMAYAMKAN: MEMAHAT WUJUD KE DALAM GRIYA (.imah)
 // Hierarki: Paradise -> Grand Universe -> Orvonton -> Nebadon -> Mortal
@@ -685,6 +728,9 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // Jika berwujud teks (pakai kutip), lakukan prosedur normal
         char* teks_bersih = strdup(teks_mentah);
         bersihkan_kutip(teks_bersih);
+
+        // 🟢 SUNTIKAN ENTER: Ubah \n menjadi Enter nyata!
+        proses_escape_teks(teks_bersih);
         
         // B. Masukkan teks yang sudah bersih ke dalam mesin sisipan
         char* teks_final = proses_sisipan_teks(teks_bersih, ram, node);
@@ -786,25 +832,47 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     // 3. PEMANGGILAN DOMAIN BERTINGKAT (AST_AKSES_DOMAIN)
     // =======================================================
     else if (node->jenis == AST_AKSES_DOMAIN) {
-        // Cari ujung dari dimensi (contoh: 'nama' dari 'realita.dimensi.nama')
+        // JALUR 1: Coba cari dari Kavling / Mini RAM (Paling Aman untuk Mutasi)
         KavlingMemori* target = cari_kavling_domain(node, ram);
-        
         if (target) {
             // 🟢 PEMBUNGKUS UNIVERSAL: Jadikan kavling sebagai objek nyata!
             return bungkus_dimensi_ke_objek(target); 
         }
         
-        // Jika properti gaib / tidak ada
-        // 🟢 PESAN ERROR LENGKAP KEMBALI!
+        // 🟢 JALUR 2 (ALTERNATIF): Coba baca sebagai wujud Objek murni
+        // Ini menyelamatkan pemanggilan menyilang seperti array[1].nama
+        EnkiObject* induk = evaluasi_ekspresi(node->kiri, ram);
+        if (induk && induk->tipe == ENKI_OBJEK) {
+            char* nama_kunci = node->nilai_teks;
+            for (int i = 0; i < induk->panjang; i++) {
+                EnkiObject* k = induk->nilai.objek_peta.kunci[i];
+                if (k && k->tipe == ENKI_TEKS && strcmp(k->nilai.teks, nama_kunci) == 0) {
+                    EnkiObject* v = induk->nilai.objek_peta.konten[i];
+                    EnkiObject* hasil = ciptakan_kosong();
+                    if (v->tipe == ENKI_ANGKA) hasil = ciptakan_angka(v->nilai.angka);
+                    else if (v->tipe == ENKI_TEKS) hasil = ciptakan_teks(v->nilai.teks);
+                    else if (v->tipe == ENKI_OBJEK || v->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(v);
+                    
+                    hancurkan_objek(induk);
+                    return hasil; // Selamat!
+                }
+            }
+        }
+        
+        // Bersihkan memori jika gagal
+        if (induk) hancurkan_objek(induk);
+        
+        // 🟢 SINTESIS PESAN ERROR: Menggabungkan yang lama dengan panduan evolusi baru!
         pemicu_kiamat_presisi(node, ram, "Domain bersarang atau properti tidak ditemukan!", 
-            "Domain bersarang adalah cara memanggil isi dari sebuah objek menggunakan tanda titik (.).\n"
-            "Contoh pemanggilan: bos.gaji\n\n"
-            "Penyebab error ini:\n"
-            "1. Variabel induk ('bos') belum diciptakan, ATAU\n"
-            "2. Variabel induk bukan berupa objek { }, ATAU\n"
-            "3. Properti ('gaji') tidak ada di dalam objek tersebut.\n"
-            "Pastikan Anda telah mendeklarasikannya dengan benar, contoh:\n"
-            "takdir.soft bos = {\"gaji\": 5000}");
+            "Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).\n"
+            "Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).\n\n"
+            "Penyebab Kiamat ini:\n"
+            "1. Variabel induk belum diciptakan di RAM, ATAU\n"
+            "2. Variabel induk bukan berwujud objek { }, ATAU\n"
+            "3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU\n"
+            "4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.\n\n"
+            "💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.");
+            
         return ciptakan_kosong();
     }
 
@@ -971,6 +1039,11 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 // Simpan ke dalam array C murni!
                 if (elemen->tipe == ENKI_TEKS) obj_array->nilai.array_elemen[i] = ciptakan_teks(elemen->nilai.teks);
                 else if (elemen->tipe == ENKI_ANGKA) obj_array->nilai.array_elemen[i] = ciptakan_angka(elemen->nilai.angka);
+                
+                // 🟢 SUNTIKAN MUTLAK: Izinkan Objek dan Array hidup di dalam Array!
+                else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) {
+                    obj_array->nilai.array_elemen[i] = ciptakan_salinan_objek(elemen);
+                } 
                 else obj_array->nilai.array_elemen[i] = ciptakan_kosong();
                 
                 hancurkan_objek(elemen); 
@@ -2059,20 +2132,9 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
                     }
 
                     // 3. 🌌 SINKRONISASI DIMENSI URANTIA (Pembuatan Mini RAM)
-                    // Jika nilai yang masuk adalah Objek (dari {} atau impor atau balikan)
+                    // Jika nilai yang masuk adalah Objek, bangun dimensinya!
                     if (nilai->tipe == ENKI_OBJEK) {
-                        // Bersihkan sisa dimensi lama jika ada
-                        if (ram->kavling[i].anak_anak) bebaskan_ram(ram->kavling[i].anak_anak);
-                        
-                        // Ciptakan dimensi baru
-                        ram->kavling[i].anak_anak = ciptakan_ram_mini(ram);
-                        
-                        // Isi Mini RAM dari data Objek Peta agar bisa dipanggil pakai titik (dewa.nama)
-                        for (int j = 0; j < nilai->panjang; j++) {
-                            char* k = nilai->nilai.objek_peta.kunci[j]->nilai.teks;
-                            EnkiObject* v = ciptakan_salinan_objek(nilai->nilai.objek_peta.konten[j]);
-                            simpan_ke_ram(ram->kavling[i].anak_anak, k, v);
-                        }
+                        sihir_bangun_dimensi(&(ram->kavling[i]), nilai, ram);
                     }
                     
                     break; // Selesai mengurus kavling ini

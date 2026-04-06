@@ -1,0 +1,34 @@
+^^ IMAH: DATABASE DIMENSI URANTIA
+{
+  "id_superuniverse":   7,
+  "ibukota":   "Uversa",
+  "penguasa":   [
+    "Ancient of Days 1",
+    "Ancient of Days 2",
+    "Ancient of Days 3"
+  ],
+  "nebadon":   {
+    "pemimpin":     "Michael",
+    "satania":     {
+      "sistem_lokal":       24,
+      "planet_karantina":       [
+        {
+          "nama":           "Urantia",
+          "status":           "Terisolasi",
+          "benua":           [
+            "Asia",
+            "Eropa",
+            "Atlantis"
+          ]
+        },
+        {
+          "nama":           "Jerusem",
+          "status":           "Ibukota",
+          "benua":           [
+            "Pusat Kaca"
+          ]
+        }
+      ]
+    }
+  }
+}

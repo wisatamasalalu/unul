@@ -12,3 +12,32 @@
    Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
 =================================
 
+=== [WAKTU KIAMAT: 1775444833] ===
+🚨 [stress_imah.unul: Baris 30:53] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: pemimpin
+   Saran: Domain bersarang adalah cara memanggil isi dari sebuah objek menggunakan tanda titik (.).
+Contoh pemanggilan: bos.gaji
+
+Penyebab error ini:
+1. Variabel induk ('bos') belum diciptakan, ATAU
+2. Variabel induk bukan berupa objek { }, ATAU
+3. Properti ('gaji') tidak ada di dalam objek tersebut.
+Pastikan Anda telah mendeklarasikannya dengan benar, contoh:
+takdir.soft bos = {"gaji": 5000}
+=================================
+
+=== [WAKTU KIAMAT: 1775445544] ===
+🚨 [stress_imah.unul: Baris 31:81] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: nama
+   Saran: Domain bersarang adalah sihir memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur Urantia Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+

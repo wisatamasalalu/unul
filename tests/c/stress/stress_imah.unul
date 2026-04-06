@@ -1,0 +1,56 @@
+datang
+untuk array.dinamis
+untuk array.statis
+
+ketik("==================================================")
+ketik(" 🌌 UJIAN STRESS: DIMENSI URANTIA & RITUAL IMAH 🌌 ")
+ketik("==================================================")
+
+ketik("\n[1] MENCIPTAKAN GRAND UNIVERSE (KEDALAMAN TINGKAT 5)...")
+takdir.soft orvonton = {
+    "id_superuniverse": 7,
+    "ibukota": "Uversa",
+    "penguasa": ["Ancient of Days 1", "Ancient of Days 2", "Ancient of Days 3"],
+    "nebadon": {
+        "pemimpin": "Michael",
+        "satania": {
+            "sistem_lokal": 24,
+            "planet_karantina": [
+                {"nama": "Urantia", "status": "Terisolasi", "benua": ["Asia", "Eropa", "Atlantis"]},
+                {"nama": "Jerusem", "status": "Ibukota", "benua": ["Pusat Kaca"]}
+            ]
+        }
+    }
+}
+ketik("✅ Objek berhasil diciptakan di RAM tanpa meledak!")
+
+ketik("\n[2] UJI AKSES MULTIDIMENSI (SEBELUM DIBEKUKAN)...")
+ketik("Ibukota Superuniverse : " + orvonton.ibukota)
+ketik("Penguasa ke-2         : " + orvonton.penguasa[2])
+ketik("Pemimpin Nebadon      : " + orvonton.nebadon.pemimpin)
+ketik("Planet Karantina ke-1 : " + orvonton.nebadon.satania.planet_karantina[1].nama)
+ketik("Benua ke-3 di Urantia : " + orvonton.nebadon.satania.planet_karantina[1].benua[3])
+
+ketik("\n[3] RITUAL EKSPOR KE .IMAH...")
+ekspor(orvonton, "orvonton_backup.imah")
+ketik("✅ File 'orvonton_backup.imah' berhasil dipahat ke hard drive!")
+
+ketik("\n[4] RITUAL IMPOR DARI .IMAH KE DIMENSI BARU...")
+takdir.soft kloning = impor("orvonton_backup.imah")
+ketik("✅ Kloning berhasil dibangkitkan dari kubur!")
+
+ketik("\n[5] UJI AKSES PADA WUJUD KLONING...")
+ketik("Apakah benua ke-3 di kloning masih 'Atlantis'?")
+takdir.soft benua_hilang = kloning.nebadon.satania.planet_karantina[1].benua[3]
+ketik("Jawab: " + benua_hilang)
+
+ketik("\n[6] UJI SIHIR NON-DUALISME (ku) PADA DIMENSI DALAM...")
+takdir.soft properti_satania = ku(kloning.nebadon.satania)
+ketik("Daftar Kunci di dalam sistem Satania: ")
+ketik(properti_satania)
+
+ketik("\n==================================================")
+ketik(" ✨ UJIAN STRESS SELESAI! SEMESTA TETAP STABIL! ✨ ")
+ketik("==================================================")
+
+pergi

@@ -268,49 +268,63 @@ ASTNode* parse_nilai_dasar(Parser* p) {
         simpul_kiri->nilai_teks = strdup(t.isi);
         maju(p);
 
-            // 🔥 SUNTIKAN BARU: Cek Akses Domain Bersarang (Titik) 🔥
-            // Memungkinkan pembacaan dewa.nama atau bahkan dewa.nama.depan
-            while (token_sekarang(p).jenis == TOKEN_TITIK) {
-                maju(p); // Lewati titik '.'
-                Token t_anak = token_sekarang(p);
-                if (t_anak.jenis == TOKEN_IDENTITAS) {
-                    ASTNode* akses = buat_node(AST_AKSES_DOMAIN, p);
-                    akses->kiri = simpul_kiri;              // Induknya (misal: dewa)
-                    akses->nilai_teks = strdup(t_anak.isi); // Anaknya (misal: nama)
-                    simpul_kiri = akses;
-                    maju(p);
-                }
+        // Cek Panggilan Fungsi Tunggal
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
+            simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
+            maju(p); // Lewati '('
+            
+            while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                ASTNode* arg = parse_ekspresi(p); 
+                if (arg) tambah_anak(simpul_kiri, arg); 
+                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
             }
             
-            // Cek Panggilan Fungsi
-            if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
-                simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
-                maju(p); // Lewati '('
+            // 🟢 MENGEMBALIKAN PESAN ERROR & SMART HINT LAMA ANDA
+            char pesan_fungsi[256];
+            snprintf(pesan_fungsi, sizeof(pesan_fungsi), 
+                "Pemanggilan fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
+                "💡 SOLUSI: Pastikan setiap fungsi ditutup dengan benar. Contoh: %s()", 
+                simpul_kiri->nilai_teks, simpul_kiri->nilai_teks);
                 
-                while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
-                    ASTNode* arg = parse_ekspresi(p); 
-                    if (arg) tambah_anak(simpul_kiri, arg); 
-                    if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+            harapkan_token(p, TOKEN_KURUNG_T, pesan_fungsi);
+        }
+        else {
+            // 🔥 LOOP MULTIDIMENSI: Menggabungkan Titik (.) dan Kurung Siku ([]) 🔥
+            // Sekarang mesin bisa membaca dewa.anak[1].cucu[0].kekuatan tanpa henti!
+            while (token_sekarang(p).jenis == TOKEN_TITIK || token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+                
+                // Jika itu TITIK (.)
+                if (token_sekarang(p).jenis == TOKEN_TITIK) {
+                    maju(p); // Lewati titik '.'
+                    Token t_anak = token_sekarang(p);
+                    if (t_anak.jenis == TOKEN_IDENTITAS) {
+                        ASTNode* akses = buat_node(AST_AKSES_DOMAIN, p);
+                        akses->kiri = simpul_kiri;              
+                        akses->nilai_teks = strdup(t_anak.isi); 
+                        simpul_kiri = akses;
+                        maju(p);
+                    } else {
+                        // 🟢 SMART HINT BARU UNTUK TITIK GAIB
+                        kiamat_sintaksis(p, "Sintaksis Cacat: Nama properti gaib setelah titik!", 
+                            "Anda menulis tanda titik (.), tetapi tidak ada nama variabel setelahnya.\n"
+                            "💡 CONTOH YANG BENAR: orvonton.nebadon");
+                    }
                 }
                 
-                // 🟢 SUNTIKAN 2: Dinamis sesuai nama fungsi yang dipanggil
-                char pesan_fungsi[256];
-                snprintf(pesan_fungsi, sizeof(pesan_fungsi), 
-                    "Pemanggilan fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
-                    "💡 SOLUSI: Pastikan setiap fungsi ditutup dengan benar. Contoh: %s()", 
-                    simpul_kiri->nilai_teks, simpul_kiri->nilai_teks);
+                // Jika itu KURUNG SIKU ([...])
+                else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+                    ASTNode* node_akses = buat_node(AST_AKSES_ARRAY, p);
+                    node_akses->kiri = simpul_kiri;
+                    maju(p); // Lewati '['
+                    node_akses->indeks_array = parse_ekspresi(p);
                     
-                harapkan_token(p, TOKEN_KURUNG_T, pesan_fungsi);
+                    // 🟢 MENGEMBALIKAN SMART HINT LAMA ANDA
+                    harapkan_token(p, TOKEN_KURUNG_S_T, "Akses elemen array kehilangan kurung siku penutup ']'.\n💡 CONTOH: nama_variabel[1]");
+                    
+                    simpul_kiri = node_akses;
+                }
             }
-            // Cek Akses Array
-            else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
-                ASTNode* node_akses = buat_node(AST_AKSES_ARRAY, p);
-                node_akses->kiri = simpul_kiri;
-                maju(p);
-                node_akses->indeks_array = parse_ekspresi(p);
-                harapkan_token(p, TOKEN_KURUNG_S_T, "Akses elemen array kehilangan kurung siku penutup ']'.\n💡 CONTOH: nama_variabel[0]");
-                simpul_kiri = node_akses;
-            }
+        }
         
         return simpul_kiri;
     }
