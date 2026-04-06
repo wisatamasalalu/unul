@@ -5,10 +5,11 @@
 #include <ctype.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "enki_lexer.h"
-#include "enki_parser.h"
-#include "enki_interpreter.h"
-#include "enki_os.h"
+#include "../core_c/enki_lexer.h"
+#include "../core_c/enki_parser.h"
+#include "../core_c/enki_interpreter.h"
+#include "../core_c/enki_os.h"
+#include "../core_c/enki_file_system.h"
 
 // --- 1. DEKLARASI PEMBANTU (Agar tidak implicit declaration) ---
 
@@ -100,27 +101,98 @@ int main(int argc, char* argv[]) {
                 printf("💡 PANDUAN: Pastikan nama file dan jalur (path) sudah benar.\n\n");
                 return 1;
             }
-        } else if (strcmp(argv[1], "ingat") == 0 && argc > 2) {
-            FILE* f = fopen(".ingatan-unul", "a");
-            if (f) { fprintf(f, "%s\n", argv[2]); fclose(f); }
-            printf("💾 Diingat: '%s' kini merasuk ke latar belakang.\n", argv[2]);
-        } else if (strcmp(argv[1], "lupa") == 0 && argc > 2 && strcmp(argv[2], "semua") == 0) {
-            unlink(".ingatan-unul");
-            printf("🧠 Memori latar belakang telah dibersihkan.\n");
-        } else {
+        } 
+        // 🟢 FITUR KENANGAN (INGAT)
+        else if (strcmp(argv[1], "ingat") == 0 && argc > 2) {
+            if (strcmp(argv[2], "list") == 0) {
+                FILE* f = fopen(".ingatan-unul", "r");
+                if (!f) {
+                    printf("💨 unul tidak menyimpan kenangan masa lalu apapun dalam pikirannya.\n");
+                } else {
+                    printf("🗂️ Inilah daftar kenangan unul:\n");
+                    char path[1024];
+                    int count = 0;
+                    while (fgets(path, sizeof(path), f)) {
+                        path[strcspn(path, "\n")] = 0; // Hapus enter
+                        printf(" - %s\n", path);
+                        count++;
+                    }
+                    fclose(f);
+                    if (count == 0) {
+                        printf("💨 unul tidak menyimpan kenangan masa lalu apapun dalam pikirannya.\n");
+                    }
+                }
+            } else {
+                // 🟢 CEK APAKAH FILE BENAR-BENAR ADA (ANTI-HALUSINASI)
+                FILE* cek_file = fopen(argv[2], "r");
+                if (cek_file) {
+                    fclose(cek_file); // Tutup lagi, kita cuma numpang cek
+                    
+                    // Simpan ke ingatan karena filenya benar-benar nyata
+                    FILE* f = fopen(".ingatan-unul", "a");
+                    if (f) { fprintf(f, "%s\n", argv[2]); fclose(f); }
+                    printf("💾 UNUL kenangan '%s' telah bersemayam dalam pikiran unul.\n", argv[2]);
+                } else {
+                    // Tolak dengan puitis jika filenya gaib
+                    printf("💔 unul menolak mengingat ilusi! Berkas '%s' tidak wujud di dimensi ini.\n", argv[2]);
+                }
+            } 
+        }
+        // 🟢 FITUR AMNESIA (LUPA)
+        else if (strcmp(argv[1], "lupa") == 0 && argc > 2) {
+            if (strcmp(argv[2], "semua") == 0) {
+                unlink(".ingatan-unul");
+                printf("🧠 Segala kenangan masa lalu unul telah dilupakan.\n");
+            } else {
+                // Menghapus kenangan spesifik
+                FILE* f = fopen(".ingatan-unul", "r");
+                if (f) {
+                    char temp_file[] = ".ingatan-unul.tmp";
+                    FILE* ft = fopen(temp_file, "w");
+                    char path[1024];
+                    int found = 0;
+                    
+                    while (fgets(path, sizeof(path), f)) {
+                        char clean_path[1024];
+                        strcpy(clean_path, path);
+                        clean_path[strcspn(clean_path, "\n")] = 0;
+                        
+                        if (strcmp(clean_path, argv[2]) == 0) {
+                            found = 1; // Jangan ditulis ulang (Lupakan)
+                        } else {
+                            fprintf(ft, "%s", path);
+                        }
+                    }
+                    fclose(f);
+                    fclose(ft);
+                    
+                    remove(".ingatan-unul");
+                    rename(temp_file, ".ingatan-unul");
+                    
+                    if (found) {
+                        printf("🗑️ UNUL telah menghapus '%s' dari pikirannya.\n", argv[2]);
+                    } else {
+                        printf("💨 Kenangan '%s' memang tidak pernah ada di pikiran unul.\n", argv[2]);
+                    }
+                } else {
+                    printf("💨 unul tidak menyimpan kenangan masa lalu apapun dalam pikirannya.\n");
+                }
+            }
+        } 
+        else {
             muat_ingatan(&ram);
             char* kode = baca_file_mentah(argv[1]);
             if (kode) { 
                 jalankan_perintah(kode, &ram, argv[1]); 
                 free(kode); 
             } else {
-                // 🟢 INI DIA PENANGKAP KIAMAT JIKA FILE GAIB!
                 printf("\n🚨 KIAMAT SISTEM: Kitab '%s' tidak ditemukan di alam semesta!\n", argv[1]);
                 printf("💡 PANDUAN: Pastikan nama file skrip Anda benar dan Anda berada di folder yang tepat.\n\n");
                 return 1;
             }
         }
-    } else {
+    }
+    else {
         // 🌍 AKTIFKAN RADAR DIMENSI
         cetak_info_dimensi();
         printf("🦅 OS LinuxDNC - UNUL CLI Interaktif 🦅\n");

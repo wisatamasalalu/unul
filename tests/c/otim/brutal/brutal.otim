@@ -1,0 +1,12 @@
+#!datang
+<wadah: benua_utama>
+    <judul: besar> "Dunia Lama" </judul>
+    
+    <daftar: ras_alien>
+        <butir> "Anunnaki" </butir>
+        <butir> <tebal> "Reptilian" </tebal> </butir>
+    </daftar>
+
+    <masukan: sandi_rahasia, tipe="password"> </masukan>
+</wadah>
+pergi!#

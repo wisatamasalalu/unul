@@ -21,6 +21,8 @@
 #include "../core/array/ku.h"
 #include "../core/array/ko.h"
 #include "../core/enki_object.h"
+#include "../otim/otim_parser.h"
+#include "../snul/snul_parser.h"
 
 // Helper Enkripsi Simetris (XOR Cipher)
 void mutasi_xor(char* data, size_t panjang, const char* kunci) {
@@ -2165,6 +2167,98 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             if (obj_path) hancurkan_objek(obj_path);
             
             return hasil_bangkit;
+        }
+
+        // =======================================================
+        // 💅 MUAT SNUL (MENYULAP KOSMETIK MENJADI MEMORI)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "muat_snul") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Kosmetik Cacat!", 
+                    "Fungsi muat_snul butuh 1 parameter (nama_file.snul).\n"
+                    "Contoh: takdir.soft gaya = muat_snul(\"kosmetik.snul\")");
+                return ciptakan_kosong();
+            }
+
+            EnkiObject* arg_file = evaluasi_ekspresi(node->anak_anak[0], ram);
+            if (!arg_file || arg_file->tipe != ENKI_TEKS) {
+                pemicu_kiamat_presisi(node, ram, "Dimensi Tidak Valid!", "Nama file SNUL harus berupa teks.");
+                return ciptakan_kosong();
+            }
+
+            // Membaca isi file .snul secara mentah
+            FILE* f_snul = fopen(arg_file->nilai.teks, "rb");
+            if (!f_snul) {
+                char pesan_hilang[256];
+                snprintf(pesan_hilang, sizeof(pesan_hilang), "Dimensi kosmetik '%s' tidak ditemukan!", arg_file->nilai.teks);
+                pemicu_kiamat_presisi(node, ram, "Kiamat File Kosmetik", pesan_hilang);
+                return ciptakan_kosong();
+            }
+
+            // Menyedot isi file ke dalam string C
+            fseek(f_snul, 0, SEEK_END);
+            long sz = ftell(f_snul);
+            fseek(f_snul, 0, SEEK_SET);
+            char* isi_snul = malloc(sz + 1);
+            fread(isi_snul, 1, sz, f_snul);
+            isi_snul[sz] = '\0';
+            fclose(f_snul);
+
+            // 🟢 PROSES PENYULAPAN DIMENSI KOSMETIK! (Lexer -> Parser -> Peta Memori)
+            SnulTokenArray tokens = snul_lexer(isi_snul);
+            EnkiObject* gaya_pohon = parse_snul(tokens);
+
+            // Bersihkan sisa-sisa ritual
+            bebaskan_snul_token(&tokens);
+            free(isi_snul);
+
+            return gaya_pohon; // Kembalikan Peta Kosmetik ke tangan skrip UNUL!
+        }
+
+        // =======================================================
+        // 🖼️ MUAT OTIM (MENYULAP VISUAL MENJADI MEMORI)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "muat_otim") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Visual Cacat!", 
+                    "Fungsi muat_otim butuh 1 parameter (nama_file.otim).\n"
+                    "Contoh: takdir.soft ui = muat_otim(\"halaman.otim\")");
+                return ciptakan_kosong();
+            }
+
+            EnkiObject* arg_file = evaluasi_ekspresi(node->anak_anak[0], ram);
+            if (!arg_file || arg_file->tipe != ENKI_TEKS) {
+                pemicu_kiamat_presisi(node, ram, "Dimensi Tidak Valid!", "Nama file OTIM harus berupa teks.");
+                return ciptakan_kosong();
+            }
+
+            // Membaca isi file .otim secara mentah
+            FILE* f_otim = fopen(arg_file->nilai.teks, "rb");
+            if (!f_otim) {
+                char pesan_hilang[256];
+                snprintf(pesan_hilang, sizeof(pesan_hilang), "Dimensi visual '%s' tidak ditemukan!", arg_file->nilai.teks);
+                pemicu_kiamat_presisi(node, ram, "Kiamat File Visual", pesan_hilang);
+                return ciptakan_kosong();
+            }
+
+            // Menyedot isi file ke dalam string C
+            fseek(f_otim, 0, SEEK_END);
+            long sz = ftell(f_otim);
+            fseek(f_otim, 0, SEEK_SET);
+            char* isi_otim = malloc(sz + 1);
+            fread(isi_otim, 1, sz, f_otim);
+            isi_otim[sz] = '\0';
+            fclose(f_otim);
+
+            // 🟢 PROSES PENYULAPAN DIMENSI! (Lexer -> Parser -> EnkiObject)
+            OtimTokenArray tokens = otim_lexer(isi_otim);
+            EnkiObject* ui_pohon = parse_otim(tokens);
+
+            // Bersihkan sisa-sisa ritual
+            bebaskan_otim_token(&tokens);
+            free(isi_otim);
+
+            return ui_pohon; // Kembalikan Pohon UI ke tangan skrip UNUL!
         }
 
         // =======================================================

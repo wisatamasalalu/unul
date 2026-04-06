@@ -1,0 +1,15 @@
+datang
+ketik("=====================================")
+ketik(" 🖼️ UJI COBA MESIN VISUAL OTIM 🖼️ ")
+ketik("=====================================")
+
+^^ Memanggil sihir jembatan dimensi!
+takdir.soft ui_ku = muat_otim("halaman.otim")
+
+ketik("\n✅ Pohon UI berhasil dimuat ke RAM!")
+ketik("Mari kita bongkar isinya menggunakan fungsi cetak():\n")
+
+^^ Mesin akan memuntahkan JSON/Struktur Map dari objek UI
+ketik(ui_ku)
+
+pergi

@@ -1,0 +1,24 @@
+datang
+ketik("===============================================")
+ketik(" 🦠 UJI COBA MUTASI DOM (DOCUMENT OBJECT MODEL) 🦠")
+ketik("===============================================")
+
+takdir.soft ui_ku = muat_otim("brutal.otim")
+
+ketik("\n[Fase 1] Murni dari Pabrik OTIM:")
+^^ Indeks sekarang mulai dari 1!
+ketik(ui_ku.anak_anak[1].anak_anak[1].anak_anak[1].isi) 
+ketik(ui_ku.anak_anak[1].anak_anak[2].anak_anak[1].anak_anak[1].isi) 
+
+ketik("\n[Fase 2] Menyuntikkan Mutasi ke dalam RAM...")
+
+ui_ku.anak_anak[1].anak_anak[1].anak_anak[1].isi = "DUNIA BARU URANTIA DITAKLUKKAN!"
+ui_ku.anak_anak[1].anak_anak[2].anak_anak[1].anak_anak[1].isi = "Manusia Urantia"
+ui_ku.anak_anak[1].anak_anak[3].atribut = "tipe='text_terbuka'"
+
+ketik("✅ Mutasi selesai!")
+
+ketik("\n[Fase 3] Hasil Mutasi Keseluruhan Pohon OTIM:")
+ketik(ui_ku)
+
+pergi

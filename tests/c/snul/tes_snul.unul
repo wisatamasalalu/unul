@@ -1,0 +1,19 @@
+datang
+ketik("=====================================")
+ketik(" 💅 UJI COBA MESIN KOSMETIK SNUL 💅 ")
+ketik("=====================================")
+
+^^ Memanggil sihir jembatan dimensi!
+takdir.soft gaya_ku = muat_snul("gaya.snul")
+
+ketik("\n✅ Peta Kosmetik berhasil dimuat ke RAM!")
+ketik("Mari kita bongkar isinya:\n")
+
+^^ Memuntahkan wujud JSON-nya
+ketik(gaya_ku)
+
+^^ Membuktikan akses memori titik (Dot Access)
+ketik("\nMengambil warna teks judul besar:")
+ketik(gaya_ku["@judul.besar"].warna_teks) 
+
+pergi

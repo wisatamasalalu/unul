@@ -1,0 +1,10 @@
+^^ Buku Kosmetik Urantia
+@wadah.utama {
+    warna_latar: #1A1A1A;
+    ruang_dalam: 20px otomatis;
+}
+
+@judul.besar {
+    warna_teks: merah;
+    garis_bawah: ya;
+}

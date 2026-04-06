@@ -1,0 +1,6 @@
+#!datang
+<wadah: layar_utama>
+    <teks: judul> "Selamat Datang di UNUL Visual!" </teks>
+    <tombol: btn_klik> "Hancurkan Dimensi" </tombol>
+</wadah>
+pergi!#
