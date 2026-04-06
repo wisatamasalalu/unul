@@ -239,23 +239,26 @@ void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek) {
     ram->jumlah++;
 }
 
-// 🔥 SIHIR BALIKAN SEMENTARA (Akan kita pugar nanti jika sudah pakai Objek utuh)
+// 🔥 SIHIR BALIKAN PARADOKS (Deep Copy Terproteksi)
 EnkiRAM* salin_ram_rekursif(EnkiRAM* sumber) {
     if (!sumber) return NULL;
     EnkiRAM* baru = ciptakan_ram_mini(sumber->induk);
     
-    // 🟢 BAWA SAKLAR ARRAY KE DUNIA MASA LALU/BERSARANG!
     baru->status_array_dinamis = sumber->status_array_dinamis;
     baru->status_array_statis = sumber->status_array_statis;
     
     for (int i = 0; i < sumber->jumlah; i++) {
-        // ⚠️ PERHATIAN: Di masa depan butuh deep copy objek murni, sementara kita pinjam pointernya
-        EnkiObject* obj_salinan = sumber->kavling[i].objek; 
+        // 🟢 SUNTIKAN ANTI-PARADOKS: Gunakan Deep Copy!
+        EnkiObject* obj_salinan = sumber->kavling[i].objek ? 
+                                  ciptakan_salinan_objek(sumber->kavling[i].objek) : 
+                                  ciptakan_kosong(); 
+                                  
         simpan_ke_ram(baru, sumber->kavling[i].nama, obj_salinan);
-        baru->kavling[i].tipe = sumber->kavling[i].tipe;
-        baru->kavling[i].apakah_konstanta = sumber->kavling[i].apakah_konstanta;
+        baru->kavling[baru->jumlah - 1].tipe = sumber->kavling[i].tipe;
+        baru->kavling[baru->jumlah - 1].apakah_konstanta = sumber->kavling[i].apakah_konstanta;
+        
         if (sumber->kavling[i].anak_anak) {
-            baru->kavling[i].anak_anak = salin_ram_rekursif(sumber->kavling[i].anak_anak);
+            baru->kavling[baru->jumlah - 1].anak_anak = salin_ram_rekursif(sumber->kavling[i].anak_anak);
         }
     }
     return baru;
@@ -584,6 +587,37 @@ char* sihir_baca_terminal_aman(const char* prompt, int mode_rahasia) {
     }
 }
 
+// =======================================================
+// 🟢 SUNTIKAN UNIVERSAL: Membungkus Dimensi (Mini RAM) menjadi Objek
+// =======================================================
+EnkiObject* bungkus_dimensi_ke_objek(KavlingMemori* kav) {
+    if (!kav) return ciptakan_kosong();
+    
+    // Jika dia punya Dimensi (anak_anak)
+    if (kav->anak_anak && kav->anak_anak->jumlah > 0) {
+        EnkiObject* obj_peta = ciptakan_objek_peta(kav->anak_anak->jumlah);
+        obj_peta->panjang = kav->anak_anak->jumlah;
+        
+        for (int i = 0; i < kav->anak_anak->jumlah; i++) {
+            KavlingMemori* anak = &(kav->anak_anak->kavling[i]);
+            
+            // Masukkan nama anak sebagai Kunci
+            obj_peta->nilai.objek_peta.kunci[i] = ciptakan_teks(anak->nama);
+            
+            // Masukkan isi anak sebagai Konten (Rekursif jika anak punya dimensi lagi!)
+            if (anak->anak_anak && anak->anak_anak->jumlah > 0) {
+                obj_peta->nilai.objek_peta.konten[i] = bungkus_dimensi_ke_objek(anak); 
+            } else {
+                obj_peta->nilai.objek_peta.konten[i] = anak->objek ? ciptakan_salinan_objek(anak->objek) : ciptakan_kosong();
+            }
+        }
+        return obj_peta;
+    }
+    
+    // Jika tidak punya dimensi (variabel biasa), kembalikan wujud aslinya
+    return kav->objek ? ciptakan_salinan_objek(kav->objek) : ciptakan_kosong();
+}
+
 // --- 2. LOGIKA EVALUASI NILAI ---
 EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (!node) return ciptakan_kosong();
@@ -669,7 +703,9 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // 2. Identitas (Variabel Biasa / Array)
+    // =======================================================
+    // 2. PEMANGGILAN VARIABEL BIASA (AST_IDENTITAS)
+    // =======================================================
     if (node->jenis == AST_IDENTITAS) {
         KavlingMemori* kavling = NULL;
         for (int i = 0; i < ram->jumlah; i++) {
@@ -679,7 +715,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
         }
         
-        // 🟢 JIKA VARIABEL GAGAL DITEMUKAN (Tampilkan Saran Typo!)
+        // JIKA VARIABEL GAGAL DITEMUKAN
         if (!kavling) {
             char pesan_typo[512];
             
@@ -692,7 +728,9 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 pemicu_kiamat_presisi(node, ram, pesan_typo, "Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.");
             } else {
                 // JIKA SAMA SEKALI TIDAK ADA YANG MIRIP (Mungkin lupa tanda kutip!)
-                snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' belum diciptakan di realita ini.", node->nilai_teks);
+                snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.", node->nilai_teks);
+                
+                // 🟢 PESAN ERROR LENGKAP KEMBALI!
                 pemicu_kiamat_presisi(node, ram, pesan_typo, 
                     "1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (\").\n"
                     "   Contoh: ketik(\"Halo Dunia\")\n"
@@ -701,26 +739,24 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return ciptakan_kosong(); 
         }
 
-        // Jika ketemu, kembalikan teksnya
-        if (kavling->objek) {
-            return ciptakan_salinan_objek(kavling->objek); // 🟢 Salinan Aman!
-        }
-        return ciptakan_kosong();
+        // 🟢 PEMBUNGKUS UNIVERSAL: Jadikan kavling sebagai objek nyata!
+        return bungkus_dimensi_ke_objek(kavling); 
     }
 
-    // 3.1 EVALUASI AKSES DOMAIN (TITIK) ---
+    // =======================================================
+    // 3. PEMANGGILAN DOMAIN BERTINGKAT (AST_AKSES_DOMAIN)
+    // =======================================================
     else if (node->jenis == AST_AKSES_DOMAIN) {
+        // Cari ujung dari dimensi (contoh: 'nama' dari 'realita.dimensi.nama')
         KavlingMemori* target = cari_kavling_domain(node, ram);
         
         if (target) {
-            // Langsung kembalikan Objeknya jika ada
-            if (target->objek) {
-                return ciptakan_salinan_objek(target->objek); // 🟢 Salinan Aman!
-            }
-            return ciptakan_kosong();
+            // 🟢 PEMBUNGKUS UNIVERSAL: Jadikan kavling sebagai objek nyata!
+            return bungkus_dimensi_ke_objek(target); 
         }
         
         // Jika properti gaib / tidak ada
+        // 🟢 PESAN ERROR LENGKAP KEMBALI!
         pemicu_kiamat_presisi(node, ram, "Domain bersarang atau properti tidak ditemukan!", 
             "Domain bersarang adalah cara memanggil isi dari sebuah objek menggunakan tanda titik (.).\n"
             "Contoh pemanggilan: bos.gaji\n\n"
@@ -730,7 +766,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             "3. Properti ('gaji') tidak ada di dalam objek tersebut.\n"
             "Pastikan Anda telah mendeklarasikannya dengan benar, contoh:\n"
             "takdir.soft bos = {\"gaji\": 5000}");
-        return ciptakan_kosong(); // 🟢 Ganti strdup("")
+        return ciptakan_kosong();
     }
 
     // 4. Operasi Matematika & Penugasan
@@ -2190,46 +2226,41 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         }
     }
 
-    // --- 9. SIHIR BALIKAN (MESIN WAKTU) ---
+    // --- 9. SIHIR BALIKAN (MESIN WAKTU: VERSI DIMENSI) ---
     else if (node->jenis == AST_PERINTAH_BALIKAN) {
-        KavlingMemori* target = NULL; KavlingMemori* induk = NULL;
+        KavlingMemori* akar_utama = NULL; // Akar (bos) yang memegang riwayat
         
         if (node->kiri) { 
-            target = temukan_atau_ciptakan_kavling(node->kiri, ram); 
-            induk = cari_induk_utama(node->kiri, ram); 
+            // Kita hanya butuh Akar Utama untuk memutar balik waktu seluruh objek
+            akar_utama = cari_induk_utama(node->kiri, ram); 
         } 
         else if (node->nilai_teks) {
-            char nama_root[256]; strncpy(nama_root, node->nilai_teks, 255); nama_root[255] = '\0';
-            char* titik = strchr(nama_root, '.'); if (titik) *titik = '\0'; 
-            
+            // Logika pencarian variabel biasa (akar langsung)
             for (int i = 0; i < ram->jumlah; i++) {
-                if (strcmp(ram->kavling[i].nama, nama_root) == 0) { 
-                    induk = &(ram->kavling[i]); 
-                    target = induk; 
+                if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) { 
+                    akar_utama = &(ram->kavling[i]); 
                     break; 
                 }
             }
         }
         
-        if (induk && target && induk->jumlah_riwayat > 0) {
-            // Mundurkan kursor waktu
-            induk->jumlah_riwayat--; 
-            JejakMasaLalu* masa_lalu = &induk->riwayat[induk->jumlah_riwayat];
+        // 🌀 PROSES PEMULIHAN 🌀
+        if (akar_utama && akar_utama->jumlah_riwayat > 0) {
+            akar_utama->jumlah_riwayat--; 
+            JejakMasaLalu* masa_lalu = &akar_utama->riwayat[akar_utama->jumlah_riwayat];
             
-            // 1. Hancurkan memori masa kini (Target)
-            if (induk->objek) hancurkan_objek(induk->objek);
-            if (induk->anak_anak) { 
-                bebaskan_ram(induk->anak_anak); 
-                free(induk->anak_anak); 
-                induk->anak_anak = NULL;
+            // 1. Hancurkan wujud masa kini (Akar & Seluruh Anak-anaknya)
+            if (akar_utama->objek) hancurkan_objek(akar_utama->objek);
+            if (akar_utama->anak_anak) { 
+                bebaskan_ram(akar_utama->anak_anak); 
+                free(akar_utama->anak_anak); 
+                akar_utama->anak_anak = NULL;
             }
             
-            // 2. 🟢 Pulihkan memori dari masa lalu menggunakan DEEP COPY!
-            induk->tipe = masa_lalu->tipe; 
-            induk->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL; 
-            induk->anak_anak = masa_lalu->anak_anak ? salin_ram_rekursif(masa_lalu->anak_anak) : NULL;
-            
-            // 🟢 JANGAN menghancurkan masa_lalu! Biarkan tersimpan di riwayat agar aman!
+            // 2. 🟢 PULIHKAN: Reinkarnasi dari masa lalu (Deep Copy)
+            akar_utama->tipe = masa_lalu->tipe; 
+            akar_utama->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL; 
+            akar_utama->anak_anak = masa_lalu->anak_anak ? salin_ram_rekursif(masa_lalu->anak_anak) : NULL;
         }
     }
 

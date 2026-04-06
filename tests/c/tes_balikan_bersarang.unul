@@ -1,0 +1,11 @@
+datang
+takdir.soft bos = {"gaji": 5000}
+ketik(bos)
+
+bos.gaji = 7000
+ketik(bos)
+
+balikan bos.gaji
+ketik("Setelah dibalikan:")
+ketik(bos)
+pergi

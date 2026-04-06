@@ -880,18 +880,15 @@ ASTNode* parse_pernyataan(Parser* p) {
             maju(p);
         }
 
-        // 🟢 SUNTIKAN BARU: Tangkap Parameter (Menggunakan parse_ekspresi)
+        // Tangkap Parameter
         if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
             maju(p); // lewati '('
             while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
-                
                 ASTNode* param = parse_ekspresi(p); 
                 tambah_anak(node, param);
-
                 if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
             }
             
-            // 🟢 SUNTIKAN 3: Kiamat Kurung Tutup Parameter
             char pesan_param[256];
             snprintf(pesan_param, sizeof(pesan_param), 
                 "Deklarasi fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
@@ -901,8 +898,14 @@ ASTNode* parse_pernyataan(Parser* p) {
             harapkan_token(p, TOKEN_KURUNG_T, pesan_param);
         }
 
-        // Lewati 'maka'
-        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        // 🟢 SUNTIKAN RANJAU 1: WAJIB ADA 'MAKA'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Deklarasi fungsi kehilangan gerbang 'maka'!", 
+                             "Untuk menciptakan fungsi, Anda wajib menggunakan kata 'maka' sebelum isinya.\n"
+                             "Contoh: ciptakan fungsi sapa(nama) maka");
+        }
 
         // Tangkap isi blok fungsi (Tubuh Fungsi)
         node->blok_maka = buat_node(AST_PROGRAM, p);
@@ -913,8 +916,14 @@ ASTNode* parse_pernyataan(Parser* p) {
             if (stmt) tambah_anak(node->blok_maka, stmt);
         }
 
-        // Lewati 'putus'
-        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) maju(p);
+        // 🟢 SUNTIKAN RANJAU 2: WAJIB ADA 'PUTUS'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Tubuh fungsi tidak memiliki ujung ('putus')!", 
+                             "Sebuah fungsi yang diciptakan wajib diakhiri dengan kata kunci 'putus'.\n"
+                             "Jika tidak, mesin akan menelan seluruh sisa program Anda ke dalam fungsi ini.");
+        }
 
         return node;
     }

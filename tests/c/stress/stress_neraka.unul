@@ -1,0 +1,83 @@
+datang
+untuk array.dinamis
+
+ketik("==================================================")
+ketik(" 🔥 UJI COBA KIAMAT TINGKAT NERAKA (LEVEL 2) 🔥")
+ketik("==================================================")
+
+^^ --------------------------------------------------------
+^^ FASE 1: REKURSI EKSTREM (Siksaan Call Stack)
+^^ --------------------------------------------------------
+ketik("\n[FASE 1: Rekursi Faktorial]")
+
+ciptakan fungsi faktorial(n) maka
+    jika n < 2 maka
+        pulang 1
+    lain maka
+        takdir.soft sebelumnya = faktorial(n - 1)
+        pulang n * sebelumnya
+    putus
+putus
+
+takdir.soft angka_uji = 6
+takdir.soft hasil_faktorial = faktorial(angka_uji)
+ketik("Faktorial dari 6 (Harusnya 720):")
+ketik(hasil_faktorial)
+
+^^ --------------------------------------------------------
+^^ FASE 2: LEDAKAN MEMORI (String / Alokasi Teks)
+^^ --------------------------------------------------------
+ketik("\n[FASE 2: Ledakan Teks Berantai]")
+takdir.soft teks_monster = "A"
+
+^^ Kita gandakan teks ini berkali-kali!
+effort 10 kali maka
+    teks_monster = teks_monster + teks_monster
+putus
+
+ketik("Menggandakan teks 'A' sebanyak 2^10 kali...")
+takdir.soft panjang_monster = panjang(teks_monster)
+ketik("Panjang teks monster sekarang (Harusnya 1024):")
+ketik(panjang_monster)
+
+^^ --------------------------------------------------------
+^^ FASE 3: LABIRIN LOGIKA BERSARANG
+^^ --------------------------------------------------------
+ketik("\n[FASE 3: Labirin Logika & Perulangan]")
+takdir.soft skor = 0
+
+effort 5 kali maka
+    takdir.soft siklus_dalam = 1
+    effort 3 kali maka
+        jika siklus_dalam % 2 == 1 maka
+            skor = skor + 10
+        lain maka
+            skor = skor + 5
+        putus
+        siklus_dalam = siklus_dalam + 1
+    putus
+putus
+
+ketik("Skor akhir setelah menembus Labirin (Harusnya 125):")
+ketik(skor)
+
+^^ --------------------------------------------------------
+^^ FASE 4: INCEPTION (Interpreter di dalam Interpreter)
+^^ --------------------------------------------------------
+ketik("\n[FASE 4: Inception - Evaluasi Teks Menjadi Takdir]")
+
+takdir.soft sandi_rahasia = 'takdir.soft pesan_gaib = "Aku bangkit dari dalam teks!"'
+ketik("Menjalankan sihir evaluasi pada teks...")
+
+^^ Mengeksekusi teks sebagai perintah nyata!
+jalankan(sandi_rahasia)
+
+^^ Memanggil variabel yang baru saja tercipta dari alam gaib!
+ketik(pesan_gaib)
+
+ketik("\n==================================================")
+ketik(" 👑 SANG ARSITEK TELAH MENAKLUKKAN NERAKA! 👑")
+ketik("==================================================")
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

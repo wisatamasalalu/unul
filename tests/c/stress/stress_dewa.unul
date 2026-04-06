@@ -1,0 +1,97 @@
+datang
+untuk array.dinamis
+untuk array.statis
+
+ketik("==================================================")
+ketik(" 🌌 UJI COBA KIAMAT MEMORI (STRESS TEST DEWA) 🌌")
+ketik("==================================================")
+
+^^ --------------------------------------------------------
+^^ FASE 1: PENCIPTAAN DIMENSI BERSARANG EKSTREM
+^^ --------------------------------------------------------
+ketik("\n[FASE 1: Dimensi Bersarang]")
+takdir.soft semesta = {}
+semesta.galaksi.nama = "Bima Sakti"
+semesta.galaksi.bintang = 400
+semesta.galaksi.planet = {"bumi": "Kehidupan", "mars": "Kosong"}
+
+ketik("Wujud Semesta Awal:")
+ketik(semesta)
+
+^^ Mutasi Brutal tingkat 3!
+semesta.galaksi.bintang = 999
+semesta.galaksi.planet.mars = "Koloni Robot"
+semesta.galaksi.planet.pluto = "Bukan Planet"
+ketik("Wujud Semesta Setelah Mutasi:")
+ketik(semesta)
+
+^^ --------------------------------------------------------
+^^ FASE 2: UJI ARRAY NON-DUALISME (.ko & .ku)
+^^ --------------------------------------------------------
+ketik("\n[FASE 2: Pemisahan Jiwa dan Raga (Array)]")
+takdir.soft daftar_kunci = ku(semesta.galaksi.planet)
+takdir.soft daftar_konten = ko(semesta.galaksi.planet)
+
+ketik("Daftar Kunci (Statis):")
+ketik(daftar_kunci)
+ketik("Daftar Konten (Dinamis):")
+ketik(daftar_konten)
+
+^^ --------------------------------------------------------
+^^ FASE 3: PARADOKS WAKTU VS DEEP COPY
+^^ --------------------------------------------------------
+ketik("\n[FASE 3: Benturan Mesin Waktu vs Array]")
+^^ Kita putar balik waktu planet mars!
+balikan semesta.galaksi.planet.mars
+
+ketik("Semesta diputar balik (Mars harus kembali 'Kosong', Pluto musnah):")
+ketik(semesta)
+
+^^ INI ADALAH UJIAN SEBENARNYA: 
+^^ Jika Deep Copy (ciptakan_salinan_objek) Anda cacat, 
+^^ maka memanggil array di bawah ini akan menyebabkan Core Dumped / Segfault!
+ketik("Mengecek Array yang diekstrak DARI MASA DEPAN (Harus tetap utuh):")
+ketik(daftar_konten)
+
+^^ --------------------------------------------------------
+^^ FASE 4: FUNGSI, ARRAY LITERAL, DAN INDEKS
+^^ --------------------------------------------------------
+ketik("\n[FASE 4: Operasi Indeks & Fungsi]")
+
+ciptakan fungsi lebur_energi(kristal, bonus) maka
+    takdir.soft hasil = (kristal * 10) + bonus
+    pulang hasil
+putus
+
+takdir.soft matriks_energi = [10, 50, 100]
+ketik("Matriks Awal:")
+ketik(matriks_energi)
+
+^^ Mengambil array indeks ke-2 (UNUL pakai 1-based index, jadi [2] adalah 50)
+takdir.soft energi_pilihan = matriks_energi[2]
+takdir.soft olahan = lebur_energi(energi_pilihan, 7)
+
+ketik("Hasil peleburan indeks ke-2 (Harusnya 507):")
+ketik(olahan)
+
+^^ --------------------------------------------------------
+^^ FASE 5: UJI GARBAGE COLLECTION DENGAN SIKLUS
+^^ --------------------------------------------------------
+ketik("\n[FASE 5: Siksaan Siklus Memori (Memory Leak Test)]")
+takdir.soft angka_tumbal = 0
+
+effort 5 kali maka
+    ^^ Memaksa mesin membuat dan menghancurkan memori berulang kali
+    takdir.soft objek_sementara = {"uji": "data"}
+    objek_sementara.angka = angka_tumbal
+    angka_tumbal = angka_tumbal + 1
+    ^^ Jika memori bocor, 5 siklus ini akan tersedak
+putus
+
+ketik("Siklus selesai. Mesin bertahan hidup. Angka tumbal akhir:")
+ketik(angka_tumbal)
+
+ketik("\n==================================================")
+ketik(" 🏁 SEMUA UJIAN DEWA BERHASIL DILEWATI! 🏁")
+ketik("==================================================")
+pergi
