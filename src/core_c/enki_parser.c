@@ -137,6 +137,7 @@ void bebaskan_ast(ASTNode* node) {
 
 // --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
 // Deklarasi Hierarki Matematika Mutlak
+ASTNode* parse_struktur_objek(Parser* p);
 ASTNode* parse_ekspresi(Parser* p);
 ASTNode* parse_pipa(Parser* p);
 ASTNode* parse_syarat_logika(Parser* p);
@@ -144,6 +145,41 @@ ASTNode* parse_penjumlahan(Parser* p);
 ASTNode* parse_faktor(Parser* p);
 ASTNode* parse_pangkat(Parser* p);
 ASTNode* parse_nilai_dasar(Parser* p);
+
+ASTNode* parse_struktur_objek(Parser* p) {
+    ASTNode* node = buat_node(AST_STRUKTUR_OBJEK, p);
+    maju(p); // Lewati '{'
+    
+    while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
+        // 1. Tangkap Kunci
+        ASTNode* kunci = parse_ekspresi(p); 
+        tambah_anak(node, kunci);
+        
+        // 2. KIAMAT: Lupa Titik Dua (:)
+        if (token_sekarang(p).jenis == TOKEN_TITIK_DUA) {
+            maju(p);
+        } else {
+            // Tetap menggunakan pesan Anda yang legendaris!
+            kiamat_sintaksis(p, "Wujud objek kehilangan titik dua ':' !", 
+                "Dalam struktur objek {}, Anda harus memisahkan Kunci dan Nilai menggunakan titik dua.\n"
+                "Contoh yang benar: takdir.soft dewa = {\"nama\": \"Enki\"}");
+        }
+        
+        // 3. Tangkap Nilai
+        ASTNode* konten = parse_ekspresi(p);
+        tambah_anak(node, konten);
+        
+        if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+    }
+    
+    // 3. KIAMAT: Lupa Kurung Tutup (})
+    // Ini dipicu oleh harapkan_token yang memanggil kiamat_sintaksis secara otomatis
+    harapkan_token(p, TOKEN_KURUNG_K_T, 
+        "Kehilangan kurung kurawal penutup '}' pada pembuatan Objek/Domain.\n"
+        "💡 PANDUAN: Pastikan format Anda sesuai. Contoh: { \"nama\": \"Enki\" }");
+        
+    return node;
+}
 
 // ==========================================================
 // TINGKAT 1: Menangkap Nilai Murni & Kurung ()
@@ -295,35 +331,9 @@ ASTNode* parse_nilai_dasar(Parser* p) {
 
     // --- SUNTIKAN BARU: Tangkap Pembuatan Objek JSON {} ---
     else if (t.jenis == TOKEN_KURUNG_K_B) {
-        simpul_kiri = buat_node(AST_STRUKTUR_OBJEK, p);
-        maju(p); // Lewati '{'
-        
-        while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
-            Token t_kunci = token_sekarang(p);
-            
-            // Kunci objek bisa berupa TEKS ("nama") atau IDENTITAS (nama)
-            if (t_kunci.jenis == TOKEN_TEKS || t_kunci.jenis == TOKEN_IDENTITAS) {
-                ASTNode* pasangan = buat_node(AST_PASANGAN_KUNCI_NILAI, p);
-                pasangan->pembanding = strdup(t_kunci.isi); // Pinjam 'pembanding' untuk simpan nama kunci
-                maju(p); // Lewati kunci
-                
-                if (token_sekarang(p).jenis == TOKEN_TITIK_DUA) {
-                    maju(p); // Lewati ':'
-                } else {
-                    kiamat_sintaksis(p, "Wujud objek kehilangan titik dua ':' !", 
-                        "Dalam struktur objek {}, Anda harus memisahkan Kunci dan Nilai menggunakan titik dua.\n"
-                        "Contoh yang benar: takdir.soft dewa = {\"nama\": \"Enki\"}");
-                }
-                
-                pasangan->kiri = parse_ekspresi(p); // Tangkap nilainya
-                tambah_anak(simpul_kiri, pasangan);
-            }
-            
-            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // Lewati koma antar properti
-        }
-        // 🟢 SUNTIKAN KURAWAL (OBJEK/DOMAIN) - Menggantikan maju(p); di sini!
-        harapkan_token(p, TOKEN_KURUNG_K_T, "Kehilangan kurung kurawal penutup '}' pada pembuatan Objek/Domain.\n💡 PANDUAN: Pastikan format Anda sesuai. Contoh: { \"nama\": \"Enki\" }");
-        return simpul_kiri;
+        // Hapus logika AST_PASANGAN_KUNCI_NILAI yang lama,
+        // Cukup panggil fungsi helper yang sudah Anda buat di atas:
+        return parse_struktur_objek(p); 
     }
 
     // PENANGKAP OPERATOR TERNARI (Di letakkan paling bawah agar tidak tertelan)

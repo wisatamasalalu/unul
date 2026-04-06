@@ -30,6 +30,45 @@ void objek_ke_string(EnkiObject* obj, char* buffer, size_t ukuran) {
 }
 
 // =================================================================
+// 🧊 SIHIR SEMAYAMKAN: MEMAHAT WUJUD KE DALAM GRIYA (.imah)
+// Hierarki: Paradise -> Grand Universe -> Orvonton -> Nebadon -> Mortal
+// =================================================================
+void sihir_semayamkan_imah(EnkiObject* obj, FILE* fp, int level) {
+    if (!obj) { fprintf(fp, "kosong"); return; }
+
+    // Indentasi berdasarkan level (Visualisasi Dimensi Urantia)
+    for (int i = 0; i < level; i++) fprintf(fp, "  ");
+
+    if (obj->tipe == ENKI_ANGKA) {
+        fprintf(fp, "%g", obj->nilai.angka);
+    } else if (obj->tipe == ENKI_TEKS) {
+        fprintf(fp, "\"%s\"", obj->nilai.teks);
+    } else if (obj->tipe == ENKI_ARRAY) {
+        fprintf(fp, "[\n");
+        for (int i = 0; i < obj->panjang; i++) {
+            sihir_semayamkan_imah(obj->nilai.array_elemen[i], fp, level + 1);
+            if (i < obj->panjang - 1) fprintf(fp, ",\n");
+        }
+        fprintf(fp, "\n");
+        for (int i = 0; i < level; i++) fprintf(fp, "  ");
+        fprintf(fp, "]");
+    } else if (obj->tipe == ENKI_OBJEK) {
+        fprintf(fp, "{\n");
+        for (int i = 0; i < obj->panjang; i++) {
+            for (int j = 0; j < level + 1; j++) fprintf(fp, "  ");
+            fprintf(fp, "\"%s\": ", obj->nilai.objek_peta.kunci[i]->nilai.teks);
+            
+            // Rekursif hingga ke Outer Space (Tanpa Batas)
+            sihir_semayamkan_imah(obj->nilai.objek_peta.konten[i], fp, level + 1);
+            if (i < obj->panjang - 1) fprintf(fp, ",\n");
+        }
+        fprintf(fp, "\n");
+        for (int i = 0; i < level; i++) fprintf(fp, "  ");
+        fprintf(fp, "}");
+    }
+}
+
+// =================================================================
 // DAPUR MESIN INTERPRETER (EKSEKUTOR C)
 // Jantung LinuxDNC yang memompa Pohon Logika menjadi kenyataan!
 // =================================================================
@@ -942,13 +981,38 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         return obj_array;
     }
 
+    // 🌌 EVALUASI OBJEK URANTIA (Sistem Anak Selang-Seling)
+    else if (node->jenis == AST_STRUKTUR_OBJEK) {
+        int jumlah_pasangan = node->jumlah_anak / 2;
+        EnkiObject* obj_peta = ciptakan_objek_peta(jumlah_pasangan);
+        obj_peta->panjang = jumlah_pasangan;
+        
+        for (int i = 0; i < jumlah_pasangan; i++) {
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[i * 2], ram);
+            EnkiObject* obj_konten = evaluasi_ekspresi(node->anak_anak[i * 2 + 1], ram);
+            
+            if (obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+                obj_peta->nilai.objek_peta.kunci[i] = ciptakan_teks(obj_kunci->nilai.teks);
+                obj_peta->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(obj_konten);
+            }
+            
+            if (obj_kunci) hancurkan_objek(obj_kunci);
+            if (obj_konten) hancurkan_objek(obj_konten);
+        }
+        return obj_peta;
+    }
+
     // 6. AKSES ELEMEN ARRAY / OBJEK JSON ( data[1] atau dewa["nama"] )
     else if (node->jenis == AST_AKSES_ARRAY) {
-        EnkiObject* obj_target = baca_dari_ram(ram, node->kiri->nilai_teks);
-        if (!obj_target) {
-            char pesan_err[1024]; // 🟢 Wadah raksasa
-            snprintf(pesan_err, sizeof(pesan_err), "Induk '%s' Gaib!", node->kiri->nilai_teks);
-            pemicu_kiamat_presisi(node, ram, pesan_err, "Variabel induk belum diciptakan di RAM. Pastikan Anda sudah mendeklarasikannya.");
+        
+        // 🟢 SUNTIKAN PERBAIKAN: Evaluasi seluruh silsilah dimensinya!
+        EnkiObject* obj_target = evaluasi_ekspresi(node->kiri, ram);
+        
+        if (!obj_target || obj_target->tipe == ENKI_KOSONG) {
+            char pesan_err[1024];
+            snprintf(pesan_err, sizeof(pesan_err), "Induk Array/Objek Gaib!");
+            pemicu_kiamat_presisi(node, ram, pesan_err, "Variabel induk yang Anda coba akses dengan kurung siku [...] tidak ada atau bernilai kosong.");
+            if (obj_target) hancurkan_objek(obj_target);
             return ciptakan_kosong();
         }
 
@@ -956,7 +1020,6 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         EnkiObject* hasil = ciptakan_kosong();
 
         // --- 🟢 TAHAP 1: SIHIR TRANSMUTASI (Soft Typing) ---
-        // Agar teks "1" bisa otomatis dianggap angka 1 (Seperti di Python dulu)
         double indeks_angka = -1;
         int indeks_valid_angka = 0;
 
@@ -981,20 +1044,22 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     "Anda mencoba memasukkan kunci teks yang bukan angka.");
             } else {
                 int indeks_unul = (int)indeks_angka;
-                int indeks_c = indeks_unul - 1; // 🟢 Konversi 1-based ke 0-based
+                int indeks_c = indeks_unul - 1; // 1-based ke 0-based
                 
                 if (indeks_c >= 0 && indeks_c < obj_target->panjang) {
                     EnkiObject* elemen = obj_target->nilai.array_elemen[indeks_c];
                     if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
                     else if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks);
+                    // 🟢 MENDUKUNG ARRAY DI DALAM ARRAY / OBJEK DI DALAM ARRAY
+                    else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(elemen);
                 } else {
-                    char pesan_kiamat[1024]; // 🟢 Wadah raksasa
+                    char pesan_kiamat[1024]; 
                     snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Indeks %d Keluar Batas!", indeks_unul);
-                    char hint[2048]; // 🟢 Wadah info lebih lega
+                    char hint[2048]; 
                     snprintf(hint, sizeof(hint), 
-                        "Array '%s' hanya memiliki %d elemen. Anda tidak bisa memanggil urutan ke-%d.\n"
+                        "Array hanya memiliki %d elemen. Anda tidak bisa memanggil urutan ke-%d.\n"
                         "💡 Tips: UNUL menghitung urutan mulai dari angka 1.", 
-                        node->kiri->nilai_teks, obj_target->panjang, indeks_unul);
+                        obj_target->panjang, indeks_unul);
                     pemicu_kiamat_presisi(node, ram, pesan_kiamat, hint);
                 }
             }
@@ -1016,11 +1081,13 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                         EnkiObject* elemen = obj_target->nilai.objek_peta.konten[i];
                         if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
                         else if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks);
+                        // 🟢 MENDUKUNG OBJEK DI DALAM OBJEK (Nested)
+                        else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(elemen);
                         ketemu = 1; break;
                     }
                 }
                 if (!ketemu) {
-                    char pesan_kiamat[1024]; // 🟢 512 + format > 512, jadi kita pakai 1024!
+                    char pesan_kiamat[1024]; 
                     snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Kunci '%s' Tidak Ditemukan!", kunci_str);
                     pemicu_kiamat_presisi(node, ram, pesan_kiamat, 
                         "Objek tersebut tidak memiliki data dengan nama kunci yang Anda minta.\n"
@@ -1028,16 +1095,16 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 }
             }
         }
-        // C. JIKA BUKAN KEDUANYA (Proteksi Dimensi)
         else {
-            char pesan_kiamat[1024];
-            snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Pelanggaran Dimensi Data pada '%s'!", node->kiri->nilai_teks);
-            pemicu_kiamat_presisi(node, ram, pesan_kiamat, 
+            pemicu_kiamat_presisi(node, ram, "Pelanggaran Dimensi Data!", 
                 "Anda menggunakan kurung siku [...] pada variabel yang BUKAN Array atau Objek (Kamus).\n"
                 "Variabel ini mungkin hanya berisi teks tunggal atau angka.");
         }
 
+        // 🔥 WAJIB BEBASKAN: Karena evaluasi_ekspresi merakit objek baru
+        if (obj_target) hancurkan_objek(obj_target);
         if (obj_indeks) hancurkan_objek(obj_indeks);
+        
         return hasil;
     }
 
@@ -1595,6 +1662,70 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return ciptakan_kosong(); 
         }
 
+        // 🕋 SEMAYAMKAN: Mengunci data ke dalam Griya (.imah)
+        if (strcmp(node->nilai_teks, "ekspor") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Penanaman Data Gagal: Butuh objek dan nama Database!", "Contoh: ekspor(dewa, \"surga.imah\")");
+                return ciptakan_kosong();
+            }
+            EnkiObject* obj_target = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[1], ram);
+            
+            char path_mentah[2048]=""; objek_ke_string(obj_path, path_mentah, sizeof(path_mentah));
+            char* path_final = ekspansi_jalur(path_mentah); 
+            
+            FILE* fp = fopen(path_final, "w");
+            if (fp) {
+                fprintf(fp, "^^ IMAH: DATABASE DIMENSI URANTIA\n"); // Header Identitas
+                sihir_semayamkan_imah(obj_target, fp, 0);
+                fclose(fp);
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Gagal memahat dimensi!", "Pastikan jalur file dapat diakses oleh OS.");
+            }
+            
+            if (obj_target) hancurkan_objek(obj_target);
+            if (obj_path) hancurkan_objek(obj_path);
+            free(path_final);
+            return ciptakan_kosong();
+        }
+
+        // ✨ BANGKITKAN: Memanggil data dari alam .imah ke RAM
+        if (strcmp(node->nilai_teks, "impor") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Impor data dari .imah gagal: Database mana yang ingin Anda buka?", "Contoh: takdir.soft data = bangkitkan(\"surga.imah\")");
+                return ciptakan_kosong();
+            }
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char path_mentah[2048]=""; objek_ke_string(obj_path, path_mentah, sizeof(path_mentah));
+            char* path_final = ekspansi_jalur(path_mentah); 
+            
+            char* teks_imah = sihir_baca_file(path_final);
+            EnkiObject* hasil_bangkit = ciptakan_kosong();
+
+            if (teks_imah && strlen(teks_imah) > 0) {
+                // Lewati header jika ada
+                char* data_murni = strstr(teks_imah, "{");
+                if (!data_murni) data_murni = strstr(teks_imah, "[");
+                if (!data_murni) data_murni = teks_imah;
+
+                // 🪄 SIHIR EVALUASI: Karena format .imah adalah ekspresi UNUL yang sah!
+                TokenArray token_eval = enki_lexer(data_murni, "<dimensi_bangkit>");
+                Parser parser_eval = inisialisasi_parser(token_eval);
+                ASTNode* ast_eval = parse_ekspresi(&parser_eval);
+                
+                hasil_bangkit = evaluasi_ekspresi(ast_eval, ram);
+                
+                bebaskan_ast(ast_eval);
+                bebaskan_token_array(&token_eval);
+            }
+            
+            if (teks_imah) free(teks_imah);
+            free(path_final);
+            if (obj_path) hancurkan_objek(obj_path);
+            
+            return hasil_bangkit;
+        }
+
         // =======================================================
         // 2. JIKA BUKAN FUNGSI BAWAAN, CARI DI RAM (FUNGSI KUSTOM)
         // =======================================================
@@ -1897,96 +2028,54 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         // =======================================================
         for (int i = 0; i < ram->jumlah; i++) {
             if (strcmp(ram->kavling[i].nama, nama) == 0) {
-                simpan_jejak_mesin_waktu(&(ram->kavling[i])); // Menggunakan Helper!
+                simpan_jejak_mesin_waktu(&(ram->kavling[i])); 
                 break;
             }
         }
 
-        // 🔥 SUNTIKAN: Kunci kavling di RAM setelah disimpan
-        for (int i = 0; i < ram->jumlah; i++) {
-            if (strcmp(ram->kavling[i].nama, nama) == 0) {
-                ram->kavling[i].apakah_konstanta = adalah_hard;
-                break;
-            }
-        }
+        // =======================================================
+        // 🔮 EVALUASI UNIVERSAL (Mengurus {}, angka, balikan, impor, dll)
+        // =======================================================
+        EnkiObject* nilai = evaluasi_ekspresi(node->kanan, ram);
         
-        // 🔥 JIKA NILAINYA ADALAH WUJUD OBJEK {}
-        if (node->kanan && node->kanan->jenis == AST_STRUKTUR_OBJEK) {
-            simpan_ke_ram(ram, nama, ciptakan_teks("[Proses Penciptaan Objek]")); 
+        if (nilai) {
+            simpan_ke_ram(ram, nama, nilai);
             
-            int id_target = -1;
+            // Cari kavling yang baru saja disimpan untuk mengatur properti tambahannya
             for (int i = 0; i < ram->jumlah; i++) {
                 if (strcmp(ram->kavling[i].nama, nama) == 0) {
-                    id_target = i;
-                    break;
-                }
-            }
-            
-            if (id_target != -1) {
-                if (ram->kavling[id_target].objek) hancurkan_objek(ram->kavling[id_target].objek);
-                ram->kavling[id_target].objek = ciptakan_objek_peta(10);               
-                ram->kavling[id_target].anak_anak = ciptakan_ram_mini(ram); // 🟢 Kasih Induk
-                
-                EnkiRAM* ram_anak = ram->kavling[id_target].anak_anak;
-
-                for (int i = 0; i < node->kanan->jumlah_anak; i++) {
-                    ASTNode* pasangan = node->kanan->anak_anak[i];
-                    if (!pasangan || !pasangan->pembanding) continue; 
-
-                    char* kunci = strdup(pasangan->pembanding); 
-                    bersihkan_kutip(kunci); 
                     
-                    EnkiObject* obj_anak = evaluasi_ekspresi(pasangan->kiri, ram);
-                    if (obj_anak) {
-                        simpan_ke_ram(ram_anak, kunci, obj_anak);
-                    }
-                    free(kunci);
-                }
-            }
-        } 
-
-        // JIKA INI ADALAH FUNGSI BALIKAN()
-        else if (node->kanan && node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
-            KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
-            
-            EnkiObject* obj_sumber = (sumber && sumber->objek) ? sumber->objek : ciptakan_kosong();
-            simpan_ke_ram(ram, nama, obj_sumber); 
-            
-            for (int i = 0; i < ram->jumlah; i++) {
-                if (strcmp(ram->kavling[i].nama, nama) == 0) {
+                    // 1. Terapkan Hukum Konstanta (takdir.hard)
                     ram->kavling[i].apakah_konstanta = adalah_hard;
-                    if (sumber && sumber->objek && sumber->objek->tipe == ENKI_OBJEK) {
-                        ram->kavling[i].anak_anak = salin_ram_rekursif(sumber->anak_anak);
-                    }
-                    break;
-                }
-            }
-        }
 
-        // 💧 JIKA NILAINYA ADALAH TEKS/ANGKA BIASA ATAU ARRAY
-        else {
-            EnkiObject* nilai = evaluasi_ekspresi(node->kanan, ram);
-            if (nilai) {
-                simpan_ke_ram(ram, nama, nilai);                
-                
-                if (nilai->tipe == ENKI_TEKS && strncmp(nilai->nilai.teks, "<anonim_", 8) == 0) {
-                    for(int i = 0; i < ram->jumlah; i++) {
-                        if (strcmp(ram->kavling[i].nama, nama) == 0) {
-                            for(int j = 0; j < ram->jumlah; j++) {
-                                if (strcmp(ram->kavling[j].nama, nilai->nilai.teks) == 0) {
-                                    ram->kavling[i].simpul_fungsi = ram->kavling[j].simpul_fungsi;
-                                    break;
-                                }
+                    // 2. Jika ini Fungsi Panah, wariskan cetak birunya
+                    if (nilai->tipe == ENKI_TEKS && strncmp(nilai->nilai.teks, "<anonim_", 8) == 0) {
+                        for(int j = 0; j < ram->jumlah; j++) {
+                            if (strcmp(ram->kavling[j].nama, nilai->nilai.teks) == 0) {
+                                ram->kavling[i].simpul_fungsi = ram->kavling[j].simpul_fungsi;
+                                break;
                             }
-                            break;
                         }
                     }
-                }
 
-                if (node->nilai_teks && strcmp(node->nilai_teks, "takdir.hard") == 0) {
-                    for (int i = 0; i < ram->jumlah; i++) {
-                        if (strcmp(ram->kavling[i].nama, nama) == 0) { ram->kavling[i].apakah_konstanta = 1; break; }
+                    // 3. 🌌 SINKRONISASI DIMENSI URANTIA (Pembuatan Mini RAM)
+                    // Jika nilai yang masuk adalah Objek (dari {} atau impor atau balikan)
+                    if (nilai->tipe == ENKI_OBJEK) {
+                        // Bersihkan sisa dimensi lama jika ada
+                        if (ram->kavling[i].anak_anak) bebaskan_ram(ram->kavling[i].anak_anak);
+                        
+                        // Ciptakan dimensi baru
+                        ram->kavling[i].anak_anak = ciptakan_ram_mini(ram);
+                        
+                        // Isi Mini RAM dari data Objek Peta agar bisa dipanggil pakai titik (dewa.nama)
+                        for (int j = 0; j < nilai->panjang; j++) {
+                            char* k = nilai->nilai.objek_peta.kunci[j]->nilai.teks;
+                            EnkiObject* v = ciptakan_salinan_objek(nilai->nilai.objek_peta.konten[j]);
+                            simpan_ke_ram(ram->kavling[i].anak_anak, k, v);
+                        }
                     }
+                    
+                    break; // Selesai mengurus kavling ini
                 }
             }
         }

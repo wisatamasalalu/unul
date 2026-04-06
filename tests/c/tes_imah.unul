@@ -1,0 +1,27 @@
+datang
+untuk array.dinamis
+
+ketik("1. Menciptakan Dimensi yang Kompleks...")
+takdir.soft dewa = {
+    "nama": "Enki",
+    "gelar": "Arsitek",
+    "kekuatan": ["Air", "Kecerdasan", "Ciptaan"],
+    "status": {"hidup": 1, "energi": 9999}
+}
+
+ketik(dewa)
+
+ketik("\n2. Membekukan dimensi ke dalam 'kapsul_waktu.imah'...")
+ekspor(dewa, "kapsul_waktu.imah")
+ketik("Berhasil dibekukan! Silakan cek file kapsul_waktu.imah nanti.")
+
+ketik("\n3. Mencairkan kembali dari file ke variabel baru...")
+takdir.soft wujud_baru = impor("kapsul_waktu.imah")
+
+ketik("Wujud yang dicairkan:")
+ketik(wujud_baru)
+
+ketik("\n4. Membuktikan wujud cair berfungsi (Mengambil array)...")
+ketik(wujud_baru.kekuatan[2]) ^^ Harusnya mencetak "Kecerdasan"
+
+pergi

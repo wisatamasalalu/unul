@@ -440,3 +440,20 @@ Tambahkan 'untuk array.dinamis' di bawah kata 'datang' di awal skrip.
 Tambahkan 'untuk array.dinamis' di bawah kata 'datang' di awal skrip.
 =================================
 
+=== [WAKTU KIAMAT: 1775439608] ===
+🚨 [tes_imah.unul: Baris 15:1] KIAMAT SINTAKSIS: Fungsi gaib 'ekspor' tidak ditemukan!
+   Kode Penyebab: ekspor
+   Saran: Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1775439627] ===
+🚨 [tes_imah.unul: Baris 25:26] KIAMAT SINTAKSIS: Induk 'kekuatan' Gaib!
+   Saran: Variabel induk belum diciptakan di RAM. Pastikan Anda sudah mendeklarasikannya.
+=================================
+
+=== [WAKTU KIAMAT: 1775442773] ===
+🚨 [tes_imah.unul: Baris 25:26] KIAMAT SINTAKSIS: Induk 'kekuatan' Gaib!
+   Saran: Variabel induk belum diciptakan di RAM. Pastikan Anda sudah mendeklarasikannya.
+=================================
+

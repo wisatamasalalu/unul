@@ -1,0 +1,87 @@
+datang
+untuk array.dinamis
+untuk array.statis
+
+ketik("==================================================")
+ketik(" 🌟 UJI COBA FITUR TAMBAHAN (SINTAKS MODERN) 🌟")
+ketik("==================================================")
+
+^^ --------------------------------------------------------
+^^ FASE 1: DESTRUCTURING ARRAY & NON-DUALISME (ko/ku)
+^^ --------------------------------------------------------
+ketik("\n[FASE 1: Ekstraksi Jiwa dan Pembedahan Raga]")
+
+takdir.soft profil = {"nama": "Enki", "peran": "Arsitek", "level": 99}
+ketik("Profil Asli:")
+ketik(profil)
+
+^^ Menarik Kunci dan Nilainya
+takdir.soft kunci_profil = ku(profil)
+takdir.soft nilai_profil = ko(profil)
+
+ketik("Ekstraksi Kunci (.ku):")
+ketik(kunci_profil)
+ketik("Ekstraksi Nilai (.ko):")
+ketik(nilai_profil)
+
+^^ Membedah array 'nilai_profil' langsung ke dalam 3 variabel terpisah! (Destructuring)
+[nama_dewa, peran_dewa, level_dewa] = nilai_profil
+
+ketik("Hasil Pembedahan Array (Destructuring):")
+ketik(nama_dewa)
+ketik(peran_dewa)
+ketik(level_dewa)
+
+^^ --------------------------------------------------------
+^^ FASE 2: OPERATOR TERNARI (Kondisi Sebaris)
+^^ --------------------------------------------------------
+ketik("\n[FASE 2: Keputusan Sebaris (Ternary Operator)]")
+
+takdir.soft energi = 50
+takdir.soft status_energi = jika energi > 40 maka "Aman" lain "Kritis"
+
+ketik("Status Energi awal (Harusnya 'Aman'):")
+ketik(status_energi)
+
+energi = 10
+status_energi = jika energi > 40 maka "Aman" lain "Kritis"
+
+ketik("Status Energi setelah terkuras (Harusnya 'Kritis'):")
+ketik(status_energi)
+
+^^ --------------------------------------------------------
+^^ FASE 3: PARAMETER BAWAAN (DEFAULT PARAMETER)
+^^ --------------------------------------------------------
+ketik("\n[FASE 3: Parameter Default pada Fungsi]")
+
+^^ Fungsi ini punya parameter kedua yang otomatis bernilai 1000 jika tidak diisi
+ciptakan fungsi tempa_senjata(bahan, suhu = 1000) maka
+    takdir.soft hasil = bahan + " ditempa pada suhu " + suhu
+    pulang hasil
+putus
+
+^^ Memanggil tanpa parameter kedua (Menggunakan default)
+takdir.soft senjata_standar = tempa_senjata("Besi")
+
+^^ Memanggil dengan parameter kedua (Menimpa default)
+takdir.soft senjata_dewa = tempa_senjata("Mithril", 5000)
+
+ketik("Pemanggilan tanpa suhu (Default):")
+ketik(senjata_standar)
+ketik("Pemanggilan dengan suhu kustom:")
+ketik(senjata_dewa)
+
+^^ --------------------------------------------------------
+^^ FASE 4: UJI SUGGESTION (CORRECTION DETECTION)
+^^ --------------------------------------------------------
+ketik("\n[FASE 4: Algoritma Levenshtein (Deteksi Typo)]")
+ketik("Semua fitur modern berhasil dieksekusi dengan aman!")
+
+^^ KITA SENGAJA MEMBUAT TYPO DI BAWAH INI UNTUK MEMICU KIAMAT CERDAS!
+^^ Perhatikan: Variabel aslinya adalah 'senjata_dewa', tapi kita ketik 'senajata_dewa'
+ketik(senajata_dewa)
+
+ketik("\n==================================================")
+ketik(" 🎉 SELURUH FITUR MODERN TERUJI DENGAN SEMPURNA! 🎉")
+ketik("==================================================")
+pergi
