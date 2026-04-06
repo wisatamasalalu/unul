@@ -785,6 +785,37 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
+    // --- PENANGKAP SIKLUS SELAMA (WHILE LOOP) ---
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "siklus") == 0) {
+        maju(p); // Lewati 'siklus'
+        
+        if (token_sekarang(p).jenis == TOKEN_IDENTITAS && strcmp(token_sekarang(p).isi, "selama") == 0) maju(p); // lewati 'selama'
+        else kiamat_sintaksis(p, "Siklus cacat!", "Gunakan 'siklus selama [kondisi] maka'.");
+
+        ASTNode* node = buat_node(AST_HUKUM_SIKLUS, p);
+        
+        // 1. Tangkap syarat kondisinya
+        node->syarat = parse_syarat_logika(p);
+        
+        // 2. Wajib ada 'maka' (Ini sama fungsinya seperti '{' di C)
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Siklus cacat!", "Kehilangan 'maka' setelah syarat.");
+        
+        // 3. Tangkap isi ruangan siklus (Aman menelan anak-anak di dalamnya)
+        node->blok_siklus = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            // 4. Inilah gerbang penutupnya, sama seperti '}' di C!
+            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) {
+                maju(p); // lewati 'putus' khusus milik SIKLUS
+                break;
+            }
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_siklus, stmt);
+        }
+        return node;
+    }
+
     // 4. Apakah ini HUKUM SIKLUS? (effort X kali maka ... putus)
     // --- PENANGKAP SIKLUS EFFORT (DENGAN KIAMAT PRESISI) ---
     if (t.jenis == TOKEN_SIKLUS && strcmp(t.isi, "effort") == 0) {

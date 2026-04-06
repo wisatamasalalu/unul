@@ -1,0 +1,33 @@
+datang
+untuk array.dinamis
+
+ketik("--- 🧪 MEMULAI RITUAL TRANSMUTASI MEDIA ---")
+
+^^ 1. Ambil wujud biner dari hard drive
+takdir.soft foto_asli = baca_biner("logo.jpg") ^^ Pastikan ada file logo.png di folder ini
+ketik("📸 Foto berhasil dibaca. Ukuran biner: " + panjang(foto_asli) + " byte.")
+
+^^ 2. Ubah menjadi teks Base64 (Agar bisa masuk ke database teks)
+takdir.soft gambar = ke_base64(foto_asli)
+ketik("✨ Transmutasi ke Base64 Berhasil!")
+
+^^ 3. Masukkan ke dalam struktur database .imah
+takdir.soft db_aset = {
+    "nama_file": "logo_utama",
+    "tipe": "image/png",
+    "data_base64": gambar
+}
+
+ketik("💾 Menyimpan aset ke dalam kapsul waktu 'aset.imah'...")
+ekspor(db_aset, "aset.imah")
+
+^^ 4. Uji Coba Penarikan Kembali (Impor)
+ketik("🔄 Menarik kembali aset dari kapsul waktu...")
+takdir.soft db_pulih = impor("aset.imah")
+
+^^ 5. Ubah kembali teks sandi menjadi biner dan pahat ke file baru
+takdir.soft foto_pulih = dari_base64(db_pulih.data_base64)
+tulis_biner("logo_restorasi.png", foto_pulih)
+
+ketik("--- ✅ RITUAL SELESAI: File 'logo_restorasi.png' telah tercipta! ---")
+pergi

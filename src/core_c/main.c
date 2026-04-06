@@ -82,6 +82,8 @@ void muat_ingatan(EnkiRAM* ram) {
 
 // --- 2. MAIN PROGRAM ---
 
+// --- 2. MAIN PROGRAM ---
+
 int main(int argc, char* argv[]) {
     EnkiRAM ram = inisialisasi_ram();
     muat_anu(&ram); 
@@ -90,7 +92,14 @@ int main(int argc, char* argv[]) {
         if (strcmp(argv[1], "ayo") == 0 && argc > 2) {
             muat_ingatan(&ram);
             char* kode = baca_file_mentah(argv[2]);
-            if (kode) { jalankan_perintah(kode, &ram, argv[2]); free(kode); }
+            if (kode) { 
+                jalankan_perintah(kode, &ram, argv[2]); 
+                free(kode); 
+            } else {
+                printf("\n🚨 KIAMAT SISTEM: Kitab '%s' tidak ditemukan di alam semesta!\n", argv[2]);
+                printf("💡 PANDUAN: Pastikan nama file dan jalur (path) sudah benar.\n\n");
+                return 1;
+            }
         } else if (strcmp(argv[1], "ingat") == 0 && argc > 2) {
             FILE* f = fopen(".ingatan-unul", "a");
             if (f) { fprintf(f, "%s\n", argv[2]); fclose(f); }
@@ -101,7 +110,15 @@ int main(int argc, char* argv[]) {
         } else {
             muat_ingatan(&ram);
             char* kode = baca_file_mentah(argv[1]);
-            if (kode) { jalankan_perintah(kode, &ram, argv[1]); free(kode); }
+            if (kode) { 
+                jalankan_perintah(kode, &ram, argv[1]); 
+                free(kode); 
+            } else {
+                // 🟢 INI DIA PENANGKAP KIAMAT JIKA FILE GAIB!
+                printf("\n🚨 KIAMAT SISTEM: Kitab '%s' tidak ditemukan di alam semesta!\n", argv[1]);
+                printf("💡 PANDUAN: Pastikan nama file skrip Anda benar dan Anda berada di folder yang tepat.\n\n");
+                return 1;
+            }
         }
     } else {
         // 🌍 AKTIFKAN RADAR DIMENSI

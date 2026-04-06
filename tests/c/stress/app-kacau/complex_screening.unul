@@ -1,0 +1,93 @@
+datang
+untuk array.dinamis
+untuk array.statis
+
+^^ [FITUR 1] Mengimpor pustaka dari dimensi lain
+sowan "lib/pustaka_dewa.unll"
+
+ketik("===================================================================")
+ketik(" 🌌 COMPLEX SCREENING TEST: REAKTOR INTI UNUL TINGKAT DEWA 🌌 ")
+ketik("===================================================================")
+
+^^ [FITUR 2] Mengaktifkan Multithreading (Utas Gaib) di latar belakang
+ketik("\n[1] MENGAKTIFKAN UTAS GAIB (MULTITHREADING)...")
+utas animasi_loading(4) 
+jeda(500) ^^ Memberi waktu agar Utas Gaib mulai bernapas
+
+^^ [FITUR 3] Uji Transmutasi Angka Matriks 5x5
+takdir.soft kunci_matriks = uji_matriks_5x5(2026) ^^ Menggunakan tahun saat ini!
+
+^^ [FITUR 4] Jaringan API HTTP GET, Biner, & Perlindungan Tabu
+ketik("\n[2] MENGUNDUH FOTO (HTTP GET) & TRANSMUTASI BASE64...")
+takdir.soft status_web = ""
+takdir.soft sandi_base64 = ""
+
+^^ 🟢 HUKUM TABU YANG BENAR SESUAI PARSER ANDA
+coba maka
+    ^^ Mengunduh gambar PNG langsung dari internet!
+    takdir.soft gambar_mentah = ambil("https://httpbin.org/image/png")
+    
+    ^^ Mengubah hasil download menjadi Base64
+    sandi_base64 = ke_base64(gambar_mentah)
+    status_web = validasi_jaringan(200) ^^ Memanggil Ternary dari pustaka
+    ketik("Berhasil mendownload dan menyulap gambar ke Base64!")
+tabu melanggar e maka
+    status_web = validasi_jaringan(500)
+    ketik("Gagal menembus alam internet karena: " + e)
+pasrah
+
+ketik("Status Web: " + status_web)
+
+^^ [FITUR 5] Pipa Fungsional (|>) 
+ketik("\n[3] MENGUJI PIPA FUNGSIONAL & BALIKAN...")
+takdir.soft teks_kotor = "LUNU AKUS AYAS" |> udang()
+ketik("Hasil Pipa Balikan: " + teks_kotor)
+
+^^ [FITUR 6] I/O File Ekspor (Tulis) dan .IMAH
+ketik("\n[4] I/O FILE, OBJEK BERSARANG, DAN KAPSUL WAKTU (.IMAH)...")
+ketik("Memahat Base64 ke 'ini_base64_gambar.txt' menggunakan tulis()...")
+tulis("ini_base64_gambar.txt", sandi_base64)
+
+takdir.soft data_kombinasi = {
+    "sistem": "LinuxDNC",
+    "kunci_matriks": kunci_matriks,
+    "media": sandi_base64
+}
+ekspor(data_kombinasi, "database_kompleks.imah")
+ketik("Dimensi database_kompleks.imah berhasil dikunci.")
+
+^^ [FITUR 7] Looping dengan Kata Kunci 'terus', KO(), dan KU()
+ketik("\n[5] LOOPING ARRAY & NON-DUALISME (KU/KO) + CONTINUES...")
+takdir.soft kunci_objek = ku(data_kombinasi)
+takdir.soft isi_objek = ko(data_kombinasi)
+
+takdir.soft idx = 1
+siklus selama idx < panjang(kunci_objek) maka
+    takdir.soft k = kunci_objek[idx]
+    takdir.soft v = isi_objek[idx]
+    idx = idx + 1
+    
+    jika k == "media" maka
+        ketik(" -> Kunci '" + k + "' dilewati dengan 'terus' (Continue) karena isinya terlalu panjang.")
+        terus ^^ Melompat ke iterasi berikutnya
+    putus
+    
+    ketik(" -> " + k + " : " + v)
+putus
+
+^^ [FITUR 8] Network POST (Setor / Upload Data Base64)
+ketik("\n[6] MENGUNGGAH BASE64 KE CLOUD (HTTP POST)...")
+coba maka
+    ^^ Menggunakan httpbin.org untuk mensimulasikan API Pastebin Publik
+    takdir.soft respon_post = setor("https://httpbin.org/post", sandi_base64)
+    ketik("Berhasil Upload! Ukuran respon dari Cloud: " + panjang(respon_post) + " karakter.")
+tabu melanggar e maka
+    ketik("Gagal mengunggah (POST) ke Cloud: " + e)
+pasrah
+
+^^ Menunggu Utas Gaib (Animasi) Selesai
+jeda(3000)
+ketik("\n===================================================================")
+ketik(" ✅ COMPLEX SCREENING SELESAI: REAKTOR UNUL STABIL 1000%! ")
+ketik("===================================================================")
+pergi

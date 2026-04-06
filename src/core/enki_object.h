@@ -49,6 +49,7 @@ EnkiObject* ciptakan_angka(double nilai);
 EnkiObject* ciptakan_teks(const char* nilai);
 EnkiObject* ciptakan_array(int kapasitas);
 EnkiObject* ciptakan_objek_peta(int kapasitas); // Untuk Dictionary/JSON
+EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran);
 EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber);
 EnkiObject* ciptakan_kosong();
 

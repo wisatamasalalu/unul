@@ -153,6 +153,11 @@ EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) {
         }
         return salinan;
     } 
+
+    else if (sumber->tipe == ENKI_BLOB) {
+        return ciptakan_blob(sumber->nilai.blob.data, sumber->nilai.blob.ukuran);
+    }
+
     else if (sumber->tipe == ENKI_OBJEK) {
         EnkiObject* salinan = ciptakan_objek_peta(sumber->panjang);
         salinan->panjang = sumber->panjang;
@@ -164,4 +169,21 @@ EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) {
     }
     
     return ciptakan_kosong();
+}
+
+// 📦 PABRIK BLOB (Data Biner Mentah)
+EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran) {
+    EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
+    obj->tipe = ENKI_BLOB;
+    obj->panjang = (int)ukuran; // Simpan untuk kompatibilitas panjang()
+    
+    if (data && ukuran > 0) {
+        obj->nilai.blob.data = (unsigned char*)malloc(ukuran);
+        memcpy(obj->nilai.blob.data, data, ukuran);
+        obj->nilai.blob.ukuran = ukuran;
+    } else {
+        obj->nilai.blob.data = NULL;
+        obj->nilai.blob.ukuran = 0;
+    }
+    return obj;
 }

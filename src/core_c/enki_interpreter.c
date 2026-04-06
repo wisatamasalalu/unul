@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <regex.h>
 #include <pthread.h>
+#include <stdint.h>
 #include "enki_interpreter.h"
 #include "enki_scheduler.h"
 #include "enki_network.h"
@@ -21,12 +22,88 @@
 #include "../core/array/ko.h"
 #include "../core/enki_object.h"
 
+// 🟢 SUNTIKAN: Pencetak Angka Presisi Tinggi (Anti Scientific Notation)
+void cetak_angka_presisi(double angka, char* buffer, size_t ukuran) {
+    snprintf(buffer, ukuran, "%.15f", angka);
+    char* titik = strchr(buffer, '.');
+    if (titik) {
+        char* akhir = buffer + strlen(buffer) - 1;
+        while (akhir > titik && *akhir == '0') {
+            *akhir = '\0'; // Potong nol yang tidak berguna
+            akhir--;
+        }
+        if (*akhir == '.') *akhir = '\0'; // Potong titik jika bilangannya bulat
+    }
+}
+
 // Helper pembongkar objek ke string untuk transmutasi
 void objek_ke_string(EnkiObject* obj, char* buffer, size_t ukuran) {
     if (!obj) { buffer[0] = '\0'; return; }
     if (obj->tipe == ENKI_TEKS) snprintf(buffer, ukuran, "%s", obj->nilai.teks);
-    else if (obj->tipe == ENKI_ANGKA) snprintf(buffer, ukuran, "%g", obj->nilai.angka);
+    else if (obj->tipe == ENKI_ANGKA) cetak_angka_presisi(obj->nilai.angka, buffer, ukuran); // 🟢 GUNAKAN PRESISI!
     else buffer[0] = '\0';
+}
+
+// =======================================================
+// 🪄 MESIN INTI: BASE64 (ENCODE & DECODE MUTLAK)
+// =======================================================
+static const char tabel_base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+char* proses_ke_base64(const unsigned char* data, size_t panjang_input) {
+    if (!data || panjang_input == 0) return strdup("");
+    size_t panjang_output = 4 * ((panjang_input + 2) / 3);
+    char* teks_hasil = (char*)malloc(panjang_output + 1);
+    
+    for (size_t i = 0, j = 0; i < panjang_input; ) {
+        uint32_t oktet_a = i < panjang_input ? (unsigned char)data[i++] : 0;
+        uint32_t oktet_b = i < panjang_input ? (unsigned char)data[i++] : 0;
+        uint32_t oktet_c = i < panjang_input ? (unsigned char)data[i++] : 0;
+
+        uint32_t gabungan = (oktet_a << 0x10) + (oktet_b << 0x08) + oktet_c;
+
+        teks_hasil[j++] = tabel_base64[(gabungan >> 18) & 0x3F];
+        teks_hasil[j++] = tabel_base64[(gabungan >> 12) & 0x3F];
+        teks_hasil[j++] = tabel_base64[(gabungan >> 6) & 0x3F];
+        teks_hasil[j++] = tabel_base64[(gabungan >> 0) & 0x3F];
+    }
+    
+    // Padding (Penyeimbang dimensi jika bit tidak genap 3)
+    for (size_t i = 0; i < (3 - panjang_input % 3) % 3; i++) {
+        teks_hasil[panjang_output - 1 - i] = '='; 
+    }
+    teks_hasil[panjang_output] = '\0';
+    return teks_hasil;
+}
+
+unsigned char* proses_dari_base64(const char* input, size_t* out_len) {
+    if (!input) return NULL;
+    size_t in_len = strlen(input);
+    if (in_len % 4 != 0) return NULL; // Format Base64 cacat
+    
+    size_t padding = 0;
+    if (in_len > 0 && input[in_len - 1] == '=') padding++;
+    if (in_len > 1 && input[in_len - 2] == '=') padding++;
+    
+    *out_len = (in_len / 4) * 3 - padding;
+    unsigned char* out = (unsigned char*)malloc(*out_len);
+    
+    int tabel_dekode[256];
+    for (int i = 0; i < 256; i++) tabel_dekode[i] = -1;
+    for (int i = 0; i < 64; i++) tabel_dekode[(unsigned char)tabel_base64[i]] = i;
+    
+    for (size_t i = 0, j = 0; i < in_len; ) {
+        uint32_t a = input[i] == '=' ? (i++, 0) : (uint32_t)tabel_dekode[(unsigned char)input[i++]];
+        uint32_t b = input[i] == '=' ? (i++, 0) : (uint32_t)tabel_dekode[(unsigned char)input[i++]];
+        uint32_t c = input[i] == '=' ? (i++, 0) : (uint32_t)tabel_dekode[(unsigned char)input[i++]];
+        uint32_t d = input[i] == '=' ? (i++, 0) : (uint32_t)tabel_dekode[(unsigned char)input[i++]];
+
+        uint32_t gabungan = (a << 18) | (b << 12) | (c << 6) | d;
+
+        if (j < *out_len) out[j++] = (gabungan >> 16) & 0xFF;
+        if (j < *out_len) out[j++] = (gabungan >> 8) & 0xFF;
+        if (j < *out_len) out[j++] = (gabungan >> 0) & 0xFF;
+    }
+    return out;
 }
 
 // PENGUBAH \n MENJADI ENTER NYATA
@@ -1192,8 +1269,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     
                 if (obj_hasil && obj_hasil->tipe == ENKI_TEKS && obj_hasil->nilai.teks) {
                     printf("%s\n", obj_hasil->nilai.teks);
-                } else if (obj_hasil && obj_hasil->tipe == ENKI_ANGKA) {
-                    printf("%g\n", obj_hasil->nilai.angka);
+                } else if (obj_hasil->tipe == ENKI_ANGKA) {
+                char buf_angka[256];
+                cetak_angka_presisi(obj_hasil->nilai.angka, buf_angka, sizeof(buf_angka));
+                printf("%s\n", buf_angka); // 🟢 CETAK DENGAN PRESISI!
                 }
                 if (obj_hasil) hancurkan_objek(obj_hasil);
             } else {
@@ -1314,6 +1393,35 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 return hasil; 
             }
             if (obj_teks) hancurkan_objek(obj_teks);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // 🦐 SIHIR SANDI UDANG (PEMUTARBALIK FAKTA/TEKS)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "udang") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Sihir sandi udang butuh teks!", "Contoh: udang(\"halo\")");
+                return ciptakan_kosong();
+            }
+            EnkiObject* obj_arg = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            if (obj_arg && obj_arg->tipe == ENKI_TEKS && obj_arg->nilai.teks) {
+                int panjang_teks = strlen(obj_arg->nilai.teks);
+                char* teks_terbalik = (char*)malloc(panjang_teks + 1);
+                
+                for (int i = 0; i < panjang_teks; i++) {
+                    teks_terbalik[i] = obj_arg->nilai.teks[panjang_teks - 1 - i];
+                }
+                teks_terbalik[panjang_teks] = '\0';
+                
+                EnkiObject* hasil = ciptakan_teks(teks_terbalik);
+                free(teks_terbalik);
+                hancurkan_objek(obj_arg);
+                return hasil;
+            }
+            
+            if (obj_arg) hancurkan_objek(obj_arg);
             return ciptakan_kosong();
         }
 
@@ -1735,6 +1843,115 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return ciptakan_kosong(); 
         }
 
+        // =======================================================
+        // 🔮 SIHIR ALAM BINER & BASE64 (BLOB DATA)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "baca_biner") == 0) {
+            if (node->jumlah_anak < 1) { 
+                pemicu_kiamat_presisi(node, ram, "Butuh path file biner!", "Contoh: baca_biner(\"gambar.webp\")"); 
+                return ciptakan_kosong(); 
+            }
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char path_mentah[2048]=""; objek_ke_string(obj_path, path_mentah, sizeof(path_mentah));
+            char* path_final = ekspansi_jalur(path_mentah); 
+            
+            FILE *fp = fopen(path_final, "rb"); // 🟢 BACA SEBAGAI BINER MUTLAK ("rb")
+            if (!fp) {
+                pemicu_kiamat_presisi(node, ram, "Gagal menembus dimensi biner!", "File biner tidak ditemukan atau akses ditolak OS.");
+                free(path_final); if(obj_path) hancurkan_objek(obj_path); 
+                return ciptakan_kosong();
+            }
+            
+            fseek(fp, 0, SEEK_END); 
+            long ukuran = ftell(fp); 
+            fseek(fp, 0, SEEK_SET);
+            
+            unsigned char *buffer_biner = (unsigned char *)malloc(ukuran);
+            fread(buffer_biner, 1, ukuran, fp); 
+            fclose(fp);
+            
+            EnkiObject* hasil = ciptakan_blob(buffer_biner, ukuran); // 🟢 BUNGKUS JADI BLOB AMAN
+            free(buffer_biner); free(path_final); if (obj_path) hancurkan_objek(obj_path);
+            
+            return hasil;
+        }
+
+        if (strcmp(node->nilai_teks, "ke_base64") == 0) {
+            if (node->jumlah_anak < 1) { 
+                pemicu_kiamat_presisi(node, ram, "Butuh data BLOB/Teks!", "Contoh: ke_base64(data_mentah)"); 
+                return ciptakan_kosong(); 
+            }
+            EnkiObject* obj_data = evaluasi_ekspresi(node->anak_anak[0], ram);
+            char* hasil_b64 = NULL;
+            
+            if (obj_data && obj_data->tipe == ENKI_BLOB) {
+                hasil_b64 = proses_ke_base64(obj_data->nilai.blob.data, obj_data->nilai.blob.ukuran);
+            } else if (obj_data && obj_data->tipe == ENKI_TEKS) {
+                hasil_b64 = proses_ke_base64((const unsigned char*)obj_data->nilai.teks, strlen(obj_data->nilai.teks));
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Tipe data ditolak!", "Fungsi ke_base64 hanya dapat memproses data bertipe BLOB atau Teks.");
+            }
+            
+            if (obj_data) hancurkan_objek(obj_data);
+            if (hasil_b64) {
+                EnkiObject* hasil = ciptakan_teks(hasil_b64);
+                free(hasil_b64); return hasil;
+            }
+            return ciptakan_kosong();
+        }
+
+        if (strcmp(node->nilai_teks, "dari_base64") == 0) {
+            if (node->jumlah_anak < 1) { 
+                pemicu_kiamat_presisi(node, ram, "Butuh teks Base64!", "Contoh: dari_base64(\"aGVsbG8=\")"); 
+                return ciptakan_kosong(); 
+            }
+            EnkiObject* obj_data = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            if (obj_data && obj_data->tipe == ENKI_TEKS) {
+                size_t ukuran_asli = 0;
+                unsigned char* biner = proses_dari_base64(obj_data->nilai.teks, &ukuran_asli);
+                if (biner) {
+                    EnkiObject* hasil = ciptakan_blob(biner, ukuran_asli); // 🟢 KEMBALIKAN KE BLOB
+                    free(biner); hancurkan_objek(obj_data); return hasil;
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Gagal membongkar sandi!", "Teks yang diberikan rusak atau bukan format Base64 yang sah.");
+                }
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Sintaksis ditolak!", "Fungsi dari_base64 hanya bisa mengolah Teks String.");
+            }
+            
+            if (obj_data) hancurkan_objek(obj_data);
+            return ciptakan_kosong();
+        }
+        
+        if (strcmp(node->nilai_teks, "tulis_biner") == 0) {
+             if (node->jumlah_anak < 2) { 
+                 pemicu_kiamat_presisi(node, ram, "Butuh path dan data BLOB!", "Contoh: tulis_biner(\"hasil.png\", data_blob)"); 
+                 return ciptakan_kosong(); 
+             }
+             EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[0], ram);
+             EnkiObject* obj_blob = evaluasi_ekspresi(node->anak_anak[1], ram);
+             
+             if (obj_blob && obj_blob->tipe == ENKI_BLOB) {
+                 char path_mentah[2048]=""; objek_ke_string(obj_path, path_mentah, sizeof(path_mentah));
+                 char* path_final = ekspansi_jalur(path_mentah);
+                 FILE* fp = fopen(path_final, "wb"); // 🟢 TULIS SEBAGAI BINER ("wb")
+                 if (fp) {
+                     fwrite(obj_blob->nilai.blob.data, 1, obj_blob->nilai.blob.ukuran, fp);
+                     fclose(fp);
+                 } else {
+                     pemicu_kiamat_presisi(node, ram, "Gagal memahat file biner!", "Akses ditolak OS atau path tidak valid.");
+                 }
+                 free(path_final);
+             } else {
+                 pemicu_kiamat_presisi(node, ram, "Sintaksis ditolak!", "Fungsi tulis_biner hanya bisa menyematkan objek bertipe BLOB (bukan teks/angka).");
+             }
+             
+             if (obj_path) hancurkan_objek(obj_path);
+             if (obj_blob) hancurkan_objek(obj_blob);
+             return ciptakan_kosong();
+        }
+
         // 🕋 SEMAYAMKAN: Mengunci data ke dalam Griya (.imah)
         if (strcmp(node->nilai_teks, "ekspor") == 0) {
             if (node->jumlah_anak < 2) {
@@ -2065,27 +2282,35 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     if (!node) return;
     
     // 1. Eksekusi KETIK (Output)
-    if (node->jenis == AST_PERINTAH_KETIK) {
-        EnkiObject* obj_hasil = evaluasi_ekspresi(node->kanan, ram);
-        
-        if (obj_hasil) {
-            if (obj_hasil->tipe == ENKI_TEKS && obj_hasil->nilai.teks) {
-                printf("%s\n", obj_hasil->nilai.teks);
-            } 
-            else if (obj_hasil->tipe == ENKI_ANGKA) {
-                printf("%g\n", obj_hasil->nilai.angka);
-            } 
-            // 🟢 TAMBAHAN BARU UNTUK MENCETAK ARRAY / OBJEK
-            else if (obj_hasil->tipe == ENKI_ARRAY || obj_hasil->tipe == ENKI_OBJEK) {
-                cetak_objek(obj_hasil); 
-                printf("\n");
+    // --- PENANGKAP PERINTAH KETIK ---
+    else if (node->jenis == AST_PERINTAH_KETIK) {
+        if (node->kanan) {
+            EnkiObject* obj_hasil = evaluasi_ekspresi(node->kanan, ram);
+            
+            if (obj_hasil) {
+                // 1. PENANGANAN TEKS MURNI
+                if (obj_hasil->tipe == ENKI_TEKS && obj_hasil->nilai.teks) {
+                    printf("%s\n", obj_hasil->nilai.teks);
+                } 
+                // 2. PENANGANAN ANGKA PRESISI TINGGI (Anti-Scientific Notation)
+                else if (obj_hasil->tipe == ENKI_ANGKA) {
+                    char buf_angka[256];
+                    cetak_angka_presisi(obj_hasil->nilai.angka, buf_angka, sizeof(buf_angka));
+                    printf("%s\n", buf_angka); 
+                } 
+                // 3. PENANGANAN DIMENSI ARRAY & OBJEK
+                else if (obj_hasil->tipe == ENKI_ARRAY || obj_hasil->tipe == ENKI_OBJEK) {
+                    cetak_objek(obj_hasil); 
+                    printf("\n");
+                }
+                // 4. LAIN-LAIN (Kosong / Blob)
+                else {
+                    printf("\n"); 
+                }
+                hancurkan_objek(obj_hasil); 
+            } else {
+                printf("(kosong)\n");
             }
-            else {
-                printf("\n"); 
-            }
-            hancurkan_objek(obj_hasil); 
-        } else {
-            printf("\n");
         }
     }
     
@@ -2204,54 +2429,72 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
         // Jangan di-return di sini, biarkan jalan ke bawah jika perlu
     }
 
-    // --- 5. HUKUM SIKLUS (Looping: effort X kali maka) ---
-    // (BLOK INI SUDAH ANDA TANGANI DI PESAN SEBELUMNYA. KITA GUNAKAN YANG SUDAH JADI)
+    // --- 5. HUKUM SIKLUS (Looping: effort ATAU siklus selama) ---
     else if (node->jenis == AST_HUKUM_SIKLUS) {
-        if (!node->batas_loop) {
-            pemicu_kiamat_presisi(node, ram, "Hukum Siklus cacat!", "Anda tidak memberikan jumlah perulangan.\nContoh yang sah: effort 5 kali maka");
-            return;
-        }
-
-        EnkiObject* obj_batas = evaluasi_ekspresi(node->batas_loop, ram);
-        if (!obj_batas || (obj_batas->tipe == ENKI_TEKS && (!obj_batas->nilai.teks || strlen(obj_batas->nilai.teks) == 0))) {
-            pemicu_kiamat_presisi(node, ram, "Batas perulangan Gaib!", "Nilai batas perulangan tidak boleh kosong.");
-            if (obj_batas) hancurkan_objek(obj_batas);
-            return;
-        }
-
-        int batas = 0;
-        if (obj_batas->tipe == ENKI_ANGKA) batas = (int)obj_batas->nilai.angka;
-        else if (obj_batas->tipe == ENKI_TEKS) batas = atoi(obj_batas->nilai.teks);
         
-        if (batas <= 0) {
-            pemicu_kiamat_presisi(node, ram, "Batas siklus tidak masuk akal!", "Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0."); 
+        // 🟢 JALUR 1: SIKLUS SELAMA (KONDISIONAL / WHILE LOOP)
+        if (node->syarat) {
+            while (1) { // Putaran tanpa batas sampai syaratnya palsu
+                int sah = evaluasi_kondisi(node->syarat, ram);
+                if (!sah) break; // Keluar dari loop jika kondisi palsu
+                
+                eksekusi_program(node->blok_siklus, ram);
+                
+                // Tangkap Rem Darurat dari dalam siklus
+                if (ram->status_henti) { ram->status_henti = 0; break; }
+                if (ram->status_terus) { ram->status_terus = 0; continue; }
+                if (ram->status_pulang) { break; }
+            }
+        } 
+        // 🟢 JALUR 2: EFFORT X KALI (NUMERIK / FOR LOOP)
+        else if (node->batas_loop) {
+            EnkiObject* obj_batas = evaluasi_ekspresi(node->batas_loop, ram);
+            if (!obj_batas || (obj_batas->tipe == ENKI_TEKS && (!obj_batas->nilai.teks || strlen(obj_batas->nilai.teks) == 0))) {
+                pemicu_kiamat_presisi(node, ram, "Batas perulangan Gaib!", "Nilai batas perulangan tidak boleh kosong.");
+                if (obj_batas) hancurkan_objek(obj_batas);
+                return;
+            }
+
+            int batas = 0;
+            if (obj_batas->tipe == ENKI_ANGKA) batas = (int)obj_batas->nilai.angka;
+            else if (obj_batas->tipe == ENKI_TEKS) batas = atoi(obj_batas->nilai.teks);
+            
+            if (batas <= 0) {
+                pemicu_kiamat_presisi(node, ram, "Batas siklus tidak masuk akal!", "Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0."); 
+                if (obj_batas) hancurkan_objek(obj_batas);
+                return;
+            }
             if (obj_batas) hancurkan_objek(obj_batas);
-            return;
-        }
-        if (obj_batas) hancurkan_objek(obj_batas);
 
-        for (int i = 1; i <= batas; i++) {
-            int ketemu = 0;
-            for (int j = 0; j < ram->jumlah; j++) {
-                if (strcmp(ram->kavling[j].nama, "putaran") == 0) {
-                    if (ram->kavling[j].objek) hancurkan_objek(ram->kavling[j].objek);
-                    ram->kavling[j].objek = ciptakan_angka((double)i);
-                    ketemu = 1; break;
+            for (int i = 1; i <= batas; i++) {
+                // Suntikkan variabel 'putaran' ke dalam RAM
+                int ketemu = 0;
+                for (int j = 0; j < ram->jumlah; j++) {
+                    if (strcmp(ram->kavling[j].nama, "putaran") == 0) {
+                        if (ram->kavling[j].objek) hancurkan_objek(ram->kavling[j].objek);
+                        ram->kavling[j].objek = ciptakan_angka((double)i);
+                        ketemu = 1; break;
+                    }
                 }
-            }
-            if (!ketemu) { 
-                if (ram->jumlah >= ram->kapasitas) { ram->kapasitas *= 2; ram->kavling = realloc(ram->kavling, ram->kapasitas * sizeof(KavlingMemori)); }
-                ram->kavling[ram->jumlah].nama = strdup("putaran");
-                ram->kavling[ram->jumlah].tipe = TIPE_VARIABEL_SOFT;
-                ram->kavling[ram->jumlah].objek = ciptakan_angka((double)i);
-                ram->kavling[ram->jumlah].anak_anak = NULL;
-                ram->jumlah++;
-            }
+                if (!ketemu) { 
+                    if (ram->jumlah >= ram->kapasitas) { ram->kapasitas *= 2; ram->kavling = realloc(ram->kavling, ram->kapasitas * sizeof(KavlingMemori)); }
+                    ram->kavling[ram->jumlah].nama = strdup("putaran");
+                    ram->kavling[ram->jumlah].tipe = TIPE_VARIABEL_SOFT;
+                    ram->kavling[ram->jumlah].objek = ciptakan_angka((double)i);
+                    ram->kavling[ram->jumlah].anak_anak = NULL;
+                    ram->jumlah++;
+                }
 
-            eksekusi_program(node->blok_siklus, ram);
-            if (ram->status_henti) { ram->status_henti = 0; break; }
-            if (ram->status_terus) { ram->status_terus = 0; continue; }
-            if (ram->status_pulang) { break; }
+                eksekusi_program(node->blok_siklus, ram);
+                if (ram->status_henti) { ram->status_henti = 0; break; }
+                if (ram->status_terus) { ram->status_terus = 0; continue; }
+                if (ram->status_pulang) { break; }
+            }
+        } 
+        // 🚨 JALUR KIAMAT
+        else {
+            pemicu_kiamat_presisi(node, ram, "Hukum Siklus cacat!", "Anda tidak memberikan syarat (siklus selama) atau jumlah (effort).");
+            return;
         }
     }
 

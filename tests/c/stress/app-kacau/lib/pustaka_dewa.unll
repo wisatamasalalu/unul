@@ -1,0 +1,40 @@
+^^ PUSTAKA DEWA: Kumpulan Sihir Bantuan dan Transmutasi
+ciptakan fungsi animasi_loading(jumlah) maka
+    takdir.soft i = 1
+    siklus selama i <= jumlah maka
+        takdir.soft titik = ""
+        takdir.soft j = 0
+        siklus selama j < i maka
+            titik = titik + "."
+            j = j + 1
+        putus
+        
+        ketik("[UTAS-GAIB] UNUL sedang menyiapkannya untuk Anda" + titik)
+        jeda(800) ^^ Tidur 800 milidetik
+        i = i + 1
+    putus
+putus
+
+ciptakan fungsi validasi_jaringan(kode) maka
+    ^^ 🟢 MENGGUNAKAN TERNARY OPERATOR UNUL ASLI
+    pulang jika kode == 200 maka "🌐 Jaringan API Stabil!" lain "🚨 Kiamat Koneksi!"
+putus
+
+ciptakan fungsi uji_matriks_5x5(angka_rahasia) maka
+    ketik("\n--- 🔮 UJI MATRIKS TRANSMUTASI 5x5 🔮 ---")
+    takdir.soft sandi_hex = ke_hex(angka_rahasia)
+    takdir.soft sandi_oktal = ke_oktal(angka_rahasia)
+    takdir.soft sandi_biner = ke_biner(angka_rahasia)
+    
+    ketik("Desimal Asli  : " + angka_rahasia)
+    ketik("Sandi Hex     : " + sandi_hex)
+    ketik("Sandi Oktal   : " + sandi_oktal)
+    ketik("Sandi Biner   : " + sandi_biner)
+    
+    ^^ Mengembalikan ke wujud asalnya (Re-Transmutasi)
+    takdir.soft pulih_desimal = ke_desimal(sandi_hex)
+    ketik("Pemulihan Hex : " + pulih_desimal)
+    ketik("--- 🔮 MATRIKS SELESAI 🔮 ---")
+    
+    pulang sandi_hex
+putus
