@@ -7,6 +7,6 @@
         <butir> <tebal> "Reptilian" </tebal> </butir>
     </daftar>
 
-    <masukan: sandi_rahasia, tipe="password"> </masukan>
+    <masukan: sandi_rahasia, tipe="password"> "" </masukan>
 </wadah>
 pergi!#
