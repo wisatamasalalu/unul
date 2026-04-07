@@ -2295,8 +2295,14 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 arg_gaya = evaluasi_ekspresi(node->anak_anak[1], ram);
             }
             
-            tampilkan_tui(arg_ui, arg_gaya);
-            return ciptakan_kosong();
+            // TANGKAP ID TOMBOL YANG DIKLIK!
+            char* id_hasil = tampilkan_tui(arg_ui, arg_gaya);
+            
+            EnkiObject* obj_kembalian = ciptakan_kosong();
+            obj_kembalian->tipe = ENKI_TEKS;
+            obj_kembalian->nilai.teks = id_hasil;
+            
+            return obj_kembalian; // Kembalikan ke skrip .unul!
         }
 
         // =======================================================

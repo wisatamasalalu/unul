@@ -1,12 +1,24 @@
 #!datang
 <wadah: benua_utama>
-    <judul: besar> "Dunia Lama" </judul>
+    <judul: besar> "Urantia Ultimate TUI" </judul>
     
-    <daftar: ras_alien>
-        <butir> "Anunnaki" </butir>
-        <butir> <tebal> "Reptilian" </tebal> </butir>
+    <teks: biasa> "Silakan centang persetujuan:" </teks>
+    <centang: cek_syarat> "Saya siap menghancurkan dimensi" </centang>
+
+    <teks: biasa> "Masukkan kisah hidup Anda (Word Wrap Test):" </teks>
+    <areanulis: bio_panjang> "Dahulu kala, di sebuah server Arch Linux yang sunyi, lahirlah sebuah OS bernama Urantia. OS ini sangat kuat hingga..." </areanulis>
+
+    <daftar: misi_rahasia>
+        <butir> "Bobol Pentagon" 
+            <anak_anak>
+                <butir> "Curi data Alien" </butir>
+                <butir> "Hapus jejak log" </butir>
+            </anak_anak>
+        </butir>
+        <butir> "Aktifkan Skynet" </butir>
     </daftar>
 
-    <masukan: sandi_rahasia, tipe="password"> "" </masukan>
+    <masukan: sandi, tipe="password"> "" </masukan>
+    <tombol: btn_login> "EKSEKUSI" </tombol>
 </wadah>
-pergi!#
+pergi!

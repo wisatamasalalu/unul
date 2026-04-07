@@ -1,0 +1,46 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c -o ../../bin/unul -lm -lreadline -pthread -lcurl
+tui_renderer.c: In function ‘tui_matikan_raw_mode’:
+tui_renderer.c:24:61: error: ‘id_yang_diklik’ undeclared (first use in this function)
+   24 |     tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");
+      |                                                             ^~~~~~~~~~~~~~
+tui_renderer.c:24:61: note: each undeclared identifier is reported only once for each function it appears in
+tui_renderer.c:24:61: error: ‘return’ with a value, in function returning void [-Wreturn-mismatch]
+tui_renderer.c:23:6: note: declared here
+   23 | void tui_matikan_raw_mode() {
+      |      ^~~~~~~~~~~~~~~~~~~~
+tui_renderer.c:24:132: error: ‘return’ with a value, in function returning void [-Wreturn-mismatch]
+   24 |     tcsetattr(STDIN_FILENO, TCSANOW, &terminal_lama);return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");
+      |                                                                                                                                    ^~~~~~~~~~~~~~
+tui_renderer.c:23:6: note: declared here
+   23 | void tui_matikan_raw_mode() {
+      |      ^~~~~~~~~~~~~~~~~~~~
+tui_renderer.c:25:12: error: ‘return’ with a value, in function returning void [-Wreturn-mismatch]
+   25 |     return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");
+      |            ^~~~~~~~~~~~~~
+tui_renderer.c:23:6: note: declared here
+   23 | void tui_matikan_raw_mode() {
+      |      ^~~~~~~~~~~~~~~~~~~~
+tui_renderer.c: In function ‘tampilkan_tui’:
+tui_renderer.c:225:17: error: ‘else’ without a previous ‘if’
+  225 |                 else if (adalah_tombol && (c == '\n' || c == '\r' || c == ' ')) {
+      |                 ^~~~
+tui_renderer.c:225:26: error: ‘adalah_tombol’ undeclared (first use in this function)
+  225 |                 else if (adalah_tombol && (c == '\n' || c == '\r' || c == ' ')) {
+      |                          ^~~~~~~~~~~~~
+tui_renderer.c:225:44: error: ‘c’ undeclared (first use in this function)
+  225 |                 else if (adalah_tombol && (c == '\n' || c == '\r' || c == ' ')) {
+      |                                            ^
+tui_renderer.c:229:29: error: ‘id_yang_diklik’ undeclared (first use in this function)
+  229 |                             id_yang_diklik = elemen_fokus_saat_ini->nilai.objek_peta.konten[i]->nilai.teks;
+      |                             ^~~~~~~~~~~~~~
+tui_renderer.c:316:1: warning: control reaches end of non-void function [-Wreturn-type]
+  316 | }
+      | ^
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:2307:44: error: expected ‘;’ before ‘return’
+ 2307 |             tampilkan_tui(arg_ui, arg_gaya)
+      |                                            ^
+      |                                            ;
+ 2308 |             return ciptakan_kosong();
+      |             ~~~~~~                          
+make: *** [Makefile:30: build] Error 1

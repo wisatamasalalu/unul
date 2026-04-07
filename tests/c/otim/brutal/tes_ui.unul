@@ -2,6 +2,41 @@ datang
 takdir.soft ui_ku = muat_otim("brutal.otim")
 takdir.soft gaya_ku = muat_snul("gaya.snul")
 
-^^ Mari kita lihat sihir Terminal Berwarna!
-tampilkan_tui(ui_ku, gaya_ku)
+^^ Loop abadi di level skrip UNUL
+takdir.soft aplikasi_hidup = 1
+
+siklus selama aplikasi_hidup == 1 maka
+    
+    ^^ 🛡️ MEMASUKI ZONA PERLINDUNGAN
+    coba maka
+        ^^ tampilkan_tui akan mengembalikan ID tombol yang diklik!
+        takdir.soft aksi = tampilkan_tui(ui_ku, gaya_ku)
+
+        jika aksi == "btn_login" maka
+            ketik("\n[SISTEM] Menganalisis Sandi...")
+            ketik("Anda memasukkan sandi berikut:")
+            ketik(ui_ku.anak_anak[1].anak_anak[3].anak_anak[1].isi)
+            
+            aplikasi_hidup = 0 ^^ Keluar dari loop aplikasi
+        putus
+
+        jika aksi == "TUTUP_PAKSA" maka
+            ketik("\n[SISTEM] Aplikasi ditutup dengan tombol ESC!")
+            aplikasi_hidup = 0
+        putus
+
+    ^^ 🚨 BLOK TABU - MENANGKAP ERROR
+    tabu melanggar e maka
+        ketik("\n[ALARM] Terjadi Kiamat Kecil pada Dimensi UI!")
+        ketik("Pesan Error: " + e)
+        aplikasi_hidup = 0
+    pasrah  ^^ <--- DITUTUP OLEH PASRAH (Sesuai manuskrip kuno Anda!)
+
+putus ^^ <--- INI MILIK SIKLUS
+
+^^ 🧹 CLEANUP RAM
+pasrah(ui_ku)
+pasrah(gaya_ku)
+
+ketik("RAM telah dibebaskan. Program selesai.")
 pergi
