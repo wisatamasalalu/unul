@@ -3,7 +3,7 @@ ketik("Menyalakan Mesin Urantia TUI...")
 
 takdir.soft gaya_global = muat_snul("kosmetik.snul")
 takdir.soft aplikasi_hidup = 1
-takdir.soft halaman_aktif = "gerbang"  ^^ Memulai dari layar login
+takdir.soft halaman_aktif = "gerbang"
 
 siklus selama aplikasi_hidup == 1 maka
     coba maka
@@ -14,31 +14,18 @@ siklus selama aplikasi_hidup == 1 maka
         jika halaman_aktif == "gerbang" maka
             takdir.soft ui_gerbang = muat_otim("gerbang.otim")
             
-            ^^ 1. Tangkap Payload-nya!
-            takdir.soft form_hasil = tampilkan_tui(ui_gerbang, gaya_global)
+            ^^ Tangkap Bungkusan Objek (Payload)
+            takdir.soft form_gerbang = tampilkan_tui(ui_gerbang, gaya_global)
 
-            ^^ 2. Ekstrak data dari Payload!
-            takdir.soft aksi_tombol = form_hasil.aksi
-            takdir.soft sandi_input = form_hasil.ui.anak_anak[1].anak_anak[3].anak_anak[1].isi
-
-            ^^ 👇 KODE DETEKTIF 👇
-
-                ketik("\n\n====================================")
-
-                ketik("DEBUG: Sandi yang ditangkap mesin adalah: [" + sandi_input + "]")
-
-                ketik("====================================")
-
-                jeda "4s"
+            ^^ EKSTRAK NILAINYA!
+            takdir.soft aksi_tombol = form_gerbang.aksi
+            takdir.soft sandi_input = form_gerbang.ui.anak_anak[1].anak_anak[3].anak_anak[1].isi
 
             jika aksi_tombol == "btn_masuk" maka
-                ketik("DEBUG PAYLOAD SANDI: [" + sandi_input + "]")
-                jeda("3s")
-                
                 jika sandi_input == "rahasia123" maka
-                    halaman_aktif = "dasbor" ^^ TELEPORTASI KE DASBOR!
+                    halaman_aktif = "dasbor" ^^ TELEPORTASI!
                 lain maka
-                    ^^ Sandi salah
+                    ^^ Sandi salah, biarkan me-render ulang login
                 putus
             putus
 
@@ -46,8 +33,7 @@ siklus selama aplikasi_hidup == 1 maka
                 aplikasi_hidup = 0
             putus
             
-            ^^ Hancurkan UI asli (karena sudah disalin ke payload)
-            pasrah(ui_gerbang) 
+            pasrah(ui_gerbang)
         putus
 
         ^^ ==========================================
@@ -55,10 +41,16 @@ siklus selama aplikasi_hidup == 1 maka
         ^^ ==========================================
         jika halaman_aktif == "dasbor" maka
             takdir.soft ui_dasbor = muat_otim("dasbor.otim")
-            takdir.soft aksi2 = tampilkan_tui(ui_dasbor, gaya_global)
+            
+            ^^ Tangkap Bungkusan Objek (Payload)
+            takdir.soft form_dasbor = tampilkan_tui(ui_dasbor, gaya_global)
 
-            jika aksi2 == "btn_logout" atau aksi2 == "TUTUP_PAKSA" maka
-                halaman_aktif = "gerbang" ^^ Kembali ke layar login!
+            ^^ EKSTRAK NILAINYA DARI OBJEK!
+            takdir.soft aksi_dasbor = form_dasbor.aksi
+
+            ^^ SEKARANG BANDINGKAN TEKS DENGAN TEKS!
+            jika aksi_dasbor == "btn_logout" atau aksi_dasbor == "TUTUP_PAKSA" maka
+                halaman_aktif = "gerbang" ^^ TENDANG KEMBALI KE LOGIN!
             putus
             
             pasrah(ui_dasbor)
@@ -72,5 +64,5 @@ siklus selama aplikasi_hidup == 1 maka
 putus
 
 pasrah(gaya_global)
-ketik("Sistem TUI Dimatikan dengan Aman.")
+ketik("\nSistem TUI Dimatikan dengan Aman. Sampai jumpa, Arsitek!")
 pergi
