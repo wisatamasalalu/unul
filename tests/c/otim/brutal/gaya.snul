@@ -1,0 +1,8 @@
+@wadah.benua_utama {
+    warna_teks: #00FFCC; ^^ Warna Cyan Terang ala Hacker
+    lebar: 60;
+}
+
+@judul.besar {
+    warna_teks: #FF00FF; ^^ Warna Magenta/Pink Neon
+}

@@ -1,0 +1,7 @@
+datang
+takdir.soft ui_ku = muat_otim("brutal.otim")
+takdir.soft gaya_ku = muat_snul("gaya.snul")
+
+^^ Mari kita lihat sihir Terminal Berwarna!
+tampilkan_tui(ui_ku, gaya_ku)
+pergi

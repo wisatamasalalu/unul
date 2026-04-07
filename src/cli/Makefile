@@ -9,6 +9,7 @@ LIBS = -lm -lreadline -pthread -lcurl
 
 # Semua file dari berbagai dimensi
 SRCS = main.c \
+       tui_renderer.c \
        ../core_c/enki_os.c \
        ../core_c/enki_lexer.c \
        ../core_c/enki_parser.c \

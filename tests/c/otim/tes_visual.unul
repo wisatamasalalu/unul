@@ -1,0 +1,4 @@
+datang
+takdir.soft ui = muat_otim("halaman.otim")
+tampilkan_tui(ui)
+pergi

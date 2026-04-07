@@ -23,6 +23,7 @@
 #include "../core/enki_object.h"
 #include "../otim/otim_parser.h"
 #include "../snul/snul_parser.h"
+#include "../cli/tui_renderer.h"
 
 // Helper Enkripsi Simetris (XOR Cipher)
 void mutasi_xor(char* data, size_t panjang, const char* kunci) {
@@ -569,6 +570,66 @@ KavlingMemori* cari_induk_utama(ASTNode* node, EnkiRAM* ram) {
     return NULL;
 }
 
+// =================================================================
+// 🧬 MESIN L-VALUE: PENELUSUR ALAMAT MEMORI BERSARANG (DEEP MUTATION)
+// =================================================================
+EnkiObject** sihir_temukan_alamat_memori(ASTNode* node, EnkiRAM* ram) {
+    if (!node || !ram) return NULL;
+
+    // 1. Variabel Biasa (Misal: ui_ku)
+    if (node->jenis == AST_IDENTITAS) {
+        for (int i = 0; i < ram->jumlah; i++) {
+            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
+                return &(ram->kavling[i].objek); // Kembalikan alamat pointernya
+            }
+        }
+        return NULL;
+    }
+
+    // 2. Akses Domain / Properti (Misal: induk.isi)
+    if (node->jenis == AST_AKSES_DOMAIN) {
+        EnkiObject** alamat_induk = sihir_temukan_alamat_memori(node->kiri, ram);
+        if (alamat_induk && *alamat_induk && (*alamat_induk)->tipe == ENKI_OBJEK) {
+            EnkiObject* objek_induk = *alamat_induk;
+            for (int i = 0; i < objek_induk->panjang; i++) {
+                if (strcmp(objek_induk->nilai.objek_peta.kunci[i]->nilai.teks, node->nilai_teks) == 0) {
+                    return &(objek_induk->nilai.objek_peta.konten[i]);
+                }
+            }
+        }
+        return NULL;
+    }
+
+    // 3. Akses Array / Kamus Dinamis (Misal: data[1] atau gaya["warna"])
+    if (node->jenis == AST_AKSES_ARRAY) {
+        EnkiObject** alamat_induk = sihir_temukan_alamat_memori(node->kiri, ram);
+        if (alamat_induk && *alamat_induk) {
+            EnkiObject* induk = *alamat_induk;
+            EnkiObject* obj_indeks = evaluasi_ekspresi(node->indeks_array, ram);
+            
+            if (induk->tipe == ENKI_ARRAY && obj_indeks && obj_indeks->tipe == ENKI_ANGKA) {
+                int indeks_c = (int)obj_indeks->nilai.angka - 1; // HUKUM UNUL
+                if (obj_indeks) hancurkan_objek(obj_indeks);
+                if (indeks_c >= 0 && indeks_c < induk->panjang) return &(induk->nilai.array_elemen[indeks_c]);
+            } 
+            else if (induk->tipe == ENKI_OBJEK && obj_indeks && obj_indeks->tipe == ENKI_TEKS) {
+                char* kunci = obj_indeks->nilai.teks;
+                for (int i = 0; i < induk->panjang; i++) {
+                    if (strcmp(induk->nilai.objek_peta.kunci[i]->nilai.teks, kunci) == 0) {
+                        if (obj_indeks) hancurkan_objek(obj_indeks);
+                        return &(induk->nilai.objek_peta.konten[i]);
+                    }
+                }
+                if (obj_indeks) hancurkan_objek(obj_indeks);
+            } else {
+                if (obj_indeks) hancurkan_objek(obj_indeks);
+            }
+        }
+        return NULL;
+    }
+    return NULL;
+}
+
 // Fungsi Bantuan: Menghapus kutip ganda/tunggal di ujung teks
 void bersihkan_kutip(char* teks) {
     if (!teks) return; // Pelindung Segfault Mutlak
@@ -968,20 +1029,17 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     if (node->jenis == AST_OPERASI_MATEMATIKA) {
         
         // ==========================================================
-        // 🔥 SUNTIKAN MUTASI BRUTAL (TANDA '=')
+        // 🔥 SUNTIKAN MUTASI BRUTAL (TANDA '=') DENGAN L-VALUE RESOLVER
         // ==========================================================
         if (node->operator_math && strcmp(node->operator_math, "=") == 0) {
-            // 0. EVALUASI SISI KANAN DULU!
             EnkiObject* hasil_masa_depan = evaluasi_ekspresi(node->kanan, ram);
 
-            // 0.5 DESTRUCTURING ARRAY (Pembedahan Objek)
+            // Jika Array Destructuring
             if (node->kiri->jenis == AST_STRUKTUR_ARRAY) {
                 if (hasil_masa_depan && hasil_masa_depan->tipe == ENKI_ARRAY) {
                     for (int idx = 0; idx < node->kiri->jumlah_anak && idx < hasil_masa_depan->panjang; idx++) {
                         ASTNode* var_kiri = node->kiri->anak_anak[idx];
-                        if (var_kiri->jenis == AST_IDENTITAS) {
-                            simpan_ke_ram(ram, var_kiri->nilai_teks, hasil_masa_depan->nilai.array_elemen[idx]); // PINJAM SEMENTARA
-                        }
+                        if (var_kiri->jenis == AST_IDENTITAS) simpan_ke_ram(ram, var_kiri->nilai_teks, hasil_masa_depan->nilai.array_elemen[idx]);
                     }
                 } else {
                     pemicu_kiamat_presisi(node, ram, "Gagal membedah Array!", "Sisi kanan harus berwujud murni Array [...].");
@@ -989,75 +1047,37 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 return ciptakan_kosong(); 
             }
 
-            // 1. Dapatkan Induk Utama DULU!
+            // 1. Simpan jejak Mesin Waktu (jika ada)
             KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 
-            
-            // 2. MESIN WAKTU: Simpan masa lalu DI INDUK UTAMA (SEBELUM RAM DIMUTASI)
-            if (induk) {
-                simpan_jejak_mesin_waktu(induk);
-            }
+            if (induk) simpan_jejak_mesin_waktu(induk);
 
-            // 3. BARU KITA CARI/CIPTAKAN TARGET
-            KavlingMemori* target = temukan_atau_ciptakan_kavling(node->kiri, ram);
-            
-            if (target && induk) {
-                // SUNTIKAN HUKUM: Cek apakah target dikunci
-                // SUNTIKAN HUKUM: Cek apakah target dikunci
-                if (target->apakah_konstanta) {
-                    char pesan[256];
-                    char hint[512];
-                    snprintf(pesan, sizeof(pesan), "Hukum Takdir Dilanggar: Variabel '%s' tidak bisa diubah!", target->nama);
-                    snprintf(hint, sizeof(hint), "Variabel '%s' diciptakan menggunakan 'takdir.hard' sehingga abadi.\nSilakan gunakan 'takdir.soft' saat menciptakannya jika Anda ingin nilainya bisa dimutasi.", target->nama);
-                    
-                    pemicu_kiamat_presisi(node, ram, pesan, hint);
-                    return ciptakan_kosong(); 
-                }
+            // 2. 🎯 MESIN PENELUSUR ALAMAT MEMORI BEKERJA DI SINI!
+            EnkiObject** alamat_target = sihir_temukan_alamat_memori(node->kiri, ram);
 
-                // Hancurkan kenangan lama masa kini (Dari Target)
-                if (target->objek) {
-                    hancurkan_objek(target->objek);
-                }
-
-                // CEK APAKAH INI SIHIR BALIKAN()
-                if (node->kanan->jenis == AST_PANGGILAN_FUNGSI && strcmp(node->kanan->nilai_teks, "balikan") == 0) {
-                    KavlingMemori* sumber = temukan_atau_ciptakan_kavling(node->kanan->anak_anak[0], ram);
-                    if (sumber) {
-                        target->tipe = sumber->tipe;
-                        target->objek = sumber->objek; // PINJAM
-                        // 🟢 BARU: Kita cek tipe dari jantung objeknya!
-                        if (sumber->objek && sumber->objek->tipe == ENKI_OBJEK && sumber->anak_anak) {
-                            target->anak_anak = salin_ram_rekursif(sumber->anak_anak);
-                        }
+            if (alamat_target) {
+                // ALAMAT DITEMUKAN! Bakar data lama, masukkan data baru!
+                if (*alamat_target) hancurkan_objek(*alamat_target); 
+                *alamat_target = hasil_masa_depan;                   
+            } else {
+                // ALAMAT GAGAL DITEMUKAN: Coba buat variabel baru
+                KavlingMemori* target_kavling = temukan_atau_ciptakan_kavling(node->kiri, ram);
+                if (target_kavling) {
+                    if (target_kavling->apakah_konstanta) {
+                        pemicu_kiamat_presisi(node, ram, "Hukum Takdir Dilanggar!", "Variabel abadi tidak bisa diubah.");
                         return ciptakan_kosong();
                     }
+                    if (target_kavling->objek) hancurkan_objek(target_kavling->objek);
+                    target_kavling->tipe = TIPE_VARIABEL_SOFT;
+                    target_kavling->objek = hasil_masa_depan;
+                } else {
+                    // JIKA BENAR-BENAR GAGAL MUTASI!
+                    pemicu_kiamat_presisi(node, ram, "Gagal memutasi memori. Variabel belum diciptakan atau jalur salah!",
+                        "Pastikan objek target ada dan indeks Array tidak keluar batas.");
+                    if (hasil_masa_depan) hancurkan_objek(hasil_masa_depan);
                 }
-                
-                // JIKA DITIMPA BIASA
-                target->tipe = TIPE_VARIABEL_SOFT; // Bisa jadi HARD jika diubah nanti
-                target->objek = hasil_masa_depan; // 🟢 LANGSUNG SIMPAN POINTER OBJEKNYA!
-
-                // 🟢 Jika ini Fungsi Panah, salin cetak birunya!
-                if (hasil_masa_depan && hasil_masa_depan->tipe == ENKI_TEKS && strncmp(hasil_masa_depan->nilai.teks, "<anonim_", 8) == 0) {
-                    for(int i = 0; i < ram->jumlah; i++) {
-                        if (strcmp(ram->kavling[i].nama, target->nama) == 0) {
-                            for(int j = 0; j < ram->jumlah; j++) {
-                                if (strcmp(ram->kavling[j].nama, hasil_masa_depan->nilai.teks) == 0) {
-                                    ram->kavling[i].simpul_fungsi = ram->kavling[j].simpul_fungsi;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-            } else {
-                pemicu_kiamat_presisi(node, ram, "Gagal memutasi memori. Variabel belum diciptakan!",
-                    "Gunakan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.");
-                if (hasil_masa_depan) hancurkan_objek(hasil_masa_depan);
             }
             return ciptakan_kosong();
         }
-        // ==========================================================
 
         // JIKA BUKAN PENUGASAN '=' (Melainkan +, -, *, /)
         double hasil_akhir = 0; 
@@ -2259,6 +2279,24 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             free(isi_otim);
 
             return ui_pohon; // Kembalikan Pohon UI ke tangan skrip UNUL!
+        }
+
+        // =======================================================
+        // 🖥️ TAMPILKAN KE TERMINAL (TUI RENDERER)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "tampilkan_tui") == 0) {
+            if (node->jumlah_anak < 1) return ciptakan_kosong();
+            
+            EnkiObject* arg_ui = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* arg_gaya = NULL;
+            
+            // Jika ada parameter kedua (Kosmetik/Gaya)
+            if (node->jumlah_anak >= 2) {
+                arg_gaya = evaluasi_ekspresi(node->anak_anak[1], ram);
+            }
+            
+            tampilkan_tui(arg_ui, arg_gaya);
+            return ciptakan_kosong();
         }
 
         // =======================================================
