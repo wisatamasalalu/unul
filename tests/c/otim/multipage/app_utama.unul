@@ -1,0 +1,70 @@
+datang
+ketik("Menyalakan Mesin Urantia TUI...")
+
+takdir.soft gaya_global = muat_snul("kosmetik.snul")
+takdir.soft aplikasi_hidup = 1
+takdir.soft halaman_aktif = "gerbang"  ^^ Memulai dari layar login
+
+siklus selama aplikasi_hidup == 1 maka
+    coba maka
+        
+        ^^ ==========================================
+        ^^ HALAMAN 1: GERBANG LOGIN
+        ^^ ==========================================
+        jika halaman_aktif == "gerbang" maka
+            takdir.soft ui_gerbang = muat_otim("gerbang.otim")
+            takdir.soft aksi = tampilkan_tui(ui_gerbang, gaya_global)
+
+            jika aksi == "btn_masuk" maka
+                takdir.soft sandi_input = ui_gerbang.anak_anak[1].anak_anak[3].anak_anak[1].isi
+                
+                ^^ 👇 KODE DETEKTIF 👇
+                ketik("\n\n====================================")
+                ketik("DEBUG: Sandi yang ditangkap mesin adalah: [" + sandi_input + "]")
+                ketik("====================================")
+                jeda "4s"
+
+                ^^ 👇 MANTRA PEMBONGKAR MEMORI 👇
+                ketik("ISI MURNI DARI WADAH:")
+                ketik(ui_gerbang.anak_anak[1].anak_anak)
+                
+                jeda "6s" ^^ Beri waktu lebih lama untuk membaca!
+                
+                jika sandi_input == "rahasia123" maka
+                    halaman_aktif = "dasbor"
+                lain maka
+                    ^^ Sandi salah
+                putus
+            putus
+
+            jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
+                aplikasi_hidup = 0
+            putus
+            
+            pasrah(ui_gerbang)
+        putus
+
+        ^^ ==========================================
+        ^^ HALAMAN 2: DASBOR UTAMA
+        ^^ ==========================================
+        jika halaman_aktif == "dasbor" maka
+            takdir.soft ui_dasbor = muat_otim("dasbor.otim")
+            takdir.soft aksi2 = tampilkan_tui(ui_dasbor, gaya_global)
+
+            jika aksi2 == "btn_logout" atau aksi2 == "TUTUP_PAKSA" maka
+                halaman_aktif = "gerbang" ^^ Kembali ke layar login!
+            putus
+            
+            pasrah(ui_dasbor)
+        putus
+
+    tabu melanggar e maka
+        ketik("[KIAMAT SISTEM] " + e)
+        aplikasi_hidup = 0
+    pasrah
+
+putus
+
+pasrah(gaya_global)
+ketik("Sistem TUI Dimatikan dengan Aman.")
+pergi

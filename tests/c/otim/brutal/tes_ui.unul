@@ -15,7 +15,7 @@ siklus selama aplikasi_hidup == 1 maka
         jika aksi == "btn_login" maka
             ketik("\n[SISTEM] Menganalisis Sandi...")
             ketik("Anda memasukkan sandi berikut:")
-            ketik(ui_ku.anak_anak[1].anak_anak[3].anak_anak[1].isi)
+            ketik(ui_ku.anak_anak[1].anak_anak[7].anak_anak[1].isi)
             
             aplikasi_hidup = 0 ^^ Keluar dari loop aplikasi
         putus

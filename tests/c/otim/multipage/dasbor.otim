@@ -1,0 +1,15 @@
+#!datang
+<wadah: panel_utama>
+    <judul: utama> "DASBOR PUSAT KENDALI" </judul>
+    <teks: info> "Selamat datang kembali, Arsitek Agung." </teks>
+    
+    <daftar: menu>
+        <butir> "Akses Database .imah" </butir>
+        <butir> "Pantau Jaringan Server" </butir>
+        <butir> "Jalankan Protokol Nuklir" </butir>
+    </daftar>
+
+    <centang: mode_gelap> "Aktifkan Mode Siluman" </centang>
+    <tombol: btn_logout> "TUTUP DIMENSI (LOGOUT)" </tombol>
+</wadah>
+pergi!#

@@ -1,0 +1,9 @@
+#!datang
+<wadah: login_screen>
+    <judul: utama> "GERBANG URANTIA OS" </judul>
+    <teks: info> "Masukkan Sandi Otorisasi:" </teks>
+    <masukan: sandi, tipe="password"> "" </masukan>
+    <tombol: btn_masuk> "BUKA GERBANG" </tombol>
+    <tombol: btn_keluar> "BATAL" </tombol>
+</wadah>
+pergi!#

@@ -7,7 +7,7 @@ ketik("=====================================")
 takdir.soft ui_ku = muat_otim("halaman.otim")
 
 ketik("\n✅ Pohon UI berhasil dimuat ke RAM!")
-ketik("Mari kita bongkar isinya menggunakan fungsi cetak():\n")
+ketik("Mari kita bongkar isinya menggunakan fungsi ketik():\n")
 
 ^^ Mesin akan memuntahkan JSON/Struktur Map dari objek UI
 ketik(ui_ku)

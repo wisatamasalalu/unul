@@ -1,0 +1,10 @@
+@judul.utama {
+    warna_teks: #00FFCC;
+    lebar: 50;
+}
+@wadah.login_screen {
+    lebar: 40;
+}
+@wadah.panel_utama {
+    lebar: 60;
+}
