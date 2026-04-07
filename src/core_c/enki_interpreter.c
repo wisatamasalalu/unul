@@ -2296,13 +2296,27 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
             
             // TANGKAP ID TOMBOL YANG DIKLIK!
+            // 1. Eksekusi TUI (TUI akan menyuntikkan sandi ke dalam salinan arg_ui)
             char* id_hasil = tampilkan_tui(arg_ui, arg_gaya);
             
-            EnkiObject* obj_kembalian = ciptakan_kosong();
-            obj_kembalian->tipe = ENKI_TEKS;
-            obj_kembalian->nilai.teks = id_hasil;
+            // 2. Bersihkan gaya karena kita tidak butuh lagi
+            if (arg_gaya) hancurkan_objek(arg_gaya);
+
+            // 3. BENTUK OBJEK PAYLOAD (STATELESS UI)
+            EnkiObject* obj_kembalian = ciptakan_objek_peta(2);
+            obj_kembalian->panjang = 2;
+
+            // KUNCI 1: "aksi" -> isi: ID tombol yang diklik
+            obj_kembalian->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi");
+            obj_kembalian->nilai.objek_peta.konten[0] = ciptakan_teks(id_hasil);
+
+            // KUNCI 2: "ui" -> isi: Pohon DOM yang sudah dimodifikasi oleh ketikan User!
+            obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui");
+            obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; // <-- Jangan hancurkan arg_ui, ia diwariskan ke payload
+
+            free(id_hasil); // Bebaskan memori string C biasa
             
-            return obj_kembalian; // Kembalikan ke skrip .unul!
+            return obj_kembalian; // Kembalikan Payload ke skrip .unul!
         }
 
         // =======================================================

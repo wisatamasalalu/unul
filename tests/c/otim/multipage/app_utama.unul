@@ -13,35 +13,41 @@ siklus selama aplikasi_hidup == 1 maka
         ^^ ==========================================
         jika halaman_aktif == "gerbang" maka
             takdir.soft ui_gerbang = muat_otim("gerbang.otim")
-            takdir.soft aksi = tampilkan_tui(ui_gerbang, gaya_global)
+            
+            ^^ 1. Tangkap Payload-nya!
+            takdir.soft form_hasil = tampilkan_tui(ui_gerbang, gaya_global)
 
-            jika aksi == "btn_masuk" maka
-                takdir.soft sandi_input = ui_gerbang.anak_anak[1].anak_anak[3].anak_anak[1].isi
-                
-                ^^ 👇 KODE DETEKTIF 👇
+            ^^ 2. Ekstrak data dari Payload!
+            takdir.soft aksi_tombol = form_hasil.aksi
+            takdir.soft sandi_input = form_hasil.ui.anak_anak[1].anak_anak[3].anak_anak[1].isi
+
+            ^^ 👇 KODE DETEKTIF 👇
+
                 ketik("\n\n====================================")
+
                 ketik("DEBUG: Sandi yang ditangkap mesin adalah: [" + sandi_input + "]")
+
                 ketik("====================================")
+
                 jeda "4s"
 
-                ^^ 👇 MANTRA PEMBONGKAR MEMORI 👇
-                ketik("ISI MURNI DARI WADAH:")
-                ketik(ui_gerbang.anak_anak[1].anak_anak)
-                
-                jeda "6s" ^^ Beri waktu lebih lama untuk membaca!
+            jika aksi_tombol == "btn_masuk" maka
+                ketik("DEBUG PAYLOAD SANDI: [" + sandi_input + "]")
+                jeda("3s")
                 
                 jika sandi_input == "rahasia123" maka
-                    halaman_aktif = "dasbor"
+                    halaman_aktif = "dasbor" ^^ TELEPORTASI KE DASBOR!
                 lain maka
                     ^^ Sandi salah
                 putus
             putus
 
-            jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
+            jika aksi_tombol == "btn_keluar" atau aksi_tombol == "TUTUP_PAKSA" maka
                 aplikasi_hidup = 0
             putus
             
-            pasrah(ui_gerbang)
+            ^^ Hancurkan UI asli (karena sudah disalin ke payload)
+            pasrah(ui_gerbang) 
         putus
 
         ^^ ==========================================
