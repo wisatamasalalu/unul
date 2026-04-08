@@ -15,11 +15,12 @@ takdir.hard KUNCI = tarik_rahasia("KUNCI_MUTLAK")
 takdir.hard GARAM = tarik_rahasia("GARAM_SANDI")
 
 ^^ 4. Muat Database IMAH ke RAM untuk Dimodifikasi
-takdir.soft isi_file = baca("database.imah")
-takdir.soft db = impor(isi_file)
+takdir.soft db = impor("database.imah")
+debug(db)
 
 ^^ Karena ini aplikasi tingkat tinggi (TUI/GUI), kita gunakan 'ko' (Garbage Collected)
 takdir.soft pengguna = ko(db, "pengguna")
+debug(db)
 takdir.soft tugas = ko(db, "tugas")
 
 ^^ ==========================================

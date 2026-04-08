@@ -51,3 +51,15 @@ Penyebab Kiamat ini:
    Saran: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
 =================================
 
+=== [WAKTU KIAMAT: 1775661610] ===
+🚨 [tes_ku.unul: Baris 4:1] KIAMAT SINTAKSIS: Sihir Array Tertidur!
+   Kode Penyebab: ku
+   Saran: Gunakan 'untuk array.statis'.
+=================================
+
+=== [WAKTU KIAMAT: 1775661703] ===
+🚨 [tes_ku.unul: Baris 4:6] KIAMAT SINTAKSIS: Sihir Array Tertidur!
+   Kode Penyebab: ku
+   Saran: Gunakan 'untuk array.statis'.
+=================================
+

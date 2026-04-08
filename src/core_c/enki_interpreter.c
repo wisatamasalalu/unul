@@ -903,6 +903,38 @@ void muat_anu(EnkiRAM* ram) {
     printf("🛡️ [SISTEM] Kitab rahasia .anu berhasil merasuk ke memori!\n");
 }
 
+// 🟢 PENCARI ALAMAT ASLI DI SELURUH DIMENSI RAM
+EnkiObject** temukan_pointer_asli(EnkiRAM* ram, const char* nama_variabel) {
+    EnkiRAM* saat_ini = ram;
+    while (saat_ini != NULL) {
+        for (int i = 0; i < saat_ini->jumlah; i++) {
+            if (strcmp(saat_ini->kavling[i].nama, nama_variabel) == 0) {
+                return &(saat_ini->kavling[i].objek);
+            }
+        }
+        saat_ini = saat_ini->induk;
+    }
+    return NULL;
+}
+
+// 🟢 PENCARI ALAMAT ASLI DI SELURUH DIMENSI RAM
+EnkiObject** temukan_pointer_asli(EnkiRAM* ram, const char* nama_variabel) {
+    if (!ram || !nama_variabel) return NULL;
+    
+    // Cari di RAM saat ini (Lokal)
+    for (int i = 0; i < ram->jumlah; i++) {
+        if (strcmp(ram->kavling[i].nama, nama_variabel) == 0) {
+            return &(ram->kavling[i].objek); // KEMBALIKAN POINTER-NYA!
+        }
+    }
+    
+    // Jika tidak ketemu, cari di RAM Induk (Global) secara rekursif
+    if (ram->induk != NULL) {
+        return temukan_pointer_asli(ram->induk, nama_variabel);
+    }
+    
+    return NULL;
+}
 
 // --- 2. LOGIKA EVALUASI NILAI ---
 EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
@@ -1857,32 +1889,28 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
 
             char* nama_var = (node->anak_anak[0]->jenis == AST_IDENTITAS) ? node->anak_anak[0]->nilai_teks : NULL;
-            EnkiObject* obj_target = NULL;
             
+            // 🟢 GUNAKAN PENCARI POINTER ASLI!
+            EnkiObject** pointer_target = NULL;
             if (nama_var) {
-                for (int i = 0; i < ram->jumlah; i++) {
-                    if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
-                        obj_target = ram->kavling[i].objek;
-                        break;
-                    }
-                }
+                pointer_target = temukan_pointer_asli(ram, nama_var);
             }
 
             EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[1], ram);
             EnkiObject* elemen_baru = evaluasi_ekspresi(node->anak_anak[2], ram);
 
-            // 2. Sesuaikan Mutasi dengan Anatomi objek_peta
-            if (obj_target && obj_target->tipe == ENKI_OBJEK && obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+            // Pastikan pointer target ditemukan, menunjuk ke Objek, dan kuncinya valid
+            if (pointer_target && (*pointer_target)->tipe == ENKI_OBJEK && obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+                EnkiObject* obj_target = *pointer_target; // Dereference ke objek asli
                 int kunci_ditemukan = 0;
                 
                 // Cari apakah kunci sudah ada -> TIMPA
                 for (int i = 0; i < obj_target->panjang; i++) {
                     EnkiObject* kunci_saat_ini = obj_target->nilai.objek_peta.kunci[i];
                     
-                    // Pastikan kuncinya teks dan isinya sama
                     if (kunci_saat_ini->tipe == ENKI_TEKS && strcmp(kunci_saat_ini->nilai.teks, obj_kunci->nilai.teks) == 0) {
-                        hancurkan_objek(obj_target->nilai.objek_peta.konten[i]); // Hapus data lama (GC)
-                        obj_target->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(elemen_baru); // Masukkan baru
+                        hancurkan_objek(obj_target->nilai.objek_peta.konten[i]); 
+                        obj_target->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(elemen_baru); 
                         kunci_ditemukan = 1;
                         break;
                     }
@@ -1893,13 +1921,12 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     obj_target->nilai.objek_peta.kunci = realloc(obj_target->nilai.objek_peta.kunci, (obj_target->panjang + 1) * sizeof(EnkiObject*));
                     obj_target->nilai.objek_peta.konten = realloc(obj_target->nilai.objek_peta.konten, (obj_target->panjang + 1) * sizeof(EnkiObject*));
                     
-                    // Karena strukturnya meminta EnkiObject**, kita salin objeknya utuh!
                     obj_target->nilai.objek_peta.kunci[obj_target->panjang] = ciptakan_salinan_objek(obj_kunci);
                     obj_target->nilai.objek_peta.konten[obj_target->panjang] = ciptakan_salinan_objek(elemen_baru);
                     obj_target->panjang++;
                 }
             } else {
-                pemicu_kiamat_presisi(node, ram, "Gagal Mengubah!", "Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).");
+                pemicu_kiamat_presisi(node, ram, "Gagal Mengubah!", "Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks). Pastikan variabel sudah diciptakan.");
             }
 
             if (obj_kunci) hancurkan_objek(obj_kunci);
@@ -1911,11 +1938,13 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // N. HUKUM ISI (Mutasi RAM Statis / Array Manual / dari 0)
         // =======================================================
         else if (strcmp(node->nilai_teks, "isi") == 0) {
-            // Logika "isi" bisa mirip dengan "ubah", TAPI perbedaannya di C:
-            // "isi" tidak melakukan realloc(). Ia berasumsi ukuran sudah disiapkan oleh ku().
-            // Ini sangat krusial untuk mencegah overhead pada pemograman kernel/low-level.
+            // 🛡️ PENJAGA PRAGMA
+            if (ram->status_array_statis == 0) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Statis Tertidur!", "Anda mencoba memutasi memori statis (isi) tanpa izin. Gunakan 'untuk array.statis' di awal kitab.");
+                return ciptakan_kosong();
+            }
             
-            // (Anda bisa mengembangkan logika pointer absolut C di sini nanti saat fokus ke ku() )
+            // Logika pointer absolut C di sini nanti...
             printf("🔧 [KERNEL] Memori statis diisi secara absolut!\n");
             return ciptakan_kosong();
         }
@@ -2819,6 +2848,34 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
             hancurkan_objek(ui);
             return hasil;
+        }
+
+        // =======================================================
+        // O. MATA DEWA (Melihat Wujud Asli di RAM untuk Debugging)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "debug") == 0) {
+            if (node->jumlah_anak < 1) return ciptakan_kosong();
+            
+            // Evaluasi apa yang dilempar pengguna
+            EnkiObject* obj = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            printf("🛠️ [DEBUG DIMENSI] Wujud Variabel: ");
+            if (!obj) {
+                printf("NULL (Kiamat total memori!)\n");
+            } else if (obj->tipe == ENKI_KOSONG) {
+                printf("KOSONG (Ketiadaan / Tidak Ditemukan)\n");
+            } else if (obj->tipe == ENKI_TEKS) {
+                printf("TEKS -> \\\"%s\\\"\n", obj->nilai.teks);
+            } else if (obj->tipe == ENKI_ANGKA) {
+                printf("ANGKA -> %g\n", obj->nilai.angka);
+            } else if (obj->tipe == ENKI_ARRAY) {
+                printf("ARRAY (Berisi %d elemen)\n", obj->panjang);
+            } else if (obj->tipe == ENKI_OBJEK) {
+                printf("OBJEK (Kamus dengan %d cabang)\n", obj->panjang);
+            }
+            
+            if (obj) hancurkan_objek(obj);
+            return ciptakan_kosong();
         }
 
         // =======================================================

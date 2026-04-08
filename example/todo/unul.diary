@@ -134,3 +134,51 @@ Contoh: takdir.soft user = cari_imah("surga.imah", "username", "LinuxDNC")
    Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
 =================================
 
+=== [WAKTU KIAMAT: 1775660358] ===
+🚨 [app.unul: Baris 42:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+
+=== [WAKTU KIAMAT: 1775661371] ===
+🚨 [app.unul: Baris 41:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+
+=== [WAKTU KIAMAT: 1775661711] ===
+🚨 [app.unul: Baris 41:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+
+=== [WAKTU KIAMAT: 1775662160] ===
+🚨 [app.unul: Baris 43:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+
+=== [WAKTU KIAMAT: 1775662407] ===
+🚨 [app.unul: Baris 43:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+
+=== [WAKTU KIAMAT: 1775662447] ===
+🚨 [app.unul: Baris 43:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks). Pastikan variabelnya sudah diciptakan di realita (scope) ini.
+=================================
+
+=== [WAKTU KIAMAT: 1775663011] ===
+🚨 [app.unul: Baris 45:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks). Pastikan variabelnya sudah diciptakan di realita (scope) ini.
+=================================
+
+=== [WAKTU KIAMAT: 1775663178] ===
+🚨 [app.unul: Baris 43:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks). Pastikan variabel sudah diciptakan.
+=================================
+
