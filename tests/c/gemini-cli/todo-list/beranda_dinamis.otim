@@ -3,7 +3,7 @@
     <judul> "--- CATATAN TUGAS (TODO) ---" </judul>
     <masukan:input_tugas, tipe="teks"> "" </masukan>
     <tombol:btn_tambah> "[+] TAMBAH TUGAS" </tombol>
-    <areanulis:daftar_tampilan> "- kucing lucu                                           - hei                                                   - beli ayam bakar                                       - huk                                                   - halo                                                  - k                                                     - hai kak                                               - ghjkl                                                 - beli motor                                            " </areanulis>
+    <areanulis:daftar_tampilan> "- kucing lucu                                   - hei                                           - beli ayam bakar                               - huk                                           - halo                                          - k                                             - hai kak                                       - ghjkl                                         - beli motor                                    " </areanulis>
     <tombol:btn_hapus> "[-] HAPUS SEMUA" </tombol>
     <tombol:btn_keluar> "[X] KELUAR" </tombol>
 </wadah>

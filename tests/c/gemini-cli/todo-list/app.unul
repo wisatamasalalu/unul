@@ -8,13 +8,14 @@ takdir.soft daftar_tugas = ""
 
 ^^ ========================================================
 ^^ FUNGSI SAKTI: Menambal Bug Y-Axis C Backend
-^^ Memaksa teks memiliki panjang kelipatan 52 karakter
+^^ Memaksa teks memiliki panjang kelipatan 48 karakter! (Lebar Sejati)
 ^^ ========================================================
 ciptakan fungsi format_tampilan(teks_mentah) maka
     jika panjang(teks_mentah) == 0 maka
         takdir.soft kosong = "Belum ada tugas."
         takdir.soft sp = ""
-        effort 40 kali maka sp = sp + " " putus  
+        ^^ 48 dikurangi 16 huruf = 32 spasi
+        effort 32 kali maka sp = sp + " " putus  
         pulang kosong + sp
     putus
 
@@ -25,14 +26,13 @@ ciptakan fungsi format_tampilan(teks_mentah) maka
     takdir.soft i = 1
     siklus selama i <= jumlah maka
         takdir.soft baris = baris_baris[i]
-        
-        ^^ 🟢 PERBAIKAN MUTLAK: Bersihkan \n yang menempel dari hasil pecah_teks!
         takdir.soft baris_bersih = ganti_teks(baris, "\n", "")
         
-        ^^ Kita hitung panjang teks yang SUDAH BERSIH dari enter
         jika panjang(baris_bersih) > 0 maka
             takdir.soft len = panjang(baris_bersih)
-            takdir.soft sisa = 56 - len
+            
+            ^^ 🟢 ANGKA ABSOLUT DARI C BACKEND: 48!
+            takdir.soft sisa = 48 - len
             jika sisa < 0 maka sisa = 0 putus
             
             takdir.soft spasi = ""
@@ -40,7 +40,6 @@ ciptakan fungsi format_tampilan(teks_mentah) maka
                 spasi = spasi + " "
             putus
             
-            ^^ Gabungkan tanpa enter sama sekali!
             hasil = hasil + baris_bersih + spasi
         putus
         i = i + 1
@@ -49,7 +48,8 @@ ciptakan fungsi format_tampilan(teks_mentah) maka
     jika panjang(hasil) == 0 maka
         takdir.soft kosong = "Belum ada tugas."
         takdir.soft sp = ""
-        effort 36 kali maka sp = sp + " " putus
+        ^^ 48 dikurangi 16 huruf = 32 spasi
+        effort 32 kali maka sp = sp + " " putus
         pulang kosong + sp
     putus
     
