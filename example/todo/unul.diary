@@ -1,0 +1,118 @@
+=== [WAKTU KIAMAT: 1775637315] ===
+🚨 [app.unul: Baris 17:18] KIAMAT SINTAKSIS: Pencarian Gagal
+   Kode Penyebab: cari_imah
+   Saran: Butuh 3 parameter: (nama_file, nama_kunci, nilai_dicari).
+Contoh: takdir.soft user = cari_imah("surga.imah", "username", "LinuxDNC")
+=================================
+
+=== [WAKTU KIAMAT: 1775639493] ===
+🚨 [app.unul: Baris 45:32] KIAMAT SINTAKSIS: Penanaman Data Gagal: Butuh objek dan nama Database!
+   Kode Penyebab: ekspor
+   Saran: Contoh: ekspor(dewa, "surga.imah")
+=================================
+
+=== [WAKTU KIAMAT: 1775641128] ===
+🚨 [app.unul: Baris 59:31] KIAMAT SINTAKSIS: Gagal memutasi memori. Variabel belum diciptakan atau jalur salah!
+   Saran: Pastikan objek target ada dan indeks Array tidak keluar batas.
+=================================
+
+=== [WAKTU KIAMAT: 1775641856] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Argumen bukan Array!
+   Kode Penyebab: ambil_array
+   Saran: Fungsi ambil_array() mengharuskan argumen pertama adalah Array.
+=================================
+
+=== [WAKTU KIAMAT: 1775642423] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Argumen bukan Array!
+   Kode Penyebab: ambil_array
+   Saran: Fungsi ambil_array() mengharuskan argumen pertama adalah Array.
+=================================
+
+=== [WAKTU KIAMAT: 1775642870] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Argumen bukan Array!
+   Kode Penyebab: ambil_array
+   Saran: Fungsi ambil_array() mengharuskan argumen pertama adalah Array.
+=================================
+
+=== [WAKTU KIAMAT: 1775643178] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array yang sudah diciptakan.
+=================================
+
+=== [WAKTU KIAMAT: 1775643617] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array yang sudah diciptakan.
+=================================
+
+=== [WAKTU KIAMAT: 1775643661] ===
+🚨 [app.unul: Baris 72:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan database sudah dalam format Array [].
+=================================
+
+=== [WAKTU KIAMAT: 1775644673] ===
+🚨 [app.unul: Baris 66:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan deklarasi menggunakan impor("[]").
+=================================
+
+=== [WAKTU KIAMAT: 1775644767] ===
+🚨 [app.unul: Baris 66:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan deklarasi menggunakan impor("[]").
+=================================
+
+=== [WAKTU KIAMAT: 1775644792] ===
+🚨 [app.unul: Baris 66:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan deklarasi menggunakan impor("[]").
+=================================
+
+=== [WAKTU KIAMAT: 1775644863] ===
+🚨 [app.unul: Baris 59:29] KIAMAT SINTAKSIS: Variabel 'bau_ketek' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: bau_ketek
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775644891] ===
+🚨 [app.unul: Baris 66:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan deklarasi menggunakan impor("[]").
+=================================
+
+=== [WAKTU KIAMAT: 1775644916] ===
+🚨 [app.unul: Baris 66:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus variabel Array. Pastikan deklarasi menggunakan impor("[]").
+=================================
+
+=== [WAKTU KIAMAT: 1775646939] ===
+🚨 [app.unul: Baris 14:21] KIAMAT SINTAKSIS: Tautan Dimensi Tidak Sah!
+   Kode Penyebab: ambil
+   Saran: Argumen yang diberikan bukan Tautan (URL) yang sah.
+💡 Pastikan menggunakan format: http:// atau https://
+=================================
+
+=== [WAKTU KIAMAT: 1775655813] ===
+🚨 [app.unul: Baris 14:21] KIAMAT SINTAKSIS: Tautan Dimensi Tidak Sah!
+   Kode Penyebab: ambil
+   Saran: Argumen yang diberikan bukan Tautan (URL) yang sah.
+💡 Pastikan menggunakan format: http:// atau https://
+=================================
+
+=== [WAKTU KIAMAT: 1775655996] ===
+🚨 [app.unul: Baris 44:9] KIAMAT SINTAKSIS: Argumen Pertama Bukan Teks!
+   Kode Penyebab: setor
+   Saran: Fungsi setor() mengharuskan argumen pertama berupa Teks (URL).
+=================================
+
+=== [WAKTU KIAMAT: 1775656020] ===
+🚨 [app.unul: Baris 44:9] KIAMAT SINTAKSIS: Gagal Mengubah!
+   Kode Penyebab: ubah
+   Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).
+=================================
+

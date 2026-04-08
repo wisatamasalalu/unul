@@ -48,6 +48,16 @@ char* mutasi_hash_fnv1a(const char* teks) {
     return hasil_hex;
 }
 
+// Fungsi bantuan: Menghapus spasi (seperti .strip() di Python)
+char* trim_spasi(char* str) {
+    while(*str == ' ' || *str == '\t') str++;
+    if(*str == 0) return str;
+    char* ujung = str + strlen(str) - 1;
+    while(ujung > str && (*ujung == ' ' || *ujung == '\t' || *ujung == '\r' || *ujung == '\n')) ujung--;
+    ujung[1] = '\0';
+    return str;
+}
+
 // 🟢 SUNTIKAN: Pencetak Angka Presisi Tinggi (Anti Scientific Notation)
 void cetak_angka_presisi(double angka, char* buffer, size_t ukuran) {
     snprintf(buffer, ukuran, "%.15f", angka);
@@ -862,6 +872,37 @@ EnkiObject* bungkus_dimensi_ke_objek(KavlingMemori* kav) {
     // Jika tidak punya dimensi (variabel biasa), kembalikan wujud aslinya
     return kav->objek ? ciptakan_salinan_objek(kav->objek) : ciptakan_kosong();
 }
+
+// MESIN PEMUAT RAHASIA (.anu)
+void muat_anu(EnkiRAM* ram) {
+    FILE *file = fopen(".anu", "r"); 
+    if (!file) return;
+    
+    simpan_ke_ram(ram, "__STATUS_ANU__", ciptakan_teks("ADA"));
+
+    char baris[512];
+    while (fgets(baris, sizeof(baris), file)) {
+        char* teks = trim_spasi(baris);
+        if (strlen(teks) == 0 || teks[0] == '#' || (teks[0] == '^' && teks[1] == '^')) continue;
+        
+        char* pemisah = strchr(teks, '=');
+        if (pemisah) {
+            *pemisah = '\0'; 
+            char* kunci_mentah = trim_spasi(teks); 
+            char* nilai = trim_spasi(pemisah + 1);
+            bersihkan_kutip(nilai); 
+            
+            // 🟢 Tanamkan Prefix _ANU_ di sini!
+            char kunci_aman[256];
+            snprintf(kunci_aman, sizeof(kunci_aman), "_ANU_%s", kunci_mentah);
+            
+            simpan_ke_ram(ram, kunci_aman, ciptakan_teks(nilai));
+        }
+    }
+    fclose(file); 
+    printf("🛡️ [SISTEM] Kitab rahasia .anu berhasil merasuk ke memori!\n");
+}
+
 
 // --- 2. LOGIKA EVALUASI NILAI ---
 EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
@@ -1691,42 +1732,192 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return hasil;
         }
 
-        // --- SIHIR JARINGAN (UNUL PACKAGE MANAGER) ---
-        if (strcmp(node->nilai_teks, "ambil") == 0) {
+        // =======================================================
+        // L. ALAM RAHASIA (Menarik Data dari Kavling .anu)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "secret") == 0) {
+            if (node->jumlah_anak < 1) return ciptakan_kosong();
+            
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ciptakan_kosong();
+            
+            // Pastikan pragma 'butuh .anu' sudah mengaktifkan status ini
+            if (ram->butuh_anu_aktif && obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+                
+                // 🚀 PENCARIAN PARSIAL DI DALAM RAM (BUKAN HARDDISK!)
+                // Karena muat_anu() sudah menaruh kuncinya di kavling RAM dengan prefix "_ANU_",
+                // kita harus mencarinya dengan prefix yang sama.
+                
+                char target_kunci[256];
+                snprintf(target_kunci, sizeof(target_kunci), "_ANU_%s", obj_kunci->nilai.teks);
+                
+                for (int i = 0; i < ram->jumlah; i++) {
+                    // Gunakan target_kunci yang sudah digabung
+                    if (strcmp(ram->kavling[i].nama, target_kunci) == 0) {
+                        hasil = ciptakan_salinan_objek(ram->kavling[i].objek);
+                        break;
+                    }
+                }
+                
+                if (hasil->tipe == ENKI_KOSONG) {
+                    printf("⚠️ [PERINGATAN] Rahasia '%s' tidak ditemukan di dalam .anu!\n", obj_kunci->nilai.teks);
+                }
+                
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Akses Ilegal!", "Anda harus memanggil 'butuh .anu' di awal kitab sebelum menarik rahasia.");
+            }
+            
+            if (obj_kunci) hancurkan_objek(obj_kunci);
+            return hasil; // Mengembalikan hasil (Kunci Mutlak / Garam Sandi)
+        }
+
+        // =======================================================
+        // K. ALAM JARINGAN (HTTP GET & POST) - HUKUM MUTLAK UNUL
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "ambil") == 0) {
             if (node->jumlah_anak < 1) {
-                pemicu_kiamat_presisi(node, ram, "Fungsi ambil() butuh URL!", "Anda tidak memberikan URL tempat paket/file berada.");
+                pemicu_kiamat_presisi(node, ram, "Dosa Jaringan!", "Fungsi ambil() butuh argumen Tautan. Contoh: ambil(\"https://api.urantia.com\")");
                 return ciptakan_kosong();
             }
-            EnkiObject* obj_url = evaluasi_ekspresi(node->anak_anak[0], ram);
-            char url[2048]=""; objek_ke_string(obj_url, url, sizeof(url));
+
+            EnkiObject* obj_tautan = evaluasi_ekspresi(node->anak_anak[0], ram);
             
-            char* hasil_mentah = sihir_ambil(url);
+            if (obj_tautan && obj_tautan->tipe == ENKI_TEKS) {
+                // 🛡️ PENJAGA DIMENSI (VALIDASI REGEX C)
+                regex_t regex;
+                // Pola Regex: Harus diawali http:// atau https://
+                int reti = regcomp(&regex, "^https?://[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(/.*)?$", REG_EXTENDED);
+                int tautan_sah = 0;
+                
+                if (!reti) {
+                    tautan_sah = (regexec(&regex, obj_tautan->nilai.teks, 0, NULL, 0) == 0);
+                    regfree(&regex);
+                }
+                
+                if (tautan_sah) {
+                    // 🚀 Logika libcurl HTTP GET akan Anda tulis di sini nanti
+                    printf("🌐 [JARINGAN] Membuka portal ke: %s\n", obj_tautan->nilai.teks);
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Tautan Dimensi Tidak Sah!", 
+                        "Argumen yang diberikan bukan Tautan (URL) yang sah.\n"
+                        "💡 Pastikan menggunakan format: http:// atau https://");
+                }
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Argumen Bukan Teks!", "Fungsi ambil() membutuhkan Teks (String) sebagai tautan.");
+            }
             
-            if (obj_url) hancurkan_objek(obj_url);
-            EnkiObject* hasil = ciptakan_teks(hasil_mentah); 
-            free(hasil_mentah); 
-            return hasil;
+            if (obj_tautan) hancurkan_objek(obj_tautan);
+            return ciptakan_kosong(); // Nanti diubah untuk mengembalikan response web
         }
+        
         else if (strcmp(node->nilai_teks, "setor") == 0) {
             if (node->jumlah_anak < 2) {
-                pemicu_kiamat_presisi(node, ram, "Fungsi setor() butuh URL dan Data!", "Anda tidak memberikan URL atau data yang akan dikirim.\nContoh: setor(\"http://api.com/data\", \"{\\\"nama\\\":\\\"UNUL\\\"}\")");
+                pemicu_kiamat_presisi(node, ram, "Dosa Jaringan!", "Fungsi setor() butuh 2 argumen! Contoh: setor(\"https://api.urantia.com\", data)");
                 return ciptakan_kosong();
             }
-            EnkiObject* obj_url = evaluasi_ekspresi(node->anak_anak[0], ram);
+
+            EnkiObject* obj_tautan = evaluasi_ekspresi(node->anak_anak[0], ram);
             EnkiObject* obj_data = evaluasi_ekspresi(node->anak_anak[1], ram);
             
-            char url[2048]=""; objek_ke_string(obj_url, url, sizeof(url));
-            char data[8192]=""; objek_ke_string(obj_data, data, sizeof(data));
+            if (obj_tautan && obj_tautan->tipe == ENKI_TEKS) {
+                // 🛡️ PENJAGA DIMENSI (VALIDASI REGEX C)
+                regex_t regex;
+                int reti = regcomp(&regex, "^https?://[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(/.*)?$", REG_EXTENDED);
+                int tautan_sah = 0;
+                
+                if (!reti) {
+                    tautan_sah = (regexec(&regex, obj_tautan->nilai.teks, 0, NULL, 0) == 0);
+                    regfree(&regex);
+                }
+                
+                if (tautan_sah) {
+                    // 🚀 Logika libcurl HTTP POST akan Anda tulis di sini nanti
+                    printf("🚀 [JARINGAN] Menyetor objek ke: %s\n", obj_tautan->nilai.teks);
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Tautan Dimensi Tidak Sah!", 
+                        "Argumen PERTAMA harus berupa Tautan (URL) yang sah.\n"
+                        "💡 Pastikan menggunakan format: http:// atau https://");
+                }
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Argumen Pertama Bukan Teks!", "Fungsi setor() mengharuskan argumen pertama berupa Teks (URL).");
+            }
             
-            // 🟢 Nanti pastikan di enki_network.c Anda punya fungsi sihir_setor(url, data)
-            char* hasil_mentah = sihir_setor(url, data); 
-            
-            if (obj_url) hancurkan_objek(obj_url);
+            if (obj_tautan) hancurkan_objek(obj_tautan);
             if (obj_data) hancurkan_objek(obj_data);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // M. HUKUM UBAH (Mutasi RAM Dinamis / Garbage Collected)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "ubah") == 0) {
+            if (node->jumlah_anak < 3) {
+                pemicu_kiamat_presisi(node, ram, "Sintaksis Cacat!", "Fungsi ubah() butuh 3 argumen! Contoh: ubah(db, \"tugas\", daftar)");
+                return ciptakan_kosong();
+            }
+
+            char* nama_var = (node->anak_anak[0]->jenis == AST_IDENTITAS) ? node->anak_anak[0]->nilai_teks : NULL;
+            EnkiObject* obj_target = NULL;
             
-            EnkiObject* hasil = ciptakan_teks(hasil_mentah); 
-            free(hasil_mentah); 
-            return hasil;
+            if (nama_var) {
+                for (int i = 0; i < ram->jumlah; i++) {
+                    if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
+                        obj_target = ram->kavling[i].objek;
+                        break;
+                    }
+                }
+            }
+
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* elemen_baru = evaluasi_ekspresi(node->anak_anak[2], ram);
+
+            // 2. Sesuaikan Mutasi dengan Anatomi objek_peta
+            if (obj_target && obj_target->tipe == ENKI_OBJEK && obj_kunci && obj_kunci->tipe == ENKI_TEKS) {
+                int kunci_ditemukan = 0;
+                
+                // Cari apakah kunci sudah ada -> TIMPA
+                for (int i = 0; i < obj_target->panjang; i++) {
+                    EnkiObject* kunci_saat_ini = obj_target->nilai.objek_peta.kunci[i];
+                    
+                    // Pastikan kuncinya teks dan isinya sama
+                    if (kunci_saat_ini->tipe == ENKI_TEKS && strcmp(kunci_saat_ini->nilai.teks, obj_kunci->nilai.teks) == 0) {
+                        hancurkan_objek(obj_target->nilai.objek_peta.konten[i]); // Hapus data lama (GC)
+                        obj_target->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(elemen_baru); // Masukkan baru
+                        kunci_ditemukan = 1;
+                        break;
+                    }
+                }
+                
+                // Jika tidak ada, buat cabang baru
+                if (!kunci_ditemukan) {
+                    obj_target->nilai.objek_peta.kunci = realloc(obj_target->nilai.objek_peta.kunci, (obj_target->panjang + 1) * sizeof(EnkiObject*));
+                    obj_target->nilai.objek_peta.konten = realloc(obj_target->nilai.objek_peta.konten, (obj_target->panjang + 1) * sizeof(EnkiObject*));
+                    
+                    // Karena strukturnya meminta EnkiObject**, kita salin objeknya utuh!
+                    obj_target->nilai.objek_peta.kunci[obj_target->panjang] = ciptakan_salinan_objek(obj_kunci);
+                    obj_target->nilai.objek_peta.konten[obj_target->panjang] = ciptakan_salinan_objek(elemen_baru);
+                    obj_target->panjang++;
+                }
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Gagal Mengubah!", "Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks).");
+            }
+
+            if (obj_kunci) hancurkan_objek(obj_kunci);
+            if (elemen_baru) hancurkan_objek(elemen_baru);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // N. HUKUM ISI (Mutasi RAM Statis / Array Manual / dari 0)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "isi") == 0) {
+            // Logika "isi" bisa mirip dengan "ubah", TAPI perbedaannya di C:
+            // "isi" tidak melakukan realloc(). Ia berasumsi ukuran sudah disiapkan oleh ku().
+            // Ini sangat krusial untuk mencegah overhead pada pemograman kernel/low-level.
+            
+            // (Anda bisa mengembangkan logika pointer absolut C di sini nanti saat fokus ke ku() )
+            printf("🔧 [KERNEL] Memori statis diisi secara absolut!\n");
+            return ciptakan_kosong();
         }
 
 
@@ -2035,6 +2226,53 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             if (obj_array) hancurkan_objek(obj_array); 
             if (obj_index) hancurkan_objek(obj_index);
             return hasil;
+        }
+
+        // =======================================================
+        // I. PENAMBAH DATA ARRAY (MUTASI RAM LANGSUNG)
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "tambah_array") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi tambah_array() butuh 2 argumen!", "Contoh: tambah_array(daftar_ku, \"tugas baru\")");
+                return ciptakan_kosong();
+            }
+
+            // 1. Pastikan argumen pertama adalah variabel (AST_IDENTITAS)
+            if (node->anak_anak[0]->jenis == AST_IDENTITAS) {
+                char* nama_var = node->anak_anak[0]->nilai_teks;
+                EnkiObject* obj_array = NULL;
+                
+                // 2. Tembus langsung ke Jantung RAM
+                for (int i = 0; i < ram->jumlah; i++) {
+                    if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
+                        obj_array = ram->kavling[i].objek;
+                        break;
+                    }
+                }
+                
+                EnkiObject* elemen_baru = evaluasi_ekspresi(node->anak_anak[1], ram);
+                
+                // 3. Lakukan Mutasi jika benar itu Array
+                if (obj_array && obj_array->tipe == ENKI_ARRAY) {
+                    obj_array->nilai.array_elemen = realloc(obj_array->nilai.array_elemen, (obj_array->panjang + 1) * sizeof(EnkiObject*));
+                    // Gunakan ciptakan_salinan_objek agar tidak terjadi Double-Free saat elemen_baru dihancurkan
+                    obj_array->nilai.array_elemen[obj_array->panjang] = ciptakan_salinan_objek(elemen_baru);
+                    obj_array->panjang++;
+                } else {
+                    pemicu_kiamat_presisi(node, ram, "Gagal Menambah!", 
+                        "Argumen pertama harus berupa variabel bertipe Array.\\n"
+                        "💡 PERIKSA KEMBALI:\\n"
+                        "1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor(\"[]\"))\\n"
+                        "2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\\n"
+                        "3. Pastikan Anda tidak mengambil data dari kunci database yang salah."
+                    );
+                }
+                
+                if (elemen_baru) hancurkan_objek(elemen_baru);
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Sintaksis Ilegal!", "Argumen pertama tambah_array harus berupa nama variabel.");
+            }
+            return ciptakan_kosong();
         }
 
         // --- SIHIR SISTEM FILE (BLOB/GLOB) ---
@@ -2774,34 +3012,6 @@ void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan) {
         longjmp(ram->titik_kembali, 1); 
     }
     printf("🚨 KERNEL PANIC! %s\n", pesan); exit(1);
-}
-
-// Fungsi bantuan: Menghapus spasi (seperti .strip() di Python)
-char* trim_spasi(char* str) {
-    while(*str == ' ' || *str == '\t') str++;
-    if(*str == 0) return str;
-    char* ujung = str + strlen(str) - 1;
-    while(ujung > str && (*ujung == ' ' || *ujung == '\t' || *ujung == '\r' || *ujung == '\n')) ujung--;
-    ujung[1] = '\0';
-    return str;
-}
-
-// MESIN PEMUAT RAHASIA (.anu)
-void muat_anu(EnkiRAM* ram) {
-    FILE *file = fopen(".anu", "r"); if (!file) return;
-    simpan_ke_ram(ram, "__STATUS_ANU__", ciptakan_teks("ADA"));
-
-    char baris[512];
-    while (fgets(baris, sizeof(baris), file)) {
-        char* teks = trim_spasi(baris);
-        if (strlen(teks) == 0 || teks[0] == '#' || (teks[0] == '^' && teks[1] == '^')) continue;
-        char* pemisah = strchr(teks, '=');
-        if (pemisah) {
-            *pemisah = '\0'; char* kunci = trim_spasi(teks); char* nilai = trim_spasi(pemisah + 1);
-            bersihkan_kutip(nilai); simpan_ke_ram(ram, kunci, ciptakan_teks(nilai));
-        }
-    }
-    fclose(file); printf("🛡️ [SISTEM] Kitab rahasia .anu berhasil merasuk ke memori!\n");
 }
 
 // ========================================================

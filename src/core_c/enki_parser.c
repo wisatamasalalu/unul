@@ -1138,7 +1138,7 @@ ASTNode* parse_pernyataan(Parser* p) {
         if (node->kanan == NULL && node->blok_tebus == NULL) {
             kiamat_sintaksis(p, "Blok 'coba' tidak berguna karena tidak memiliki 'tabu' ataupun 'tebus'!", 
                 "Hukum Tabu tidak lengkap! Sebuah blok 'coba' harus diikuti oleh minimal satu blok 'tabu' (untuk menangkap error) atau blok 'tebus' (untuk eksekusi akhir).\n"
-                "Contoh yang benar:\ncoba maka\n   ...\ntabu melanggar e maka\n   ...\npasrah");
+                "Contoh yang benar:\ncoba maka\n   ...\ntabu melanggar [variabel_error] maka\n   ...\npasrah");
         }
 
         // D. Lewati kata 'pasrah' sebagai PENUTUP MUTLAK blok Hukum Tabu

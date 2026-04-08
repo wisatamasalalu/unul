@@ -1,0 +1,14 @@
+@layar.utama {
+    warna_latar: #000000;
+    warna_teks: #00FF00;
+    bingkai: ganda;
+}
+
+@tombol.aksi {
+    warna_latar: #0000FF;
+    warna_teks: #FFFFFF;
+}
+
+@teks.peringatan {
+    warna_teks: #FF0000;
+}
