@@ -14,7 +14,7 @@ takdir.soft gaya_utama = muat_snul("gaya.snul")
 takdir.hard KUNCI = tarik_rahasia("KUNCI_MUTLAK")
 takdir.hard GARAM = tarik_rahasia("GARAM_SANDI")
 
-^^ 4. 🚀 TENTUKAN ALAMAT DATABASE (TIDAK PERLU IMPOR!)
+^^ 4. 🚀 TENTUKAN ALAMAT DATABASE
 takdir.soft db_file = "database.imah"
 
 ^^ ==========================================
@@ -22,8 +22,6 @@ takdir.soft db_file = "database.imah"
 ^^ ==========================================
 ciptakan fungsi otentikasi(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
-    
-    ^^ TARIK IMAH LANGSUNG DARI HARDDISK! (Dot Notation)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
     
     jika sandi_tersimpan maka
@@ -34,7 +32,6 @@ ciptakan fungsi otentikasi(nama_user, sandi_mentah) maka
             pulang 0
         putus
     lain maka
-        ^^ USER BELUM ADA? TANAM LANGSUNG KE FILE!
         tanam_imah(db_file, "pengguna." + nama_user, sandi_aman)
         ketik("✅ User baru didaftarkan: " + nama_user)
         pulang 1
@@ -46,24 +43,23 @@ putus
 ^^ ==========================================
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
+    takdir.soft daftar_lama = tarik_imah(db_file, "tugas." + nama_user)
+    takdir.soft daftar_baru = impor("[]")
     
-    ^^ 1. Tarik dari Harddisk (Hasilnya: Array atau KOSONG)
-    takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
-    
-    ^^ 2. Evaluasi Positif: Jika daftar_ku ADA isinya (Valid Array)
-    jika daftar_ku maka
-        tambah_array(daftar_ku, tugas_rahasia)
-    lain maka
-        ^^ 3. Jika KOSONG, kita ciptakan array suci menggunakan 'impor'
-        takdir.soft array_baru = impor("[]")
-        tambah_array(array_baru, tugas_rahasia)
+    coba maka
+        takdir.soft batas = panjang(daftar_lama)
+        takdir.soft i = 0
         
-        ^^ 4. Lempar kembali ke wadah utama
-        daftar_ku = array_baru
-    putus
-    
-    ^^ 5. Tanam Langsung ke NoSQL!
-    tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
+        siklus selama i < batas maka
+            tambah_array(daftar_baru, ko(daftar_lama, i))
+            i = i + 1
+        putus
+    tabu melanggar e maka
+        ^^ Abaikan error jika daftar_lama kosong (hampa)
+    tebus maka
+        tambah_array(daftar_baru, tugas_rahasia)
+        tanam_imah(db_file, "tugas." + nama_user, daftar_baru)
+    pasrah
 putus
 
 ciptakan fungsi baca_todo(nama_user) maka
@@ -105,6 +101,7 @@ tabu melanggar e maka
     ketik("Terjadi anomali pada portal dimensi!")
 tebus maka
     ketik("Portal selesai dieksekusi. Menyucikan memori...")
+pasrah ^^ <--- GANTI INI JADI 'pasrah' (Sebelumnya 'putus')
 
 ^^ GAME LOOP RAYLIB (Agar jendela tidak langsung tertutup!)
 takdir.soft aplikasi_hidup = 1
