@@ -990,14 +990,21 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
     // =======================================================
     if (node->jenis == AST_IDENTITAS) {
         KavlingMemori* kavling = NULL;
-        for (int i = 0; i < ram->jumlah; i++) {
-            if (strcmp(ram->kavling[i].nama, node->nilai_teks) == 0) {
-                kavling = &(ram->kavling[i]);
-                break;
+        EnkiRAM* saat_ini = ram;
+        
+        // 🟢 SUNTIKAN MUTLAK: PENEMBUS DIMENSI (GLOBAL SCOPE)
+        while (saat_ini != NULL) {
+            for (int i = 0; i < saat_ini->jumlah; i++) {
+                if (strcmp(saat_ini->kavling[i].nama, node->nilai_teks) == 0) {
+                    kavling = &(saat_ini->kavling[i]);
+                    break;
+                }
             }
+            if (kavling) break; // Berhenti jika sudah ketemu
+            saat_ini = saat_ini->induk; // 🟢 Tembus ke dimensi atasnya (Global)
         }
         
-        // JIKA VARIABEL GAGAL DITEMUKAN
+        // JIKA VARIABEL GAGAL DITEMUKAN DI SELURUH DIMENSI
         if (!kavling) {
             char pesan_typo[512];
             
@@ -1005,14 +1012,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             char* saran = cari_saran_typo(node->nilai_teks, ram); 
             
             if (saran) {
-                // JIKA KETEMU KEMIRIPAN (Misal: apell -> apel)
                 snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' tidak ditemukan. Apakah maksud Anda '%s'?", node->nilai_teks, saran);
                 pemicu_kiamat_presisi(node, ram, pesan_typo, "Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.");
             } else {
-                // JIKA SAMA SEKALI TIDAK ADA YANG MIRIP (Mungkin lupa tanda kutip!)
                 snprintf(pesan_typo, sizeof(pesan_typo), "Variabel '%s' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.", node->nilai_teks);
-                
-                // 🟢 PESAN ERROR LENGKAP KEMBALI!
                 pemicu_kiamat_presisi(node, ram, pesan_typo, 
                     "1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (\").\n"
                     "   Contoh: ketik(\"Halo Dunia\")\n"
@@ -2598,6 +2601,162 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // =======================================================
+        // 🚀 DATABASE NOSQL: TANAM IMAH (Seperti $set MongoDB)
+        // Mengeksekusi mutasi bersarang langsung ke Harddisk!
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "tanam_imah") == 0) {
+            if (node->jumlah_anak < 3) return ciptakan_kosong();
+
+            EnkiObject* obj_file = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* obj_nilai = evaluasi_ekspresi(node->anak_anak[2], ram);
+
+            if (obj_file->tipe == ENKI_TEKS && obj_path->tipe == ENKI_TEKS) {
+                char path_mentah[2048]=""; objek_ke_string(obj_file, path_mentah, sizeof(path_mentah));
+                char* path_final = ekspansi_jalur(path_mentah);
+                char* teks_imah = sihir_baca_file(path_final);
+
+                EnkiObject* db = ciptakan_objek_peta(0); // Default jika file kosong
+
+                if (teks_imah && strlen(teks_imah) > 0) {
+                    char* data_murni = strstr(teks_imah, "{");
+                    if (!data_murni) data_murni = strstr(teks_imah, "[");
+                    if (!data_murni) data_murni = teks_imah;
+
+                    TokenArray token_eval = enki_lexer(data_murni, "<nosql_baca>");
+                    Parser parser_eval = inisialisasi_parser(token_eval);
+                    ASTNode* ast_eval = parse_ekspresi(&parser_eval);
+                    EnkiObject* parsed = evaluasi_ekspresi(ast_eval, ram);
+                    if (parsed && parsed->tipe == ENKI_OBJEK) {
+                        hancurkan_objek(db); db = parsed;
+                    } else if (parsed) hancurkan_objek(parsed);
+                    bebaskan_ast(ast_eval); bebaskan_token_array(&token_eval);
+                }
+
+                // --- 🟢 LOGIKA PENELUSURAN TITIK (DOT NOTATION) ---
+                char path_copy[1024]; strncpy(path_copy, obj_path->nilai.teks, 1024);
+                char* token = strtok(path_copy, ".");
+                EnkiObject* saat_ini = db;
+
+                while (token != NULL) {
+                    char* next_token = strtok(NULL, ".");
+                    if (next_token == NULL) { // Ini adalah ujung daun (Leaf Node) -> TIMPA!
+                        int ketemu = 0;
+                        for (int i = 0; i < saat_ini->panjang; i++) {
+                            if (strcmp(saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, token) == 0) {
+                                hancurkan_objek(saat_ini->nilai.objek_peta.konten[i]);
+                                saat_ini->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(obj_nilai);
+                                ketemu = 1; break;
+                            }
+                        }
+                        if (!ketemu) { // Jika belum ada, buat baru!
+                            saat_ini->nilai.objek_peta.kunci = realloc(saat_ini->nilai.objek_peta.kunci, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.konten = realloc(saat_ini->nilai.objek_peta.konten, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.kunci[saat_ini->panjang] = ciptakan_teks(token);
+                            saat_ini->nilai.objek_peta.konten[saat_ini->panjang] = ciptakan_salinan_objek(obj_nilai);
+                            saat_ini->panjang++;
+                        }
+                    } else { // Masuk lebih dalam ke dimensi (Nested Object)
+                        int ketemu = 0;
+                        for (int i = 0; i < saat_ini->panjang; i++) {
+                            if (strcmp(saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, token) == 0) {
+                                saat_ini = saat_ini->nilai.objek_peta.konten[i];
+                                ketemu = 1; break;
+                            }
+                        }
+                        if (!ketemu) { // Bangkitkan dimensi baru jika belum ada
+                            saat_ini->nilai.objek_peta.kunci = realloc(saat_ini->nilai.objek_peta.kunci, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.konten = realloc(saat_ini->nilai.objek_peta.konten, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.kunci[saat_ini->panjang] = ciptakan_teks(token);
+                            EnkiObject* cabang_baru = ciptakan_objek_peta(0);
+                            saat_ini->nilai.objek_peta.konten[saat_ini->panjang] = cabang_baru;
+                            saat_ini->panjang++;
+                            saat_ini = cabang_baru;
+                        }
+                    }
+                    token = next_token;
+                }
+
+                // 🪄 SIMPAN KEMBALI KE ALAM NYATA (File)
+                FILE* fp = fopen(path_final, "w");
+                if (fp) {
+                    fprintf(fp, "^^ IMAH: DATABASE DIMENSI URANTIA\n");
+                    sihir_semayamkan_imah(db, fp, 0);
+                    fclose(fp);
+                    printf("💾 [NOSQL] Berhasil menanam '%s' ke dalam '%s'\n", obj_path->nilai.teks, obj_file->nilai.teks);
+                }
+
+                hancurkan_objek(db); 
+                if (teks_imah) free(teks_imah); 
+                free(path_final);
+            }
+            hancurkan_objek(obj_file); 
+            hancurkan_objek(obj_path); 
+            hancurkan_objek(obj_nilai);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // 🚀 DATABASE NOSQL: TARIK IMAH (Seperti db.collection.find)
+        // Mengambil nilai spesifik dari Harddisk menggunakan Titik
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "tarik_imah") == 0) {
+            if (node->jumlah_anak < 2) return ciptakan_kosong();
+            EnkiObject* obj_file = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* hasil = ciptakan_kosong();
+
+            if (obj_file->tipe == ENKI_TEKS && obj_path->tipe == ENKI_TEKS) {
+                char path_mentah[2048]=""; objek_ke_string(obj_file, path_mentah, sizeof(path_mentah));
+                char* path_final = ekspansi_jalur(path_mentah);
+                char* teks_imah = sihir_baca_file(path_final);
+
+                if (teks_imah && strlen(teks_imah) > 0) {
+                    char* data_murni = strstr(teks_imah, "{");
+                    if (!data_murni) data_murni = strstr(teks_imah, "[");
+                    if (!data_murni) data_murni = teks_imah;
+
+                    TokenArray token_eval = enki_lexer(data_murni, "<nosql_tarik>");
+                    Parser parser_eval = inisialisasi_parser(token_eval);
+                    ASTNode* ast_eval = parse_ekspresi(&parser_eval);
+                    EnkiObject* db = evaluasi_ekspresi(ast_eval, ram);
+
+                    if (db && db->tipe == ENKI_OBJEK) {
+                        char path_copy[1024]; strncpy(path_copy, obj_path->nilai.teks, 1024);
+                        char* token = strtok(path_copy, ".");
+                        EnkiObject* saat_ini = db;
+
+                        while (token != NULL && saat_ini && saat_ini->tipe == ENKI_OBJEK) {
+                            char* next_token = strtok(NULL, ".");
+                            int ketemu = 0;
+                            for (int i = 0; i < saat_ini->panjang; i++) {
+                                if (strcmp(saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, token) == 0) {
+                                    if (next_token == NULL) { // Ujung daun!
+                                        hancurkan_objek(hasil);
+                                        hasil = ciptakan_salinan_objek(saat_ini->nilai.objek_peta.konten[i]);
+                                    } else {
+                                        saat_ini = saat_ini->nilai.objek_peta.konten[i];
+                                    }
+                                    ketemu = 1; break;
+                                }
+                            }
+                            if (!ketemu) break; // Path tidak ditemukan
+                            token = next_token;
+                        }
+                    }
+                    if (db) hancurkan_objek(db);
+                    bebaskan_ast(ast_eval); 
+                    bebaskan_token_array(&token_eval);
+                }
+                if (teks_imah) free(teks_imah); 
+                free(path_final);
+            }
+            hancurkan_objek(obj_file); 
+            hancurkan_objek(obj_path);
+            return hasil;
+        }
+
+        // =======================================================
         // 💅 MUAT SNUL (MENYULAP KOSMETIK MENJADI MEMORI)
         // =======================================================
         if (strcmp(node->nilai_teks, "muat_snul") == 0) {
@@ -2875,7 +3034,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         ram_lokal.status_array_statis = ram->status_array_statis;
         
         // 🟢 TALI PUSAR DIMENSI: Hubungkan RAM fungsi ke RAM Induk! (Tanpa Deep Copy)
-        ram_lokal.induk = ram;
+        ram_lokal.induk = ram_pencari;
 
         // 🔴 LOOP DEEP COPY (HANTU) TELAH DIMUSNAHKAN DARI SINI! 🔴
 

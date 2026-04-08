@@ -1,5 +1,9 @@
 ^^ IMAH: DATABASE DIMENSI URANTIA
 {
-    "pengguna": {},
-    "tugas": {}
+  "pengguna":   {
+    "LinuxDNC":     "6e6ac653fd056122"
+  },
+  "tugas":   {
+
+  }
 }

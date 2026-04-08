@@ -190,3 +190,70 @@ Contoh: takdir.soft user = cari_imah("surga.imah", "username", "LinuxDNC")
 2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
 =================================
 
+=== [WAKTU KIAMAT: 1775672473] ===
+🚨 [app.unul: Baris 27:35] KIAMAT SINTAKSIS: Fungsi gaib 'tarik_imah' tidak ditemukan!
+   Kode Penyebab: tarik_imah
+   Saran: Anda mencoba memanggil fungsi yang belum diciptakan.
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda!.
+=================================
+
+=== [WAKTU KIAMAT: 1775672980] ===
+🚨 [app.unul: Baris 27:46] KIAMAT SINTAKSIS: Variabel 'db_file' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: db_file
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775674004] ===
+🚨 [app.unul: Baris 27:46] KIAMAT SINTAKSIS: Variabel 'db_file' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: db_file
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775674011] ===
+🚨 [app.unul: Baris 27:46] KIAMAT SINTAKSIS: Variabel 'db_file' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: db_file
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775675410] ===
+🚨 [app.unul: Baris 56:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775675676] ===
+🚨 [app.unul: Baris 56:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775675800] ===
+🚨 [app.unul: Baris 59:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775675806] ===
+🚨 [app.unul: Baris 59:5] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775676061] ===
+🚨 [app.unul: Baris 60:9] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775676065] ===
+🚨 [app.unul: Baris 60:9] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
