@@ -1735,7 +1735,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // =======================================================
         // L. ALAM RAHASIA (Menarik Data dari Kavling .anu)
         // =======================================================
-        else if (strcmp(node->nilai_teks, "secret") == 0) {
+        else if (strcmp(node->nilai_teks, "secret") == 0 || strcmp(node->nilai_teks, "tarik_rahasia") == 0) {
             if (node->jumlah_anak < 1) return ciptakan_kosong();
             
             EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[0], ram);

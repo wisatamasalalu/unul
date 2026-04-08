@@ -10,9 +10,9 @@ untuk array.dinamis
 takdir.soft ui_utama = muat_otim("tampilan.otim")
 takdir.soft gaya_utama = muat_snul("gaya.snul")
 
-^^ 3. Ambil Kunci dari .anu
-takdir.hard KUNCI = isi("KUNCI_MUTLAK")
-takdir.hard GARAM = isi("GARAM_SANDI")
+^^ 3. Ambil Kunci dari .anu (GUNAKAN TARIK RAHASIA)
+takdir.hard KUNCI = tarik_rahasia("KUNCI_MUTLAK")
+takdir.hard GARAM = tarik_rahasia("GARAM_SANDI")
 
 ^^ 4. Muat Database IMAH ke RAM untuk Dimodifikasi
 takdir.soft isi_file = baca("database.imah")
@@ -26,11 +26,9 @@ takdir.soft tugas = ko(db, "tugas")
 ^^ FUNGSI KEAMANAN & OTENTIKASI
 ^^ ==========================================
 ciptakan fungsi otentikasi(nama_user, sandi_mentah) maka
-    ^^ Amankan sandi dengan Hash + Garam
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     
     jika ku(pengguna, nama_user) maka
-        ^^ User sudah ada, verifikasi sandi!
         takdir.soft sandi_tersimpan = ko(pengguna, nama_user)
         
         jika cocok(sandi_aman, sandi_tersimpan) maka
@@ -40,10 +38,11 @@ ciptakan fungsi otentikasi(nama_user, sandi_mentah) maka
             pulang 0
         putus
     lain maka
-        ^^ User belum ada, daftarkan!
+        ^^ User belum ada, daftarkan dengan fungsi UBAH!
         ubah(pengguna, nama_user, sandi_aman)
-        ubah(pengguna, nama_user, sandi_aman)
-        ekspor(db, "database.imah")  ^^ <--- LANGSUNG EKSPOR!
+        ubah(db, "pengguna", pengguna) ^^ Tanam kembali ke DB!
+        
+        ekspor(db, "database.imah") 
         ketik("✅ User baru didaftarkan: " + nama_user)
         pulang 1
     putus
@@ -54,28 +53,24 @@ putus
 ^^ ==========================================
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
+    takdir.soft daftar_ku = impor("[]")
     
-    ^^ 1. Lahirkan array kosong
-    takdir.soft daftar_ku = []
-    
-    ^^ 2. Gunakan ku() untuk mengecek apakah user sudah punya tugas!
     jika ku(tugas, nama_user) maka
-        ^^ Jika ada, baru kita mutasi!
         daftar_ku = ko(tugas, nama_user)
     putus
     
-    ^^ 3. Tambahkan tugas
     tambah_array(daftar_ku, tugas_rahasia)
     
-    ^^ 4. Simpan ke database
-    setor(tugas, nama_user, daftar_ku)
+    ^^ GUNAKAN UBAH DAN TANAM KEMBALI!
+    ubah(tugas, nama_user, daftar_ku)
+    ubah(db, "tugas", tugas)
+    
     ekspor(db, "database.imah")
 putus
 
 ciptakan fungsi baca_todo(nama_user) maka
     takdir.soft koleksi = []
     
-    ^^ Gunakan ku() lagi!
     jika ku(tugas, nama_user) maka
         koleksi = ko(tugas, nama_user)
     lain maka
@@ -99,14 +94,11 @@ putus
 ^^ ==========================================
 ^^ EKSEKUSI TUI (SIMULASI ALUR PROGRAM)
 ^^ ==========================================
-^^ Tampilkan TUI
 tampilkan_gui(ui_utama, gaya_utama)
 
-^^ Simulasi Input Logic
 takdir.soft user_aktif = "LinuxDNC"
 takdir.soft sandi_input = "Arsitek123"
 
-^^ --- PENERAPAN HUKUM TABU ---
 coba maka
     jika otentikasi(user_aktif, sandi_input) == 1 maka
         ketik("Masuk ke Dashboard...")
@@ -118,7 +110,14 @@ coba maka
     putus
 tabu melanggar e maka
     ketik("Terjadi anomali pada portal dimensi!")
-    ^^ Anda bisa mencetak isi dari 'e' jika bahasa UNUL mendukungnya
 tebus maka
     ketik("Portal selesai dieksekusi. Menyucikan memori...")
+
+^^ GAME LOOP RAYLIB (Agar jendela tidak langsung tertutup!)
+takdir.soft aplikasi_hidup = 1
+siklus selama aplikasi_hidup == 1 maka
+    ^^ Biarkan raylib merender di latar belakang.
+    ^^ (Untuk menutupnya sementara, Anda bisa tekan Ctrl+C di terminal)
+putus
+
 pasrah
