@@ -47,19 +47,23 @@ putus
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
     
-    ^^ Cek apakah user sudah punya array tugas di NoSQL
+    ^^ 1. Tarik dari Harddisk (Hasilnya: Array atau KOSONG)
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
     
-    ^^ 🟢 TRIK MUTLAK: Gunakan struktur Array langsung jika belum ada!
-    jika bukan daftar_ku maka
-        ^^ Paksa pembuatan Array 1 Elemen langsung!
-        takdir.soft array_baru = [tugas_rahasia]
-        tanam_imah(db_file, "tugas." + nama_user, array_baru)
-    lain maka
-        ^^ Jika sudah ada, tambahkan ke array lama lalu tanam!
+    ^^ 2. Evaluasi Positif: Jika daftar_ku ADA isinya (Valid Array)
+    jika daftar_ku maka
         tambah_array(daftar_ku, tugas_rahasia)
-        tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
+    lain maka
+        ^^ 3. Jika KOSONG, kita ciptakan array suci menggunakan 'impor'
+        takdir.soft array_baru = impor("[]")
+        tambah_array(array_baru, tugas_rahasia)
+        
+        ^^ 4. Lempar kembali ke wadah utama
+        daftar_ku = array_baru
     putus
+    
+    ^^ 5. Tanam Langsung ke NoSQL!
+    tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
 putus
 
 ciptakan fungsi baca_todo(nama_user) maka
