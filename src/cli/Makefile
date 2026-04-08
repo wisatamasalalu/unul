@@ -5,7 +5,7 @@ CFLAGS = -Wall -Wextra -g
 TARGET = ../../bin/unul
 
 # LIBS harus diletakkan terpisah di akhir agar kompilasi di Linux modern tidak rewel
-LIBS = -lm -lreadline -pthread -lcurl
+LIBS = -lm -lreadline -pthread -lcurl -lraylib
 
 # Semua file dari berbagai dimensi
 SRCS = main.c \

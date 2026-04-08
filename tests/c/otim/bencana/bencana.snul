@@ -1,0 +1,10 @@
+^^ File ini dirancang untuk merusak State Machine CSS/SNUL. Kurung kurawal hilang, titik dua lupa ditulis, dan ada karakter asing.
+#utama {
+    warna_teks: merah
+    warna_latar: biru;
+
+^^ Kurung kurawal hilang, langsung tabrak ID baru!
+#rusak 
+    tebal ya; ^^ Hilang titik dua
+    ukuran @!#$%^&*()_+;
+}

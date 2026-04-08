@@ -1,0 +1,14 @@
+#!datang
+<wadah:dashboard>
+    <judul> "--- DASHBOARD PENGELANA ---" </judul>
+    
+    "Selamat Datang di Inti Dimensi UNUL!"
+    
+    <wadah:info>
+        "Status: Terkoneksi ke Kernel"
+        "Energi: Tak Terbatas"
+    </wadah>
+
+    <tombol:tombol_kembali> "KEMBALI KE GERBANG" </tombol>
+</wadah>
+pergi!#

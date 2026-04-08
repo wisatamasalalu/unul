@@ -1,0 +1,30 @@
+@wadah.utama {
+    lebar: 60;
+    warna_teks: cyan;
+}
+
+@judul {
+    warna_teks: kuning;
+}
+
+@masukan.input_tugas {
+    lebar: 56;
+    warna_teks: hijau;
+}
+
+@tombol.btn_tambah {
+    warna_teks: biru;
+}
+
+@areanulis.daftar_tampilan {
+    lebar: 56;
+    warna_teks: putih;
+}
+
+@tombol.btn_hapus {
+    warna_teks: merah;
+}
+
+@tombol.btn_keluar {
+    warna_teks: kuning;
+}

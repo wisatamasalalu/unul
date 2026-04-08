@@ -1,0 +1,31 @@
+datang
+ketik("Menyalakan Engine Native GUI (60 FPS)...")
+
+^^ Muat DOM OTIM (Untuk saat ini mesin C masih menggunakan hardcode koordinat)
+takdir.soft ui_utama = muat_otim("beranda.otim")
+takdir.soft aplikasi_hidup = 1
+
+^^ SIKLUS GAME LOOP! (Berputar 60 kali setiap detiknya)
+siklus selama aplikasi_hidup == 1 maka
+    
+    ^^ Panggil fungsi C untuk merender 1 frame dan menangkap klik mouse
+    takdir.soft form = tampilkan_gui(ui_utama)
+    takdir.soft aksi = form.aksi
+    
+    ^^ Tangkap sinyal dari GPU!
+    jika aksi == "btn_tambah_diklik" maka
+        ketik("[SISTEM] Mantap! Tombol hijau di GUI baru saja diklik pakai Mouse!")
+    lain maka
+        jika aksi == "TUTUP_PAKSA" maka
+            ketik("[SISTEM] Jendela GUI ditutup oleh pengguna. Mematikan mesin.")
+            aplikasi_hidup = 0
+        putus
+    putus
+    
+    ^^ Jaga state UI tetap sinkron
+    ui_utama = form.ui
+    
+putus
+
+ketik("Siklus GUI selesai. Sampai jumpa!")
+pergi

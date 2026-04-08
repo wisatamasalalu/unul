@@ -1,0 +1,10 @@
+^^ File ini dirancang untuk menghancurkan logika Tree (Pohon AST) dan merusak Lexer yang mengharapkan tanda kutip atau penutup tag.
+<gerbang id="utama"
+    ^^ Tag masukan tidak pernah ditutup, atributnya berantakan tanpa kutip!
+    <masukan tipe=password isi="halo >
+    
+    ^^ Tag penutup salah nama, dan ada tanda panah acak!
+    <tombol id="rusak">BUKA GERBANG</tomboool>
+    <<<<>>>>>>
+    
+    <teks>Teks ini melayang tanpa arah

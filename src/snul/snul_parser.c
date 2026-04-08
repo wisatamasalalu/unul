@@ -58,12 +58,14 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
                             o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks(t_sekarang(&p).teks));
                             t_maju(&p);
                         } else {
-                            // Jika kosong/error, isi teks kosong agar tidak segfault
                             o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks(""));
                         }
                         free(nama_prop);
                     } else {
-                        t_maju(&p); // Lewati token aneh di dalam blok
+                        // ❌ TANGKAP ERROR DI DALAM BLOK (Lupa nulis properti dengan benar)
+                        printf("🚨 KIAMAT VISUAL: Sintaks SNUL cacat di dalam blok '%s'!\n", nama_selektor);
+                        free(nama_selektor);
+                        return NULL; 
                     }
                 }
 
@@ -76,8 +78,11 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
                 o_simpan_ke_objek(root_gaya, nama_selektor, aturan_gaya);
             }
             free(nama_selektor);
+
         } else {
-            t_maju(&p); // Lewati token liar di luar blok
+            // ❌ TANGKAP ERROR DI LUAR BLOK (Token siluman)
+            printf("🚨 KIAMAT VISUAL: Sintaks SNUL tidak valid! Menemukan token liar di luar blok gaya!\n");
+            return NULL; // Bunuh proses dan lapor ke Interpreter!
         }
     }
 

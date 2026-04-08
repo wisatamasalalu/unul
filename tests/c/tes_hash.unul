@@ -1,0 +1,22 @@
+datang
+
+^^ Menerima input dari pengguna
+takdir.soft nama_pengguna = tanya("Masukkan Username: ")
+takdir.soft sandi_asli = tanya("Masukkan Password: ")
+
+^^ 1. MENGAMANKAN SANDI (HASILNYA TIDAK BISA DIBACA MANUSIA)
+takdir.soft sandi_acak = hash(sandi_asli)
+ketik("Sandi Anda diamankan menjadi: " + sandi_acak)
+
+^^ 2. MENYIAPKAN OBJEK DATABASE
+takdir.soft data_user = {}
+data_user.nama = nama_pengguna
+data_user.password = sandi_acak
+data_user.hak_akses = "penduduk"
+
+^^ 3. MENYIMPAN KE DIMENSI IMAH
+^^ (Anggap ekspor_imah / tulis adalah fungsi asli Anda)
+ekspor(data_user, "penduduk_baru.imah")
+
+ketik("Registrasi Sukses! Data tersimpan di IMAH.")
+pergi

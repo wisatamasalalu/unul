@@ -45,7 +45,7 @@ EnkiObject* parse_otim(OtimTokenArray tokens) {
         t_maju(&p);
     } else {
         printf("🚨 KIAMAT VISUAL: Dokumen .otim harus diawali dengan '#!datang'!\n");
-        return ciptakan_kosong();
+        return NULL;
     }
 
     EnkiObject* root_ui = ciptakan_objek_peta(0); 
@@ -102,7 +102,7 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
                     break; 
                 } else {
                     printf("🚨 KIAMAT VISUAL: Tag <%s> malah ditutup dengan </%s>!\n", nama_tag_buka, t_sekarang(p).tag_nama);
-                    break;
+                    return NULL;
                 }
             }
             EnkiObject* anak = parse_otim_elemen(p);

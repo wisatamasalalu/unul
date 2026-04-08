@@ -12,6 +12,7 @@
 #include <regex.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <raylib.h>
 #include "enki_interpreter.h"
 #include "enki_scheduler.h"
 #include "enki_network.h"
@@ -32,6 +33,19 @@ void mutasi_xor(char* data, size_t panjang, const char* kunci) {
     for (size_t i = 0; i < panjang; i++) {
         data[i] ^= kunci[i % panjang_kunci];
     }
+}
+
+// Helper Hashing FNV-1a (64-bit) - Sangat cepat untuk Database
+char* mutasi_hash_fnv1a(const char* teks) {
+    uint64_t hash = 14695981039346656037ULL;
+    for (int i = 0; teks[i] != '\0'; i++) {
+        hash ^= (uint8_t)teks[i];
+        hash *= 1099511628211ULL;
+    }
+    // Siapkan memori untuk 16 karakter hex + 1 null terminator
+    char* hasil_hex = malloc(17); 
+    snprintf(hasil_hex, 17, "%016lx", hash);
+    return hasil_hex;
 }
 
 // 🟢 SUNTIKAN: Pencetak Angka Presisi Tinggi (Anti Scientific Notation)
@@ -1768,6 +1782,34 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // =======================================================
+        // 🔒 HASHING (KODE SATU ARAH UNTUK SANDI DATABASE)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "hash") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Kriptografi Cacat!", 
+                    "Fungsi hash butuh 1 parameter teks.\n"
+                    "Contoh: takdir.soft sandi_aman = hash(\"rahasia123\")");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* arg_teks = evaluasi_ekspresi(node->anak_anak[0], ram);
+            
+            if (arg_teks && arg_teks->tipe == ENKI_TEKS) {
+                // 🟢 Ubah teks biasa menjadi Hash 16 karakter Hex!
+                char* hasil_hash = mutasi_hash_fnv1a(arg_teks->nilai.teks);
+                
+                EnkiObject* obj_kembalian = ciptakan_teks(hasil_hash);
+                free(hasil_hash); // Bersihkan memori C mentah
+                hancurkan_objek(arg_teks);
+                
+                return obj_kembalian;
+            }
+            
+            if (arg_teks) hancurkan_objek(arg_teks);
+            return ciptakan_kosong();
+        }
+
+        // =======================================================
         // 🔐 ENKRIPSI & DEKRIPSI (KOLOM / TEKS)
         // =======================================================
         if (strcmp(node->nilai_teks, "enkripsi") == 0 || strcmp(node->nilai_teks, "dekripsi") == 0) {
@@ -1873,6 +1915,56 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
             hancurkan_objek(obj_sumber); hancurkan_objek(obj_kunci); hancurkan_objek(obj_target);
             return ciptakan_kosong();
+        }
+
+        // =======================================================
+        // 🪚 MANIPULASI STRING: MENGGANTI TEKS (String Replace)
+        // Contoh: ganti_teks("Halo Dunia", "Dunia", "Enki") -> "Halo Enki"
+        // =======================================================
+        if (strcmp(node->nilai_teks, "ganti_teks") == 0) {
+            if (node->jumlah_anak < 3) {
+                pemicu_kiamat_presisi(node, ram, "Sihir Gagal", "Butuh 3 argumen: ganti_teks(sumber, dicari, pengganti)");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* obj_sumber = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_dicari = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* obj_ganti  = evaluasi_ekspresi(node->anak_anak[2], ram);
+
+            EnkiObject* hasil_final = ciptakan_kosong();
+
+            if (obj_sumber->tipe == ENKI_TEKS && obj_dicari->tipe == ENKI_TEKS && obj_ganti->tipe == ENKI_TEKS) {
+                // Buffer sementara (8KB cukup untuk manipulasi teks wajar)
+                char buffer_hasil[8192] = {0}; 
+                char* sumber = obj_sumber->nilai.teks;
+                char* dicari = obj_dicari->nilai.teks;
+                char* ganti  = obj_ganti->nilai.teks;
+
+                // Jika yang dicari string kosong, kembalikan sumber apa adanya
+                if (strlen(dicari) > 0) {
+                    char* pos = sumber;
+                    char* match;
+                    
+                    // Lakukan pencarian dan penggantian berulang (Global Replace)
+                    while ((match = strstr(pos, dicari)) != NULL) {
+                        strncat(buffer_hasil, pos, match - pos); // Kopi bagian sebelum kecocokan
+                        strcat(buffer_hasil, ganti);             // Kopi teks pengganti
+                        pos = match + strlen(dicari);            // Maju melewati kata yang dicari
+                    }
+                    strcat(buffer_hasil, pos); // Kopi sisa teks di ujung
+                    
+                    hasil_final = ciptakan_teks(buffer_hasil);
+                } else {
+                    hasil_final = ciptakan_salinan_objek(obj_sumber);
+                }
+            }
+
+            // Sapu bersih memori argumen
+            hancurkan_objek(obj_sumber); 
+            hancurkan_objek(obj_dicari); 
+            hancurkan_objek(obj_ganti);
+            
+            return hasil_final;
         }
 
         // =======================================================
@@ -2189,6 +2281,92 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return hasil_bangkit;
         }
 
+        // 🎯 CARI IMAH: Mencari spesifik data tanpa membebani RAM UNUL
+        if (strcmp(node->nilai_teks, "cari_imah") == 0) {
+            if (node->jumlah_anak < 3) {
+                pemicu_kiamat_presisi(node, ram, "Pencarian Gagal", 
+                    "Butuh 3 parameter: (nama_file, nama_kunci, nilai_dicari).\n"
+                    "Contoh: takdir.soft user = cari_imah(\"surga.imah\", \"username\", \"LinuxDNC\")");
+                return ciptakan_kosong();
+            }
+            
+            EnkiObject* obj_path = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* obj_nilai = evaluasi_ekspresi(node->anak_anak[2], ram);
+            
+            EnkiObject* hasil_pencarian = ciptakan_kosong();
+
+            if (obj_path->tipe == ENKI_TEKS && obj_kunci->tipe == ENKI_TEKS && obj_nilai->tipe == ENKI_TEKS) {
+                char path_mentah[2048]=""; objek_ke_string(obj_path, path_mentah, sizeof(path_mentah));
+                char* path_final = ekspansi_jalur(path_mentah); 
+                
+                char* teks_imah = sihir_baca_file(path_final);
+                if (teks_imah && strlen(teks_imah) > 0) {
+                    char* data_murni = strstr(teks_imah, "{");
+                    if (!data_murni) data_murni = strstr(teks_imah, "[");
+                    if (!data_murni) data_murni = teks_imah;
+
+                    // Parse di level C (Sangat Cepat)
+                    TokenArray token_eval = enki_lexer(data_murni, "<pencarian_imah>");
+                    Parser parser_eval = inisialisasi_parser(token_eval);
+                    ASTNode* ast_eval = parse_ekspresi(&parser_eval);
+                    EnkiObject* db_sementara = evaluasi_ekspresi(ast_eval, ram);
+                    
+                    // 🟢 LOGIKA PENCARIAN
+                    if (db_sementara && db_sementara->tipe == ENKI_ARRAY) {
+                        // Jika Database berupa Daftar / Array: [ {..}, {..} ]
+                        for (int i = 0; i < db_sementara->panjang; i++) {
+                            EnkiObject* baris = db_sementara->nilai.array_elemen[i];
+                            if (baris && baris->tipe == ENKI_OBJEK) {
+                                for (int k = 0; k < baris->panjang; k++) {
+                                    if (strcmp(baris->nilai.objek_peta.kunci[k]->nilai.teks, obj_kunci->nilai.teks) == 0) {
+                                        EnkiObject* nilai_baris = baris->nilai.objek_peta.konten[k];
+                                        if (nilai_baris->tipe == ENKI_TEKS && strcmp(nilai_baris->nilai.teks, obj_nilai->nilai.teks) == 0) {
+                                            hancurkan_objek(hasil_pencarian);
+                                            hasil_pencarian = ciptakan_salinan_objek(baris);
+                                            break; 
+                                        }
+                                    }
+                                }
+                            }
+                            if (hasil_pencarian->tipe != ENKI_KOSONG) break;
+                        }
+                    } 
+                    // 👇👇👇 TAMBAHAN SAKTI: Jika Database cuma 1 Objek Tunggal: { .. }
+                    else if (db_sementara && db_sementara->tipe == ENKI_OBJEK) {
+                        for (int k = 0; k < db_sementara->panjang; k++) {
+                            if (strcmp(db_sementara->nilai.objek_peta.kunci[k]->nilai.teks, obj_kunci->nilai.teks) == 0) {
+                                EnkiObject* nilai_baris = db_sementara->nilai.objek_peta.konten[k];
+                                if (nilai_baris->tipe == ENKI_TEKS && strcmp(nilai_baris->nilai.teks, obj_nilai->nilai.teks) == 0) {
+                                    hancurkan_objek(hasil_pencarian);
+                                    hasil_pencarian = ciptakan_salinan_objek(db_sementara);
+                                    break; 
+                                }
+                            }
+                        }
+                    }
+                    // 👆👆👆 =========================================================
+                    
+                    // 🔥 BUMIKHANGUSKAN DATABASE SEMENTARA DARI RAM! 🔥
+                    if (db_sementara) hancurkan_objek(db_sementara);
+                    bebaskan_ast(ast_eval);
+                    bebaskan_token_array(&token_eval);
+                }
+                if (teks_imah) free(teks_imah);
+                free(path_final);
+            }
+            
+            hancurkan_objek(obj_path); hancurkan_objek(obj_kunci); hancurkan_objek(obj_nilai);
+            
+            // 👇 TAMBAHAN: Jika gagal ketemu, kembalikan teks agar mudah di-If-Else di UNUL
+            if (hasil_pencarian->tipe == ENKI_KOSONG) {
+                hancurkan_objek(hasil_pencarian);
+                hasil_pencarian = ciptakan_teks("TIDAK_DITEMUKAN");
+            }
+
+            return hasil_pencarian; // Kembalikan HANYA 1 data yang dicari!
+        }
+
         // =======================================================
         // 💅 MUAT SNUL (MENYULAP KOSMETIK MENJADI MEMORI)
         // =======================================================
@@ -2231,6 +2409,12 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             // Bersihkan sisa-sisa ritual
             bebaskan_snul_token(&tokens);
             free(isi_snul);
+            
+            // 👇👇👇 TAMBAHAN BARU: Tangkap jika Parser gagal baca sintaks! 👇👇👇
+            if (gaya_pohon == NULL) {
+                pemicu_kiamat_presisi(node, ram, "Kiamat Sintaksis SNUL", "Sintaks file .snul hancur berantakan! Mesin menolak membacanya.");
+                return ciptakan_kosong();
+            }
 
             return gaya_pohon; // Kembalikan Peta Kosmetik ke tangan skrip UNUL!
         }
@@ -2278,6 +2462,12 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             bebaskan_otim_token(&tokens);
             free(isi_otim);
 
+            // 👇👇👇 TAMBAHAN BARU: Tangkap jika Parser gagal baca sintaks! 👇👇👇
+            if (ui_pohon == NULL) {
+                pemicu_kiamat_presisi(node, ram, "Kiamat Sintaksis OTIM", "Sintaks file .otim hancur berantakan! Mesin menolak membacanya.");
+                return ciptakan_kosong();
+            }
+
             return ui_pohon; // Kembalikan Pohon UI ke tangan skrip UNUL!
         }
 
@@ -2317,6 +2507,80 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             free(id_hasil); // Bebaskan memori string C biasa
             
             return obj_kembalian; // Kembalikan Payload ke skrip .unul!
+        }
+
+        // =======================================================
+        // 🖼️ RENDERER NATIVE GUI (RAYLIB + OTIM AST)
+        // =======================================================
+        if (strcmp(node->nilai_teks, "tampilkan_gui") == 0) {
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Sihir GUI Cacat", "Butuh objek UI dari muat_otim()");
+                return ciptakan_kosong();
+            }
+
+            EnkiObject* ui = evaluasi_ekspresi(node->anak_anak[0], ram);
+
+            // 1. BUKA PORTAL DIMENSI JIKA BELUM TERBUKA
+            if (!IsWindowReady()) {
+                InitWindow(800, 600, "OS Urantia - Dimensi Native GUI");
+                SetTargetFPS(60); // Kunci di 60 Frame Per Detik!
+            }
+
+            char aksi_kembalian[256] = "";
+
+            // 2. MULAI MENGGAMBAR KE GPU
+            BeginDrawing();
+            ClearBackground(RAYWHITE); // Latar belakang putih terang
+
+            if (ui && ui->tipe == ENKI_OBJEK) {
+                // Nanti di sini kita akan me-looping ui->anak_anak secara rekursif
+                // Tapi untuk tes pertama ini, kita hardcode posisi untuk membuktikan koneksi!
+                
+                // Gambar Wadah Utama
+                DrawRectangle(40, 40, 720, 520, Fade(SKYBLUE, 0.5f));
+                DrawRectangleLines(40, 40, 720, 520, BLUE);
+
+                // Gambar Teks Judul
+                DrawText("--- DIMENSI VISUAL LINUXDNC BERHASIL TERHUBUNG! ---", 60, 60, 20, DARKBLUE);
+                DrawText("Ini bukan HTML. Ini bukan DOM Browser.", 60, 90, 16, DARKGRAY);
+                DrawText("Ini adalah rendering piksel murni dari mesin C Anda!", 60, 110, 16, DARKGRAY);
+
+                // Gambar Tombol Buatan
+                Rectangle kotak_tombol = { 60, 160, 200, 40 };
+                DrawRectangleRec(kotak_tombol, DARKGREEN);
+                DrawText("[+] KLIK SAYA", 80, 170, 20, WHITE);
+
+                // 3. DETEKSI INTERAKSI (MOUSE CLICK)
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    Vector2 mouse = GetMousePosition();
+                    // Deteksi apakah klik ada di dalam kotak hijau
+                    if (CheckCollisionPointRec(mouse, kotak_tombol)) {
+                        strcpy(aksi_kembalian, "btn_tambah_diklik"); // Kirim sinyal ke UNUL!
+                    }
+                }
+            }
+
+            EndDrawing();
+
+            // 4. CEK APAKAH USER MENUTUP JENDELA [X]
+            if (WindowShouldClose()) {
+                strcpy(aksi_kembalian, "TUTUP_PAKSA");
+                CloseWindow(); // Hancurkan portal
+            }
+
+           // 5. KEMBALIKAN STATE KE UNUL (Mirip TUI)
+            EnkiObject* hasil = ciptakan_objek_peta(2);
+            
+            // Masukkan Kunci dan Nilai secara manual agar GCC tidak menangis
+            hasil->panjang = 2;
+            hasil->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi");
+            hasil->nilai.objek_peta.konten[0] = ciptakan_teks(aksi_kembalian);
+            
+            hasil->nilai.objek_peta.kunci[1] = ciptakan_teks("ui");
+            hasil->nilai.objek_peta.konten[1] = ciptakan_salinan_objek(ui);
+
+            hancurkan_objek(ui);
+            return hasil;
         }
 
         // =======================================================

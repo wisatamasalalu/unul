@@ -1,0 +1,37 @@
+datang
+ketik("=== SIMULASI SISTEM KEAMANAN LINUXDNC ===")
+
+^^ 1. BIKIN DATABASE DUMMY (Sistem Pendaftaran)
+takdir.soft garam_server = "LINUXDNC_SECRET_123"
+takdir.soft sandi_asli_user = "OrangGilaAnoying#123"
+
+takdir.soft hash_tersimpan = hash(sandi_asli_user + garam_server)
+ketik("[SERVER] Sandi di-hash menjadi: " + hash_tersimpan)
+
+takdir.soft data_user = {}
+data_user.username = "HackerWannaBe"
+data_user.password = hash_tersimpan
+
+^^ Menggunakan kata kunci UNUL yang benar!
+ekspor(data_user, "target_hack.imah")
+ketik("[SERVER] Data disimpan ke 'target_hack.imah'\n")
+
+^^ 2. SIMULASI LOGIN YANG BENAR (Pencocokan Hash)
+ketik("--- MENGUJI LOGIN ---")
+takdir.soft input_login = tanya("Masukkan Sandi Anda: ")
+takdir.soft hash_input_login = hash(input_login + garam_server)
+
+takdir.soft cari_user = cari_imah("target_hack.imah", "username", "HackerWannaBe")
+
+^^ Menggunakan logika string yang kebal error!
+jika cari_user != "TIDAK_DITEMUKAN" maka
+    ketik("[SISTEM] User ditemukan! Memeriksa sandi...")
+    jika cari_user.password == hash_input_login maka
+        ketik("✅ AKSES DITERIMA! Hash cocok!")
+    lain maka
+        ketik("❌ AKSES DITOLAK! Sandi salah!")
+    putus
+lain maka
+    ketik("❌ AKSES DITOLAK! User tidak ada.")
+putus
+pergi

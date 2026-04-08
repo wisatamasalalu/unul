@@ -1,0 +1,18 @@
+#!datang
+<wadah:utama>
+    <judul> "--- PORTAL PENGELANA DIMENSI ---" </judul>
+    
+    <wadah:input_seksi>
+        "Masukkan Nama Anda:"
+        <masukan:nama_user, tipe='teks'> "" </masukan>
+    </wadah>
+    
+    <daftar:opsi>
+        <butir> "Jelajahi Labirin Memori" </butir>
+        <butir> "Lihat Catatan Takdir" </butir>
+    </daftar>
+
+    <tombol:tombol_masuk> "MASUK KE DIMENSI" </tombol>
+    <tombol:tombol_keluar> "KELUAR" </tombol>
+</wadah>
+pergi!#

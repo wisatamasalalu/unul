@@ -1,0 +1,40 @@
+^^ Skrip ini akan mencoba memuat file-file rusak di atas. Jika Urantia OS Anda kokoh, skrip ini TIDAK BOLEH MATI/CRASH. Ia harus menangkap errornya dan melanjutkan eksekusi.
+
+datang
+ketik("==================================================")
+ketik("☢️  MEMULAI UJI BENCANA OTIM & SNUL ☢️")
+ketik("==================================================\n")
+
+coba maka
+    ketik("[UJI 1] Mencoba memuat OTIM yang cacat mental...")
+    jeda("1s")
+    
+    takdir.soft ui_rusak = muat_otim("bencana.otim")
+    
+    ^^ Jika tulisan di bawah ini muncul, berarti C Anda punya celah!
+    ketik("❌ FATAL: Mesin C tertipu! OTIM rusak lolos dari deteksi!")
+tabu melanggar e maka
+    ketik("✅ BERHASIL DITANGKIS: Mesin C melempar Kiamat Sintaksis dengan aman!")
+    ketik("   Pesan Error: " + e)
+pasrah
+
+ketik("\n--------------------------------------------------\n")
+
+coba maka
+    ketik("[UJI 2] Mencoba memuat SNUL yang cacat mental...")
+    jeda("1s")
+    
+    takdir.soft gaya_rusak = muat_snul("bencana.snul")
+    
+    ^^ Jika tulisan di bawah ini muncul, berarti C Anda punya celah!
+    ketik("❌ FATAL: Mesin C tertipu! SNUL rusak lolos dari deteksi!")
+tabu melanggar e maka
+    ketik("✅ BERHASIL DITANGKIS: Mesin C melempar Kiamat Sintaksis dengan aman!")
+    ketik("   Pesan Error: " + e)
+pasrah
+
+ketik("\n==================================================")
+ketik("Uji Bencana Selesai. Jika program ini tidak tertutup")
+ketik("secara paksa (Segmentation Fault), maka OS Anda KOKOH!")
+ketik("==================================================")
+pergi

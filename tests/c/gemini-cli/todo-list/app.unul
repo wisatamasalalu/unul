@@ -1,0 +1,164 @@
+^^ Todo List: SPA + Database (.imah) (React-like Architecture)
+datang
+
+takdir.soft kosmetik = muat_snul("gaya.snul")
+takdir.soft aplikasi_hidup = 1
+takdir.soft jumlah_tugas = 0
+takdir.soft daftar_tugas = ""
+
+^^ ========================================================
+^^ FUNGSI SAKTI: Menambal Bug Y-Axis C Backend
+^^ Memaksa teks memiliki panjang kelipatan 52 karakter
+^^ ========================================================
+ciptakan fungsi format_tampilan(teks_mentah) maka
+    jika panjang(teks_mentah) == 0 maka
+        takdir.soft kosong = "Belum ada tugas."
+        takdir.soft sp = ""
+        effort 40 kali maka sp = sp + " " putus  
+        pulang kosong + sp
+    putus
+
+    takdir.soft baris_baris = pecah_teks(teks_mentah, "\n")
+    takdir.soft hasil = ""
+    takdir.soft jumlah = panjang(baris_baris)
+    
+    takdir.soft i = 1
+    siklus selama i <= jumlah maka
+        takdir.soft baris = baris_baris[i]
+        
+        ^^ 🟢 PERBAIKAN MUTLAK: Bersihkan \n yang menempel dari hasil pecah_teks!
+        takdir.soft baris_bersih = ganti_teks(baris, "\n", "")
+        
+        ^^ Kita hitung panjang teks yang SUDAH BERSIH dari enter
+        jika panjang(baris_bersih) > 0 maka
+            takdir.soft len = panjang(baris_bersih)
+            takdir.soft sisa = 56 - len
+            jika sisa < 0 maka sisa = 0 putus
+            
+            takdir.soft spasi = ""
+            effort sisa kali maka
+                spasi = spasi + " "
+            putus
+            
+            ^^ Gabungkan tanpa enter sama sekali!
+            hasil = hasil + baris_bersih + spasi
+        putus
+        i = i + 1
+    putus
+    
+    jika panjang(hasil) == 0 maka
+        takdir.soft kosong = "Belum ada tugas."
+        takdir.soft sp = ""
+        effort 36 kali maka sp = sp + " " putus
+        pulang kosong + sp
+    putus
+    
+    pulang hasil
+putus
+
+^^ ==========================================
+^^ FUNGSI SAKTI 2: GENERATOR UI (State-Driven)
+^^ ==========================================
+ciptakan fungsi render_ui(teks_tugas) maka
+    ^^ Format teks agar aman dari bug C renderer
+    takdir.soft teks_aman = format_tampilan(teks_tugas)
+    
+    ^^ Rakit sintaks OTIM secara dinamis menggunakan kutip tunggal untuk membungkus kutip ganda!
+    takdir.soft otim_str = '#!datang\n'
+    otim_str = otim_str + '<wadah:utama>\n'
+    otim_str = otim_str + '    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>\n'
+    otim_str = otim_str + '    <masukan:input_tugas, tipe="teks"> "" </masukan>\n'
+    otim_str = otim_str + '    <tombol:btn_tambah> "[+] TAMBAH TUGAS" </tombol>\n'
+    
+    ^^ Sisipkan state ke dalam tag areanulis!
+    otim_str = otim_str + '    <areanulis:daftar_tampilan> "' + teks_aman + '" </areanulis>\n'
+    
+    otim_str = otim_str + '    <tombol:btn_hapus> "[-] HAPUS SEMUA" </tombol>\n'
+    otim_str = otim_str + '    <tombol:btn_keluar> "[X] KELUAR" </tombol>\n'
+    otim_str = otim_str + '</wadah>\n'
+    otim_str = otim_str + 'pergi!#'
+    
+    ^^ Tulis ke file sementara dan muat ulang!
+    tulis("beranda_dinamis.otim", otim_str)
+    takdir.soft ui_baru = muat_otim("beranda_dinamis.otim")
+    pulang ui_baru
+putus
+
+^^ ==========================================
+^^ 1. INISIALISASI DATABASE
+^^ ==========================================
+takdir.soft cek_file = cari("tugas.imah")
+
+jika panjang(cek_file) > 0 maka
+    coba maka
+        takdir.soft data_db = impor("tugas.imah")
+        daftar_tugas = data_db.tugas
+        jumlah_tugas = data_db.jumlah
+        daftar_tugas = daftar_tugas + "" ^^ Casting
+    tabu melanggar e maka
+        daftar_tugas = ""
+        jumlah_tugas = 0
+    pasrah
+putus
+
+^^ Bangkitkan UI pertama kali berdasarkan isi Database!
+takdir.soft ui_utama = render_ui(daftar_tugas)
+
+^^ ==========================================
+^^ 2. SIKLUS APLIKASI
+^^ ==========================================
+siklus selama aplikasi_hidup == 1 maka
+    coba maka
+        takdir.soft form = tampilkan_tui(ui_utama, kosmetik)
+        takdir.soft aksi = form.aksi
+        takdir.soft teks_input = form.ui.anak_anak[1].anak_anak[2].anak_anak[1].isi
+        
+        jika aksi == "btn_tambah" maka
+            jika panjang(teks_input) > 0 maka
+                jumlah_tugas = jumlah_tugas + 1
+                takdir.soft baris_baru = "- " + teks_input + "\n"
+                
+                jika jumlah_tugas == 1 maka
+                    daftar_tugas = baris_baru
+                lain maka
+                    daftar_tugas = daftar_tugas + baris_baru
+                putus
+                
+                ^^ SEMAYAMKAN KE DATABASE
+                takdir.soft simpan_db = { "tugas": daftar_tugas, "jumlah": jumlah_tugas }
+                ekspor(simpan_db, "tugas.imah")
+            putus
+            
+            ^^ RE-RENDER UI BERDASARKAN STATE BARU!
+            ui_utama = render_ui(daftar_tugas)
+            
+        lain maka
+            jika aksi == "btn_hapus" maka
+                jumlah_tugas = 0
+                daftar_tugas = ""
+                
+                takdir.soft simpan_db = { "tugas": daftar_tugas, "jumlah": jumlah_tugas }
+                ekspor(simpan_db, "tugas.imah")
+                
+                ^^ RE-RENDER UI BERDASARKAN STATE KOSONG!
+                ui_utama = render_ui(daftar_tugas)
+                
+            lain maka
+                jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
+                    aplikasi_hidup = 0
+                lain maka
+                    ^^ Pertahankan input user jika hanya pindah elemen
+                    ui_utama = form.ui
+                putus
+            putus
+        putus
+
+    tabu melanggar dosa maka
+        ketik("\n[KIAMAT SISTEM] Terjadi pelanggaran: " + dosa)
+        aplikasi_hidup = 0
+    pasrah
+putus
+
+pasrah(ui_utama)
+pasrah(kosmetik)
+pergi

@@ -1,0 +1,14 @@
+=== [WAKTU KIAMAT: 1775591459] ===
+🚨 [salam.unul: Baris 20:10] KIAMAT SINTAKSIS: Variabel sisipan '{waktu()}' belum diciptakan!
+   Kode Penyebab: "Waktu saat ini di dimensi kita: {waktu()}"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+
+=== [WAKTU KIAMAT: 1775593279] ===
+🚨 [kompleks.unul: Baris 43:36] KIAMAT SINTAKSIS: Kehancuran Dimensi!
+   Saran: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
+=================================
+

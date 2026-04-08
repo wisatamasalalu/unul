@@ -1,0 +1,26 @@
+datang
+takdir.soft garam = "BUMBU_RAHASIA_OS_2026"
+
+^^ SIMULASI LOGIN DARI TUI / WEB
+ketik("=== GERBANG LOGIN DIMENSI ===")
+takdir.soft input_user = tanya("Username: ")
+takdir.soft input_sandi = tanya("Password: ")
+
+^^ 1. KITA HASH INPUT DARI USER (Ditambah Garam agar aman)
+takdir.soft hash_input = hash(input_sandi + garam)
+
+^^ 2. KITA MINTA MESIN C MENCARI DI IMAH (Tanpa memakan RAM!)
+takdir.soft data_db = cari_imah("penduduk.imah", "username", input_user)
+
+^^ 3. VALIDASI PENCOCOKKAN HASH
+jika data_db != kosong maka
+    ^^ User ketemu! Sekarang cocokkan Hash-nya
+    jika data_db.password == hash_input maka
+        ketik("✅ AKSES DITERIMA! Selamat datang, " + data_db.username)
+    lain maka
+        ketik("❌ AKSES DITOLAK! Sandi (Hash) tidak cocok!")
+    putus
+lain maka
+    ketik("❌ AKSES DITOLAK! Pengguna tidak ditemukan di alam semesta ini.")
+putus
+pergi

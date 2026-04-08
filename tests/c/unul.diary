@@ -493,3 +493,39 @@ Contoh: enkripsi_berkas("rahasia.txt", kunci_rahasia, "rahasia.choe")
    Saran: Pembagian dengan nol (0) dilarang oleh Hukum Enlil!
 =================================
 
+=== [WAKTU KIAMAT: 1775610781] ===
+🚨 [tes_hash.unul: Baris 8:26] KIAMAT SINTAKSIS: Fungsi gaib 'hash' tidak ditemukan!
+   Kode Penyebab: hash
+   Saran: Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1775611708] ===
+🚨 [tes_hash.unul: Baris 19:1] KIAMAT SINTAKSIS: Fungsi gaib 'sihir_semayamkan_imah' tidak ditemukan!
+   Kode Penyebab: sihir_semayamkan_imah
+   Saran: Anda mencoba memanggil fungsi yang belum pernah diciptakan ke alam semesta (RAM).
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1775611809] ===
+🚨 [tes_sistem_login.unul: Baris 16:17] KIAMAT SINTAKSIS: Variabel 'kosong' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: kosong
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775611931] ===
+🚨 [tes_hacker.unul: Baris 26:19] KIAMAT SINTAKSIS: Variabel 'kosong' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: kosong
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1775619207] ===
+🚨 [tes_native.unul: Baris 5:24] KIAMAT SINTAKSIS: Kiamat File Visual
+   Kode Penyebab: muat_otim
+   Saran: Dimensi visual 'beranda.otim' tidak ditemukan!
+=================================
+

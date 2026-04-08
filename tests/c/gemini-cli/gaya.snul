@@ -1,0 +1,30 @@
+@wadah.utama {
+    lebar: 60;
+    warna_teks: cyan;
+}
+
+@wadah.dashboard {
+    lebar: 60;
+    warna_teks: kuning;
+}
+
+@judul {
+    warna_teks: kuning;
+}
+
+@masukan.nama_user {
+    lebar: 40;
+    warna_teks: hijau;
+}
+
+@tombol.tombol_masuk {
+    warna_teks: biru;
+}
+
+@tombol.tombol_kembali {
+    warna_teks: cyan;
+}
+
+@tombol.tombol_keluar {
+    warna_teks: merah;
+}

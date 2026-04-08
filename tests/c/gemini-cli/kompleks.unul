@@ -1,0 +1,63 @@
+^^ Skrip Demo Kompleksitas UNUL
+^^ Menguji Fungsi, Objek, Array, Hukum Tabu, dan Pipa Aliran
+
+datang ^^ Inisialisasi Dimensi
+
+^^ 1. MENCIPTAKAN FUNGSI PEMROSES
+^^ Fungsi ini membedah objek pengelana dan menentukan statusnya
+ciptakan fungsi proses_pengelana(p) maka
+    takdir.soft nama = p.nama
+    takdir.soft level = p.level
+    
+    takdir.soft status = "Pemula"
+    jika level > 10 maka
+        status = "Legenda"
+    putus
+    
+    takdir.soft hasil = " > [DATA] {nama} (Level {level}) berstatus: {status}"
+    pulang hasil
+putus
+
+^^ 2. DATA TERSTRUKTUR (ARRAY DARI OBJEK)
+takdir.soft daftar = [
+    {"nama": "Enki", "level": 15},
+    {"nama": "Anu", "level": 5},
+    {"nama": "Marduk", "level": 12}
+]
+
+ketik("--- MEMULAI PEMINDAIAN DIMENSI ---")
+
+takdir.soft i = 1
+effort 3 kali maka
+    takdir.soft data_p = daftar[i]
+    takdir.soft laporan = proses_pengelana(data_p)
+    ketik(laporan)
+    i = i + 1
+putus
+
+^^ 3. DEMONSTRASI HUKUM TABU (ERROR HANDLING)
+^^ Mencoba melakukan hal terlarang tanpa merusak realita
+ketik("\n--- MENGUJI PERISAI HUKUM TABU ---")
+coba maka
+    ketik(" [!] Mencoba pembagian terlarang (10 / 0)...")
+    takdir.soft hasil_sesat = 10 / 0
+tabu melanggar dosa maka
+    ketik(" [!] Terjadi Kiamat Terdeteksi: {dosa}")
+tebus maka
+    ketik(" [!] Protokol pembersihan dimensi dijalankan.")
+pasrah
+
+^^ 4. PIPA ALIRAN (|>) DAN MANIPULASI TEKS
+ketik("\n--- MENGUJI PIPA ALIRAN ---")
+takdir.soft pesan = "unul adalah masa depan"
+^^ Mengalirkan teks ke huruf_besar lalu langsung dicetak
+pesan |> huruf_besar() |> ketik()
+
+^^ 5. PENCATATAN TAKDIR (FILE I/O)
+takdir.soft w_log = waktu()
+takdir.soft catatan = "Misi selesai pada: {w_log}"
+^^ Menulis ke file (asumsi dijalankan dari folder gemini-cli)
+tulis("log_petualangan.txt", catatan)
+ketik("\n--- LOG TELAH DIABADIKAN DI log_petualangan.txt ---")
+
+pergi ^^ Penutupan Gerbang Dimensi

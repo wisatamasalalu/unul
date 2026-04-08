@@ -1,0 +1,6 @@
+^^ Di skrip UNUL
+takdir.soft sandi_mentah = "OrangGilaAnoying#123"
+takdir.soft rahasia_os = "LINUXDNC_ANTI_HACK_99"
+
+^^ Gabungkan sebelum di-hash! Ini tidak mungkin di-brute force!
+takdir.soft sandi_aman = hash(sandi_mentah + rahasia_os)

@@ -1,0 +1,65 @@
+^^ Aplikasi Multi-Dimensi UNUL - Arsitektur Disiplin
+datang
+
+takdir.soft kosmetik = muat_snul("gaya.snul")
+takdir.soft aplikasi_hidup = 1
+takdir.soft halaman_aktif = "portal"
+
+siklus selama aplikasi_hidup == 1 maka
+    coba maka
+        
+        ^^ ==========================================
+        ^^ HALAMAN 1: PORTAL PENGELANA
+        ^^ ==========================================
+        jika halaman_aktif == "portal" maka
+            ^^ 1. Muat UI khusus untuk halaman ini
+            takdir.soft ui_portal = muat_otim("portal.otim")
+            
+            ^^ 2. Render dan tangkap aksi
+            takdir.soft form_portal = tampilkan_tui(ui_portal, kosmetik)
+            takdir.soft aksi_tombol = form_portal.aksi
+
+            ^^ 3. Cek aksi
+            jika aksi_tombol == "tombol_masuk" maka
+                ketik("\n[NAVIGASI] Pindah ke Dashboard...")
+                halaman_aktif = "dashboard" ^^ LOMPATAN DIMENSI!
+            putus
+
+            jika aksi_tombol == "tombol_keluar" atau aksi_tombol == "TUTUP_PAKSA" maka
+                ketik("\n[SISTEM] Keluar dari protokol TUI. Sampai jumpa!")
+                aplikasi_hidup = 0
+            putus
+            
+            ^^ 4. Bebaskan memori UI agar tidak bentrok
+            pasrah(ui_portal)
+        putus
+
+        ^^ ==========================================
+        ^^ HALAMAN 2: DASHBOARD
+        ^^ ==========================================
+        jika halaman_aktif == "dashboard" maka
+            ^^ 1. Muat UI khusus untuk halaman ini
+            takdir.soft ui_dashboard = muat_otim("dashboard.otim")
+            
+            ^^ 2. Render dan tangkap aksi
+            takdir.soft form_dashboard = tampilkan_tui(ui_dashboard, kosmetik)
+            takdir.soft aksi_dasbor = form_dashboard.aksi
+
+            ^^ 3. Cek aksi
+            jika aksi_dasbor == "tombol_kembali" atau aksi_dasbor == "TUTUP_PAKSA" maka
+                ketik("\n[NAVIGASI] Kembali ke Portal...")
+                halaman_aktif = "portal" ^^ TENDANG KEMBALI!
+            putus
+            
+            ^^ 4. Bebaskan memori UI
+            pasrah(ui_dashboard)
+        putus
+
+    tabu melanggar dosa maka
+        ketik("\n[KIAMAT SISTEM] Terjadi pelanggaran: " + dosa)
+        aplikasi_hidup = 0
+    pasrah
+putus
+
+pasrah(kosmetik)
+pergi

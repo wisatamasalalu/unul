@@ -1,0 +1,27 @@
+^^ Skrip Perkenalan Bahasa UNUL - Versi Perbaikan
+^^ Disusun untuk menguji realita mesin UNUL
+
+datang ^^ Memulai sesi program
+
+takdir.soft nama = tanya("Siapa namamu, wahai pengelana? ")
+ketik("Salam kenal, {nama}! Mari kita berhitung sejenak.")
+
+takdir.soft angka = 1
+effort 5 kali maka
+    ketik("Langkah ke-{angka}: Mengasah logika...")
+    angka = angka + 1
+putus
+
+jika angka > 5 maka
+    ketik("Hitungan selesai. Anda telah melewati 5 dimensi.")
+lain maka
+    ketik("Hitungan belum mencapai batas takdir.")
+putus
+
+^^ Perbaikan: Simpan hasil fungsi ke variabel sebelum disisipkan ke teks
+takdir.soft w = waktu()
+ketik("Waktu saat ini di dimensi kita: {w}")
+
+ketik("Sampai jumpa di baris kode berikutnya!")
+
+pergi ^^ Mengakhiri sesi program
