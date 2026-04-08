@@ -182,3 +182,11 @@ Contoh: takdir.soft user = cari_imah("surga.imah", "username", "LinuxDNC")
    Saran: Argumen 1 harus variabel Objek. Argumen 2 harus Kunci (Teks). Pastikan variabel sudah diciptakan.
 =================================
 
+=== [WAKTU KIAMAT: 1775669562] ===
+🚨 [app.unul: Baris 44:30] KIAMAT SINTAKSIS: Variabel 'pengguna' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: pengguna
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
