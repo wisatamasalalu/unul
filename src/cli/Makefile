@@ -24,7 +24,11 @@ SRCS = main.c \
        ../otim/otim_lexer.c \
        ../otim/otim_parser.c \
        ../snul/snul_lexer.c \
-       ../snul/snul_parser.c
+       ../snul/snul_parser.c \
+       ../gui/gui_renderer.c    
+
+CC = gcc
+
 
 build:
 	$(CC) $(CFLAGS) $(SRCS) -o $(TARGET) $(LIBS)

@@ -269,3 +269,28 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
    Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
 =================================
 
+=== [WAKTU KIAMAT: 1775679724] ===
+🚨 [app.unul: Baris 54:9] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775717540] ===
+🚨 [app.unul: Baris 54:13] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775717540] ===
+🚨 [app.unul: Baris 60:9] KIAMAT SINTAKSIS: Gagal Menambah!
+   Kode Penyebab: tambah_array
+   Saran: Argumen pertama harus berupa variabel bertipe Array.\n💡 PERIKSA KEMBALI:\n1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor("[]"))\n2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n3. Pastikan Anda tidak mengambil data dari kunci database yang salah.
+=================================
+
+=== [WAKTU KIAMAT: 1775731295] ===
+🚨 [app.unul: Baris 114:10] KIAMAT SINTAKSIS: Fungsi gaib 'otentikasi' tidak ditemukan!
+   Kode Penyebab: otentikasi
+   Saran: Anda mencoba memanggil fungsi yang belum diciptakan.
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda!.
+=================================
+

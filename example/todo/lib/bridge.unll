@@ -1,0 +1,34 @@
+^^ ==========================================
+^^ JEMBATAN DIMENSI UI (DOM PARSER)
+^^ ==========================================
+
+ciptakan fungsi ambil_nilai_ui(elemen_akar, target_id) maka
+    takdir.soft anak = elemen_akar.anak_anak
+    
+    jika anak maka
+        takdir.soft batas = panjang(anak)
+        takdir.soft i = 0
+        
+        siklus selama i < batas maka
+            takdir.soft elemen = ko(anak, i)
+            
+            ^^ 1. Apakah ini elemen yang kita cari?
+            jika elemen.id == target_id maka
+                pulang elemen.isi
+            putus
+            
+            ^^ 2. Apakah elemen ini punya anak lagi (seperti <wadah>)? GALI LEBIH DALAM!
+            jika elemen.anak_anak maka
+                takdir.soft hasil_galian = ambil_nilai_ui(elemen, target_id)
+                ^^ Jika ketemu di dalam, langsung kembalikan ke atas!
+                jika hasil_galian != "" maka
+                    pulang hasil_galian
+                putus
+            putus
+            
+            i = i + 1
+        putus
+    putus
+    
+    pulang "" ^^ Kembalikan kosong jika tidak ketemu sama sekali
+putus

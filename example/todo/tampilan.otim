@@ -1,16 +1,17 @@
 #!datang
 <wadah: layar_login, @layar.utama>
-    <teks: "=== PORTAL TODO URANTIA ==="></teks>
-    <masukan: id_nama, "Nama Pengguna : "></masukan>
-    <masukan_sandi: id_sandi, "Kata Sandi    : "></masukan_sandi>
-    <tombol: btn_masuk, "Otentikasi", @tombol.aksi></tombol>
+    <teks: t1, === PORTAL TODO URANTIA ===></teks>
+    <masukan: id_nama, Nama Pengguna : ></masukan>
+    <masukan_sandi: id_sandi, Kata Sandi : ></masukan_sandi>
+    <tombol: btn_masuk, Masuk Sistem></tombol>
+    <tombol: btn_daftar, Daftar Baru></tombol>
 </wadah>
 
 <wadah: layar_dashboard, @layar.utama>
-    <teks: "=== CATATAN RAHASIA ==="></teks>
-    <masukan: id_todo, "Tugas Baru: "></masukan>
-    <tombol: btn_tambah, "Tambah", @tombol.aksi></tombol>
-    <teks: "Daftar Tugas Anda:"></teks>
-    <wadah_dinamis: id_daftar_todo></wadah_dinamis>
+    <teks: t2, === CATATAN RAHASIA ===></teks>
+    <masukan: id_todo, Tugas Baru: ></masukan>
+    <tombol: btn_tambah, Tambah Tugas></tombol>
+    <teks: t3, Daftar Tugas Anda:></teks>
+    <wadah_dinamis: id_daftar_todo, @layar.utama></wadah_dinamis>
 </wadah>
 pergi!#

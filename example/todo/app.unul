@@ -5,6 +5,7 @@
 ^^ 1. Panggil Dimensi Lingkungan
 butuh .anu
 untuk array.dinamis
+sowan "lib/bridge.unll"
 
 ^^ 2. Panggil Dimensi Kosmetik dan Rangka
 takdir.soft ui_utama = muat_otim("tampilan.otim")
@@ -18,47 +19,66 @@ takdir.hard GARAM = tarik_rahasia("GARAM_SANDI")
 takdir.soft db_file = "database.imah"
 
 ^^ ==========================================
-^^ FUNGSI KEAMANAN & OTENTIKASI
+^^ FUNGSI KEAMANAN (LOGIN & REGISTER)
 ^^ ==========================================
-ciptakan fungsi otentikasi(nama_user, sandi_mentah) maka
+
+ciptakan fungsi login(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
     
     jika sandi_tersimpan maka
         jika cocok(sandi_aman, sandi_tersimpan) maka
-            pulang 1
+            pulang 1 ^^ Login Sukses!
         lain maka
-            ketik("🚨 KIAMAT: Sandi Salah!")
-            pulang 0
+            pulang 0 ^^ Sandi Salah!
         putus
     lain maka
+        pulang 0 ^^ User Tidak Ditemukan!
+    putus
+putus
+
+ciptakan fungsi register(nama_user, sandi_mentah) maka
+    takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
+    
+    jika sandi_tersimpan maka
+        pulang 0 ^^ User sudah ada, tidak boleh mendaftar lagi!
+    lain maka
+        takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
         tanam_imah(db_file, "pengguna." + nama_user, sandi_aman)
-        ketik("✅ User baru didaftarkan: " + nama_user)
-        pulang 1
+        pulang 1 ^^ Pendaftaran Sukses!
     putus
 putus
 
 ^^ ==========================================
 ^^ FUNGSI MANAJEMEN TODO
 ^^ ==========================================
+^^ ==========================================
+^^ FUNGSI MANAJEMEN TODO
+^^ ==========================================
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
-    takdir.soft daftar_lama = tarik_imah(db_file, "tugas." + nama_user)
-    takdir.soft daftar_baru = impor("[]")
+    
+    ^^ Tarik data langsung dari NoSQL
+    takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
     
     coba maka
-        takdir.soft batas = panjang(daftar_lama)
-        takdir.soft i = 0
+        ^^ 1. UJI NYALI! Langsung tabrak dengan tambah_array!
+        ^^ Jika daftar_ku adalah Array yang sah (sudah ada), ini pasti berhasil!
+        tambah_array(daftar_ku, tugas_rahasia)
+        tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
         
-        siklus selama i < batas maka
-            tambah_array(daftar_baru, ko(daftar_lama, i))
-            i = i + 1
-        putus
     tabu melanggar e maka
-        ^^ Abaikan error jika daftar_lama kosong (hampa)
-    tebus maka
+        ^^ 2. LEDAKAN TERTANGKAP!
+        ^^ Jika kiamat terjadi, berarti daftar_ku masih Hampa (User belum punya tugas).
+        ^^ Kita ciptakan dimensi Array KOSONG SECARA LITERAL (Bukan impor file!)
+        takdir.soft daftar_baru = []
+        
+        ^^ Masukkan tugas ke wadah baru, lalu tanam ke NoSQL!
         tambah_array(daftar_baru, tugas_rahasia)
         tanam_imah(db_file, "tugas." + nama_user, daftar_baru)
+        
+    tebus maka
+        ^^ Selesai tanpa luka!
     pasrah
 putus
 
@@ -83,7 +103,7 @@ ciptakan fungsi baca_todo(nama_user) maka
 putus
 
 ^^ ==========================================
-^^ EKSEKUSI TUI (SIMULASI ALUR PROGRAM)
+^^ EKSEKUSI GUI (SIMULASI ALUR PROGRAM)
 ^^ ==========================================
 tampilkan_gui(ui_utama, gaya_utama)
 
@@ -103,9 +123,61 @@ tebus maka
     ketik("Portal selesai dieksekusi. Menyucikan memori...")
 pasrah ^^ <--- GANTI INI JADI 'pasrah' (Sebelumnya 'putus')
 
-^^ GAME LOOP RAYLIB (Agar jendela tidak langsung tertutup!)
+^^ ==========================================
+^^ EKSEKUSI TUI & JANTUNG GUI
+^^ ==========================================
+
+^^ 1. KITA SET APLIKASI HIDUP
 takdir.soft aplikasi_hidup = 1
+
+^^ 2. JANTUNG RAYLIB BERDETAK DI SINI (60 FPS)
 siklus selama aplikasi_hidup == 1 maka
+    
+    takdir.soft respon = tampilkan_gui(ui_utama, gaya_utama)
+    
+    ^^ CEK 1: Apakah Jendela Ditutup?
+    jika respon.aksi == "TUTUP_PAKSA" maka
+        aplikasi_hidup = 0
+    lain maka
+        
+        ^^ CEK 2: Apakah Tombol Masuk Diklik?
+        jika respon.aksi == "btn_masuk" maka
+            takdir.soft input_nama = ambil_nilai_ui(respon.ui, "id_nama")
+            takdir.soft input_sandi = ambil_nilai_ui(respon.ui, "id_sandi")
+            
+            jika login(input_nama, input_sandi) == 1 maka
+                ketik("BERHASIL LOGIN! Selamat datang kembali, " + input_nama)
+            lain maka
+                ketik("GAGAL LOGIN! Nama atau Sandi salah.")
+            putus
+            
+        lain maka
+            
+            ^^ CEK 3: Apakah Tombol Daftar Diklik?
+            jika respon.aksi == "btn_daftar" maka
+                takdir.soft input_nama = ambil_nilai_ui(respon.ui, "id_nama")
+                takdir.soft input_sandi = ambil_nilai_ui(respon.ui, "id_sandi")
+                
+                jika register(input_nama, input_sandi) == 1 maka
+                    ketik("PENDAFTARAN SUKSES! Silakan klik Masuk Sistem, " + input_nama)
+                lain maka
+                    ketik("PENDAFTARAN GAGAL! Nama pengguna sudah dipakai.")
+                putus
+                
+            lain maka
+                
+                ^^ CEK 4: Apakah Tombol Tambah Tugas Diklik?
+                jika respon.aksi == "btn_tambah" maka
+                    ketik("Tombol Tambah Tugas Ditekan!")
+                putus
+                
+            putus
+        putus
+    putus
 putus
 
+^^ 3. PROGRAM SELESAI
+ketik("Jendela ditutup. Membebaskan dimensi...")
 pasrah
+jeda "3s"
+pergi

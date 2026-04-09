@@ -1,9 +1,24 @@
 ^^ IMAH: DATABASE DIMENSI URANTIA
 {
-  "pengguna":   {
-    "LinuxDNC":     "6e6ac653fd056122"
-  },
+  "pengguna":   "cbf29ce484222325",
   "tugas":   {
-
+    "LinuxDNC":     [
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc=",
+      "BxcHDx8dDjNNIk50XFRdWzBSMQYVGgRhXw==",
+      "Fwc="
+    ]
   }
 }

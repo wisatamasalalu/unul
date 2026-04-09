@@ -12,7 +12,6 @@
 #include <regex.h>
 #include <pthread.h>
 #include <stdint.h>
-#include <raylib.h>
 #include "enki_interpreter.h"
 #include "enki_scheduler.h"
 #include "enki_network.h"
@@ -25,6 +24,7 @@
 #include "../otim/otim_parser.h"
 #include "../snul/snul_parser.h"
 #include "../cli/tui_renderer.h"
+#include "../gui/gui_renderer.h"
 
 // Helper Enkripsi Simetris (XOR Cipher)
 void mutasi_xor(char* data, size_t panjang, const char* kunci) {
@@ -896,6 +896,12 @@ EnkiObject** temukan_pointer_asli(EnkiRAM* ram, const char* nama_variabel) {
     }
     return NULL;
 }
+
+// =======================================================
+// 🎨 MESIN RENDER OTIM & SNUL DINAMIS (Z-INDEX + OTAK MULTI-INPUT)
+// =======================================================
+
+// Dipindah ke src/gui/gui_renderer
 
 // --- 2. LOGIKA EVALUASI NILAI ---
 EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
@@ -2683,7 +2689,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     fprintf(fp, "^^ IMAH: DATABASE DIMENSI URANTIA\n");
                     sihir_semayamkan_imah(db, fp, 0);
                     fclose(fp);
-                    printf("💾 [NOSQL] Berhasil menanam '%s' ke dalam '%s'\n", obj_path->nilai.teks, obj_file->nilai.teks);
+                    printf("💾 [IMAHDB] Berhasil menanam '%s' ke dalam '%s'\n", obj_path->nilai.teks, obj_file->nilai.teks);
                 }
 
                 hancurkan_objek(db); 
@@ -2899,77 +2905,33 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // =======================================================
-        // 🖼️ RENDERER NATIVE GUI (RAYLIB + OTIM AST)
+        // 🖼️ TAMPILKAN KE NATIVE GUI (RAYLIB)
         // =======================================================
         if (strcmp(node->nilai_teks, "tampilkan_gui") == 0) {
-            if (node->jumlah_anak < 1) {
-                pemicu_kiamat_presisi(node, ram, "Sihir GUI Cacat", "Butuh objek UI dari muat_otim()");
-                return ciptakan_kosong();
+            if (node->jumlah_anak < 1) return ciptakan_kosong();
+
+            EnkiObject* arg_ui = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* arg_gaya = NULL;
+            if (node->jumlah_anak > 1) {
+                arg_gaya = evaluasi_ekspresi(node->anak_anak[1], ram);
             }
 
-            EnkiObject* ui = evaluasi_ekspresi(node->anak_anak[0], ram);
+            // Panggil file gui_renderer.c yang baru!
+            char* id_hasil = tampilkan_gui_raylib(arg_ui, arg_gaya);
 
-            // 1. BUKA PORTAL DIMENSI JIKA BELUM TERBUKA
-            if (!IsWindowReady()) {
-                InitWindow(800, 600, "OS Urantia - Dimensi Native GUI");
-                SetTargetFPS(60); // Kunci di 60 Frame Per Detik!
-            }
+            if (arg_gaya) hancurkan_objek(arg_gaya);
 
-            char aksi_kembalian[256] = "";
-
-            // 2. MULAI MENGGAMBAR KE GPU
-            BeginDrawing();
-            ClearBackground(RAYWHITE); // Latar belakang putih terang
-
-            if (ui && ui->tipe == ENKI_OBJEK) {
-                // Nanti di sini kita akan me-looping ui->anak_anak secara rekursif
-                // Tapi untuk tes pertama ini, kita hardcode posisi untuk membuktikan koneksi!
-                
-                // Gambar Wadah Utama
-                DrawRectangle(40, 40, 720, 520, Fade(SKYBLUE, 0.5f));
-                DrawRectangleLines(40, 40, 720, 520, BLUE);
-
-                // Gambar Teks Judul
-                DrawText("--- DIMENSI VISUAL LINUXDNC BERHASIL TERHUBUNG! ---", 60, 60, 20, DARKBLUE);
-                DrawText("Ini bukan HTML. Ini bukan DOM Browser.", 60, 90, 16, DARKGRAY);
-                DrawText("Ini adalah rendering piksel murni dari mesin C Anda!", 60, 110, 16, DARKGRAY);
-
-                // Gambar Tombol Buatan
-                Rectangle kotak_tombol = { 60, 160, 200, 40 };
-                DrawRectangleRec(kotak_tombol, DARKGREEN);
-                DrawText("[+] KLIK SAYA", 80, 170, 20, WHITE);
-
-                // 3. DETEKSI INTERAKSI (MOUSE CLICK)
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                    Vector2 mouse = GetMousePosition();
-                    // Deteksi apakah klik ada di dalam kotak hijau
-                    if (CheckCollisionPointRec(mouse, kotak_tombol)) {
-                        strcpy(aksi_kembalian, "btn_tambah_diklik"); // Kirim sinyal ke UNUL!
-                    }
-                }
-            }
-
-            EndDrawing();
-
-            // 4. CEK APAKAH USER MENUTUP JENDELA [X]
-            if (WindowShouldClose()) {
-                strcpy(aksi_kembalian, "TUTUP_PAKSA");
-                CloseWindow(); // Hancurkan portal
-            }
-
-           // 5. KEMBALIKAN STATE KE UNUL (Mirip TUI)
-            EnkiObject* hasil = ciptakan_objek_peta(2);
+            EnkiObject* obj_kembalian = ciptakan_objek_peta(2);
+            obj_kembalian->panjang = 2;
+            obj_kembalian->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi");
+            obj_kembalian->nilai.objek_peta.konten[0] = ciptakan_teks(id_hasil);
             
-            // Masukkan Kunci dan Nilai secara manual agar GCC tidak menangis
-            hasil->panjang = 2;
-            hasil->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi");
-            hasil->nilai.objek_peta.konten[0] = ciptakan_teks(aksi_kembalian);
-            
-            hasil->nilai.objek_peta.kunci[1] = ciptakan_teks("ui");
-            hasil->nilai.objek_peta.konten[1] = ciptakan_salinan_objek(ui);
+            // Wariskan arg_ui yang SUDAH BERISI TEKS KETIKAN ke skrip UNUL
+            obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui");
+            obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; 
 
-            hancurkan_objek(ui);
-            return hasil;
+            free(id_hasil);
+            return obj_kembalian;
         }
 
         // =======================================================
