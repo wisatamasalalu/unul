@@ -1,0 +1,9 @@
+#!datang
+<wadah:layar_login, @layar.utama>
+    <teks:t1, === PORTAL TODO URANTIA ===></teks>
+    <masukan:id_nama, Nama Pengguna : ></masukan>
+<masukan_sandi:id_sandi, Kata Sandi : ></masukan_sandi>
+    <tombol:btn_masuk, Masuk Sistem></tombol>
+    <tombol:btn_daftar, Daftar Baru></tombol>
+</wadah>
+pergi!#

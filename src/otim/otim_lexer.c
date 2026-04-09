@@ -80,14 +80,32 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
                     t.tag_nama = strdup(isi_tag_mentah);
                     
                     char* sisa = titik_dua + 1;
-                    while(isspace(*sisa)) sisa++; // bersihkan spasi
+                    while(isspace(*sisa)) sisa++; // bersihkan spasi di depan ID
                     
                     char* koma = strchr(sisa, ',');
                     if (koma) {
                         *koma = '\0'; // Pisahkan ID dan Atribut
+                        
+                        // 🟢 SUNTIKAN: BERSIHKAN SPASI DI BELAKANG ID!
+                        char* akhir_id = sisa + strlen(sisa) - 1;
+                        while(akhir_id > sisa && isspace(*akhir_id)) {
+                            *akhir_id = '\0';
+                            akhir_id--;
+                        }
                         t.tag_id = strdup(sisa);
-                        t.atribut = strdup(koma + 1);
+                        
+                        // Bersihkan spasi di depan Atribut
+                        char* atr = koma + 1;
+                        while(isspace(*atr)) atr++;
+                        t.atribut = strdup(atr);
+                        
                     } else {
+                        // 🟢 SUNTIKAN: BERSIHKAN SPASI DI BELAKANG ID (JIKA TANPA ATRIBUT)!
+                        char* akhir_id = sisa + strlen(sisa) - 1;
+                        while(akhir_id > sisa && isspace(*akhir_id)) {
+                            *akhir_id = '\0';
+                            akhir_id--;
+                        }
                         t.tag_id = strdup(sisa);
                     }
                 } else {

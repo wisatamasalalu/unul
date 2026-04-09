@@ -1,28 +1,41 @@
 ^^ ==========================================
-^^ JEMBATAN DIMENSI UI (DOM PARSER)
+^^ JEMBATAN DIMENSI UI (DOM PARSER) - FINAL
 ^^ ==========================================
 
+untuk array.statis
+untuk array.dinamis
+
 ciptakan fungsi ambil_nilai_ui(elemen_akar, target_id) maka
-    takdir.soft anak = elemen_akar.anak_anak
+    takdir.soft anak = ku(elemen_akar, "anak_anak")
     
     jika anak maka
         takdir.soft batas = panjang(anak)
         takdir.soft i = 0
         
         siklus selama i < batas maka
-            takdir.soft elemen = ko(anak, i)
+            ^^ 🟢 KUNCI MUTLAK: Array UNUL dimulai dari 1! (Gunakan i + 1)
+            takdir.soft elemen = anak[i + 1]
             
-            ^^ 1. Apakah ini elemen yang kita cari?
-            jika elemen.id == target_id maka
-                pulang elemen.isi
+            takdir.soft el_id = ku(elemen, "id")
+            
+            ^^ 🟢 MATA-MATA MEMORI
+            jika el_id maka
+                ketik("🔍 Mengecek Elemen ID: " + el_id)
             putus
             
-            ^^ 2. Apakah elemen ini punya anak lagi (seperti <wadah>)? GALI LEBIH DALAM!
-            jika elemen.anak_anak maka
+            ^^ Apakah ID-nya cocok?
+            jika el_id == target_id maka
+                takdir.soft teks_hasil = ku(elemen, "teks_input")
+                ketik("🎯 BINGO! Menemukan: " + teks_hasil)
+                pulang teks_hasil
+            putus
+            
+            ^^ Jika punya anak lagi, gali lebih dalam!
+            takdir.soft anak_cucu = ku(elemen, "anak_anak")
+            jika anak_cucu maka
                 takdir.soft hasil_galian = ambil_nilai_ui(elemen, target_id)
-                ^^ Jika ketemu di dalam, langsung kembalikan ke atas!
-                jika hasil_galian != "" maka
-                    pulang hasil_galian
+                jika hasil_galian != "" maka 
+                    pulang hasil_galian 
                 putus
             putus
             
@@ -30,5 +43,5 @@ ciptakan fungsi ambil_nilai_ui(elemen_akar, target_id) maka
         putus
     putus
     
-    pulang "" ^^ Kembalikan kosong jika tidak ketemu sama sekali
+    pulang ""
 putus

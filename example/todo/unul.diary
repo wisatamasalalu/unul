@@ -294,3 +294,9 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
 Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda!.
 =================================
 
+=== [WAKTU KIAMAT: 1775762884] ===
+🚨 [./lib/bridge.unll: Baris 7:24] KIAMAT SINTAKSIS: Sihir Array Tertidur!
+   Kode Penyebab: ku
+   Saran: Gunakan 'untuk array.statis'.
+=================================
+

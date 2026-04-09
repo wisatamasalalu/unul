@@ -1,0 +1,9 @@
+#!datang
+<wadah:layar_dashboard, @layar.utama>
+    <teks:t2, === CATATAN RAHASIA ===></teks>
+    <masukan:id_todo, Tugas Baru: ></masukan>
+    <tombol:btn_tambah, Tambah Tugas></tombol>
+    <teks:t3, Daftar Tugas Anda:></teks>
+    <wadah_dinamis:id_daftar_todo, @layar.utama></wadah_dinamis>
+</wadah>
+pergi!#

@@ -32,7 +32,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
         else if (strcmp(k, "tag") == 0) tag_nama = v->nilai.teks;
         else if (strcmp(k, "id") == 0) tag_id = v->nilai.teks;
         else if (strcmp(k, "atribut") == 0) atribut = v->nilai.teks;
-        else if (strcmp(k, "isi") == 0) teks_isi = v->nilai.teks;
+        else if (strcmp(k, "teks_input") == 0) teks_isi = v->nilai.teks;
         else if (strcmp(k, "anak_anak") == 0) anak_anak = v;
     }
     if (!jenis) return;
@@ -145,7 +145,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
         if (indeks_saya != -1) {
             int ada_isi = 0;
             for (int j = 0; j < elemen->panjang; j++) {
-                if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
+                if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
                     EnkiObject* v = elemen->nilai.objek_peta.konten[j];
                     if (v->nilai.teks) free(v->nilai.teks);
                     v->nilai.teks = strdup(daftar_nilai[indeks_saya]);
@@ -157,7 +157,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
                 elemen->panjang++;
                 elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
                 elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
-                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("isi");
+                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input");
                 elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(daftar_nilai[indeks_saya]);
             }
         }
