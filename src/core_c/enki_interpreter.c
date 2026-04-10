@@ -161,11 +161,14 @@ void proses_escape_teks(char* teks) {
 }
 
 // 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (VERSI BERSIH/SILENT)
+// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (PEMBUNUH KUTUKAN GANDA)
+// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (PEMBUNUH KUTUKAN GANDA V3)
 void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* teks_baru) {
     if (!elemen || elemen->tipe != ENKI_OBJEK) return;
     
     char* id_elemen = NULL;
     int atribut_idx = -1;
+    int teks_input_idx = -1;
     EnkiObject* anak_anak = NULL;
     
     for (int i = 0; i < elemen->panjang; i++) {
@@ -173,25 +176,36 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
         if (strcmp(k, "id") == 0 && elemen->nilai.objek_peta.konten[i]->tipe == ENKI_TEKS) {
             id_elemen = elemen->nilai.objek_peta.konten[i]->nilai.teks;
         }
-        if (strcmp(k, "atribut") == 0) {
-            atribut_idx = i;
-        }
-        if (strcmp(k, "anak_anak") == 0) {
-            anak_anak = elemen->nilai.objek_peta.konten[i];
-        }
+        if (strcmp(k, "atribut") == 0) atribut_idx = i;
+        if (strcmp(k, "teks_input") == 0) teks_input_idx = i;
+        if (strcmp(k, "anak_anak") == 0) anak_anak = elemen->nilai.objek_peta.konten[i];
     }
     
-    // Jika ID cocok, tembak langsung ke jantung atributnya!
+    // 🟢 JIKA ID COCOK, TEMBAK DAN BERTERIAKLAH!
     if (id_elemen && strcmp(id_elemen, target_id) == 0) {
+        printf("💥 [PISAU BEDAH C] KENA SASARAN! Berhasil meretas ID: '%s'\n", id_elemen);
+        
+        // SAKU 1: Hancurkan dan ganti Atribut
         if (atribut_idx != -1) {
             hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx]);
             elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru);
         } else {
-            // Jika atribut belum ada, buat baru
             elemen->panjang++;
             elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
             elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
             elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("atribut");
+            elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(teks_baru);
+        }
+        
+        // SAKU 2: Hancurkan dan ganti Teks Input
+        if (teks_input_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx]);
+            elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru);
+        } else {
+            elemen->panjang++;
+            elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
+            elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
+            elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input");
             elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(teks_baru);
         }
         return; 
@@ -1396,6 +1410,12 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         
         // 🟢 SUNTIKAN: Izinkan ketik() menerima Pipa Aliran!
         // 🟢 SUNTIKAN: Izinkan ketik() menerima Pipa Aliran!
+
+        // 🟢 Ciptakan portal gaib 'hampa' (NULL-nya UNUL)
+        if (strcmp(node->nilai_teks, "hampa") == 0) {
+            return ciptakan_kosong(); // Mengembalikan ENKI_KOSONG
+        }
+
         if (strcmp(node->nilai_teks, "ketik") == 0) {
             if (node->jumlah_anak > 0 && node->anak_anak[0] != NULL) {
                 EnkiObject* obj_hasil = evaluasi_ekspresi(node->anak_anak[0], ram);

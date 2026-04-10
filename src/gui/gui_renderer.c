@@ -91,30 +91,36 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
 
     else if (strcmp(jenis, "teks") == 0 || strcmp(tag_nama, "teks") == 0) {
         char* t = (strlen(teks_isi) > 0) ? teks_isi : atribut; 
-        
-        // 🟢 1. X-RAY TERMINAL: Cetak persis apa yang dilihat Raylib!
-        if (strcmp(tag_id, "id_daftar_todo") == 0) {
-            printf("🎨 [X-RAY] Raylib menerima teks: '%s'\n", t);
-        }
-
         char* teks_copy = strdup(t);
         
-        // 🟢 2. PENGHANCUR LITERAL: Jika UNUL mengirim '\' dan 'n', paksa jadi Enter Asli!
+        // 🟢 SANITASI DASAR
         for (int i = 0; teks_copy[i] != '\0'; i++) {
             if (teks_copy[i] == '\\' && teks_copy[i+1] == 'n') {
-                teks_copy[i] = ' ';       // Hapus backslash
-                teks_copy[i+1] = '\n';    // Ubah 'n' jadi Enter sungguhan
+                teks_copy[i] = ' '; teks_copy[i+1] = '\n';
+            }
+            // Ubah karakter gaib jadi tanda tanya (?)
+            if ((unsigned char)teks_copy[i] < 32 && teks_copy[i] != '\n') {
+                teks_copy[i] = '?'; 
             }
         }
         
         char* baris = strtok(teks_copy, "\n");
         
         while (baris != NULL) {
-            // 🟢 3. X-RAY GRAFIS: Kotak Magenta Menyala + Teks Putih (MUSTAHIL SEMBUNYI!)
-            DrawRectangle(*x_kursor - 5, *y_kursor - 2, 400, 25, MAGENTA);
-            DrawText(baris, *x_kursor, *y_kursor, 20, WHITE); 
+            while (*baris == ' ') baris++;
             
-            *y_kursor += 30; // Jarak ke bawah
+            if (strlen(baris) > 0) {
+                // 1. GAMBAR BACKGROUND HITAM
+                DrawRectangle(*x_kursor - 5, *y_kursor - 2, 500, 25, BLACK);
+                
+                // 2. GAMBAR TEKS ASLI (WARNA HIJAU)
+                DrawText(baris, *x_kursor, *y_kursor, 20, GREEN); 
+                
+                // 3. 🚨 TEKS BUKTI HARDCODE (WARNA MERAH)! 🚨
+                DrawText("<-- BUKTI RAYLIB JALAN!", *x_kursor + 250, *y_kursor, 20, RED);
+            }
+            
+            *y_kursor += 30; // Jarak antar tugas
             baris = strtok(NULL, "\n");
         }
         

@@ -55,9 +55,14 @@ putus
 ciptakan fungsi muat_tugas_ke_layar(nama_user) maka
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
     takdir.soft teks_gabungan = ""
+    takdir.soft batas = panjang(daftar_ku)
     
-    jika panjang(daftar_ku) != 0 maka
-        takdir.soft batas = panjang(daftar_ku)
+    ^^ 🟢 INTEROGASI TINGKAT TINGGI!
+    ketik("🔥 [INVESTIGASI UNUL] Memuat tugas untuk: " + nama_user)
+    ketik("🔥 [INVESTIGASI UNUL] Panjang Array (batas): " + batas)
+    
+    ^^ Kita paksa saja loop-nya berjalan berapapun angkanya untuk membuktikan!
+    jika batas > 0 maka
         takdir.soft i = 1
         siklus selama i <= batas maka
             takdir.soft teks_asli = dekripsi(daftar_ku[i], KUNCI)
@@ -65,13 +70,16 @@ ciptakan fungsi muat_tugas_ke_layar(nama_user) maka
             i = i + 1
         putus
     lain maka
-        teks_gabungan = "- Belum ada tugas -"
+        teks_gabungan = "- Belum ada tugas (Paksaan) -"
     putus
 
     ketik("🔥 [SUNTIK DOM] Mengirim sinyal peretas RAM C...")
     
-    ^^ 🟢 TEMBAK LANGSUNG KE VARIABEL GLOBAL ui_dashboard!
+    ^^ 🟢 TEMBAK MASTER-NYA!
     retas_memori_dom(ui_dashboard, "id_daftar_todo", teks_gabungan)
+
+    ^^ 🟢 TEMBAK KLONINGANNYA YANG SEDANG TAMPIL DI LAYAR!
+    retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_gabungan)
 putus
 
 ^^ ==========================================
