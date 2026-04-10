@@ -71,21 +71,50 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
     }
 
     if (strcmp(tag_nama, "wadah") == 0 || strcmp(tag_nama, "wadah_dinamis") == 0) {
-        int jumlah_anak = (anak_anak && anak_anak->tipe == ENKI_ARRAY) ? anak_anak->panjang : 0;
-        int tinggi_asumsi = 40 + (jumlah_anak * 45); 
+        
+        // 🟢 HITUNG TINGGI DINAMIS (Anti-Overlap Wadah!)
+        int tinggi_dinamis = 40;
+        if (anak_anak && anak_anak->tipe == ENKI_ARRAY) {
+            for (int i = 0; i < anak_anak->panjang; i++) {
+                tinggi_dinamis += 50; // Tinggi dasar per elemen
+                
+                // Jika elemennya teks, hitung berapa banyak baris Enter-nya!
+                EnkiObject* child = anak_anak->nilai.array_elemen[i];
+                char* t_isi = ""; char* tg = "";
+                for (int j = 0; j < child->panjang; j++) {
+                    char* k = child->nilai.objek_peta.kunci[j]->nilai.teks;
+                    if (strcmp(k, "teks_input") == 0) t_isi = child->nilai.objek_peta.konten[j]->nilai.teks;
+                    if (strcmp(k, "tag") == 0) tg = child->nilai.objek_peta.konten[j]->nilai.teks;
+                }
+                
+                // 👇👇👇 INI BAGIAN YANG BERUBAH 👇👇👇
+                if (strcmp(tg, "teks") == 0) {
+                    for (int k = 0; t_isi[k] != '\0'; k++) {
+                        // 🟢 TANGKAP ENTER ASLI DARI UNUL!
+                        if (t_isi[k] == '\n') tinggi_dinamis += 30; 
+                        else if (t_isi[k] == '\\' && t_isi[k+1] == 'n') tinggi_dinamis += 30;
+                    }
+                }
+                // 👆👆👆 INI BAGIAN YANG BERUBAH 👆👆👆
+            }
+        }
 
-        Rectangle area = { (float)*x_kursor, (float)*y_kursor, 500, (float)tinggi_asumsi };
+        // Gambar Wadah
+        Rectangle area = { (float)*x_kursor, (float)*y_kursor, 600, (float)tinggi_dinamis };
         if (warna_latar.a != 0) DrawRectangleRounded(area, 0.1f, 10, warna_latar); 
         if (bingkai_ganda) DrawRectangleRoundedLines(area, 0.1f, 10, warna_teks);
 
         int awal_y = *y_kursor;
         *x_kursor += 20; *y_kursor += 20; 
+        
+        // Gambar Anak-Anaknya
         if (anak_anak) {
             for (int i = 0; i < anak_anak->panjang; i++) {
                 gambar_elemen_otim(anak_anak->nilai.array_elemen[i], gaya, x_kursor, y_kursor, mouse, klik_kiri, aksi_kembalian, warna_teks); 
             }
         }
-        *y_kursor = awal_y + tinggi_asumsi + 20; 
+        
+        *y_kursor = awal_y + tinggi_dinamis + 20; 
         *x_kursor -= 20; 
     }
 
@@ -93,34 +122,27 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
         char* t = (strlen(teks_isi) > 0) ? teks_isi : atribut; 
         char* teks_copy = strdup(t);
         
-        // 🟢 SANITASI DASAR
+        // 🟢 SANITASI DASAR (WAJIB DIPERTAHANKAN AGAR RAYLIB TIDAK BUTA!)
         for (int i = 0; teks_copy[i] != '\0'; i++) {
             if (teks_copy[i] == '\\' && teks_copy[i+1] == 'n') {
                 teks_copy[i] = ' '; teks_copy[i+1] = '\n';
             }
-            // Ubah karakter gaib jadi tanda tanya (?)
+            // Hancurkan Hantu Memori (Garbage Bytes)
             if ((unsigned char)teks_copy[i] < 32 && teks_copy[i] != '\n') {
                 teks_copy[i] = '?'; 
             }
         }
         
         char* baris = strtok(teks_copy, "\n");
-        
         while (baris != NULL) {
-            while (*baris == ' ') baris++;
+            while (*baris == ' ') baris++; // Bersihkan spasi depan
             
             if (strlen(baris) > 0) {
-                // 1. GAMBAR BACKGROUND HITAM
-                DrawRectangle(*x_kursor - 5, *y_kursor - 2, 500, 25, BLACK);
-                
-                // 2. GAMBAR TEKS ASLI (WARNA HIJAU)
-                DrawText(baris, *x_kursor, *y_kursor, 20, GREEN); 
-                
-                // 3. 🚨 TEKS BUKTI HARDCODE (WARNA MERAH)! 🚨
-                DrawText("<-- BUKTI RAYLIB JALAN!", *x_kursor + 250, *y_kursor, 20, RED);
+                // 🟢 HANYA MENGGUNAKAN WARNA DARI SNUL (TIDAK ADA HARDCODE!)
+                DrawText(baris, *x_kursor, *y_kursor, 20, warna_teks); 
             }
             
-            *y_kursor += 30; // Jarak antar tugas
+            *y_kursor += 30; // Dorong kursor ke bawah
             baris = strtok(NULL, "\n");
         }
         
@@ -238,13 +260,24 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
     char aksi_kembalian[256] = "";
     Vector2 mouse = GetMousePosition();
     bool klik_kiri = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-    int x_mulai = 40, y_mulai = 40;
+    
+    // 🟢 FITUR SCROLLING SEDERHANA! (Membaca roda mouse)
+    static float scroll_y = 0;
+    scroll_y += GetMouseWheelMove() * 40.0f; // Kecepatan scroll
+    if (scroll_y > 0) scroll_y = 0;          // Kunci batas atas agar tidak bablas ke bawah
+
+    // Kursor awal tidak lagi statis 40, tapi dipengaruhi oleh roda mouse!
+    int x_mulai = 40;
+    int y_mulai = 40 + (int)scroll_y; 
 
     BeginDrawing();
     ClearBackground(RAYWHITE); 
+    
     if (ui_root && ui_root->tipe == ENKI_OBJEK) {
+        // Semua elemen akan digambar mengikuti arus scroll
         gambar_elemen_otim(ui_root, gaya_root, &x_mulai, &y_mulai, mouse, klik_kiri, aksi_kembalian, BLACK);
     }
+    
     EndDrawing();
 
     if (WindowShouldClose()) { strcpy(aksi_kembalian, "TUTUP_PAKSA"); CloseWindow(); }

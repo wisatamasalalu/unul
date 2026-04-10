@@ -18,7 +18,6 @@ takdir.soft db_file = "database.imah"
 ciptakan fungsi login(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    
     jika sandi_tersimpan != "" maka
         jika sandi_aman == sandi_tersimpan maka pulang 1
         lain maka pulang 0 putus
@@ -27,7 +26,6 @@ putus
 
 ciptakan fungsi register(nama_user, sandi_mentah) maka
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    
     jika sandi_tersimpan != "" maka pulang 0
     lain maka
         takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
@@ -39,30 +37,22 @@ putus
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
-    
     jika panjang(daftar_ku) == 0 maka
         daftar_ku = []
     putus
-    
     tambah_array(daftar_ku, tugas_rahasia)
     tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
-    ketik("💾 [DATABASE] Tugas berhasil ditanam di dimensi IMAH!")
 putus
 
 ^^ ==========================================
-^^ FUNGSI PEMUAT TUGAS (NATIVE DOM INJECTION)
+^^ 🟢 FUNGSI BARU: HANYA MENGAMBIL TEKS SAJA!
 ^^ ==========================================
-ciptakan fungsi muat_tugas_ke_layar(nama_user) maka
+ciptakan fungsi ambil_tugas_sebagai_teks(nama_user) maka
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
     takdir.soft teks_gabungan = ""
-    takdir.soft batas = panjang(daftar_ku)
     
-    ^^ 🟢 INTEROGASI TINGKAT TINGGI!
-    ketik("🔥 [INVESTIGASI UNUL] Memuat tugas untuk: " + nama_user)
-    ketik("🔥 [INVESTIGASI UNUL] Panjang Array (batas): " + batas)
-    
-    ^^ Kita paksa saja loop-nya berjalan berapapun angkanya untuk membuktikan!
-    jika batas > 0 maka
+    jika panjang(daftar_ku) != 0 maka
+        takdir.soft batas = panjang(daftar_ku)
         takdir.soft i = 1
         siklus selama i <= batas maka
             takdir.soft teks_asli = dekripsi(daftar_ku[i], KUNCI)
@@ -70,16 +60,11 @@ ciptakan fungsi muat_tugas_ke_layar(nama_user) maka
             i = i + 1
         putus
     lain maka
-        teks_gabungan = "- Belum ada tugas (Paksaan) -"
+        teks_gabungan = "- Belum ada tugas -"
     putus
 
-    ketik("🔥 [SUNTIK DOM] Mengirim sinyal peretas RAM C...")
-    
-    ^^ 🟢 TEMBAK MASTER-NYA!
-    retas_memori_dom(ui_dashboard, "id_daftar_todo", teks_gabungan)
-
-    ^^ 🟢 TEMBAK KLONINGANNYA YANG SEDANG TAMPIL DI LAYAR!
-    retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_gabungan)
+    ^^ Kembalikan teksnya, jangan retas memori di sini!
+    pulang teks_gabungan
 putus
 
 ^^ ==========================================
@@ -110,16 +95,17 @@ siklus selama aplikasi_hidup == 1 maka
                 ketik("✅ BERHASIL LOGIN!")
                 user_aktif = input_nama
                 
-                ^^ 🟢 MEMUAT TUGAS! (Otomatis meretas ui_dashboard)
-                muat_tugas_ke_layar(user_aktif)
-                
+                ^^ 1. Pindah layar dulu
                 layar_sekarang = ""
                 layar_sekarang = ui_dashboard  
+                
+                ^^ 2. 🟢 RETAS LAYAR SEKARANG SETELAH DISALIN!
+                takdir.soft teks_tugas = ambil_tugas_sebagai_teks(user_aktif)
+                retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_tugas)
+                
             lain maka
                 ketik("❌ GAGAL LOGIN! Sandi salah.")
             putus
-        lain maka
-            ketik("🚨 TOLAK: Nama tidak boleh kosong!")
         putus
     putus
     
@@ -129,22 +115,9 @@ siklus selama aplikasi_hidup == 1 maka
         takdir.soft input_sandi = ambil_nilai_ui(layar_sekarang, "id_sandi")
         takdir.soft input_konfirm = ambil_nilai_ui(layar_sekarang, "id_sandi_konfirm")
         
-        jika input_nama != "" maka
-            jika input_sandi == input_konfirm maka
-                jika input_sandi != "" maka
-                    jika register(input_nama, input_sandi) == 1 maka
-                        ketik("✅ PENDAFTARAN SUKSES! Silakan klik Masuk Sistem.")
-                    lain maka
-                        ketik("❌ PENDAFTARAN GAGAL! Pengguna sudah ada.")
-                    putus
-                lain maka
-                    ketik("🚨 TOLAK: Sandi tidak boleh kosong!")
-                putus
-            lain maka
-                ketik("🚨 TOLAK: Konfirmasi sandi tidak cocok!")
-            putus
-        lain maka
-            ketik("🚨 TOLAK: Nama tidak boleh kosong!")
+        jika input_nama != "" dan input_sandi == input_konfirm maka
+            register(input_nama, input_sandi)
+            ketik("✅ PENDAFTARAN SUKSES!")
         putus
     putus
     
@@ -153,22 +126,20 @@ siklus selama aplikasi_hidup == 1 maka
         takdir.soft teks_baru = ambil_nilai_ui(layar_sekarang, "id_todo")
         
         jika teks_baru != "" maka
-            ketik("Menyimpan tugas: " + teks_baru)
             tambah_todo(user_aktif, teks_baru)
             
-            ^^ 🟢 MEMUAT TUGAS BARU! (Otomatis meretas ui_dashboard)
-            muat_tugas_ke_layar(user_aktif)
-            
+            ^^ 1. Reset layar ke dashboard asli
             layar_sekarang = ""
             layar_sekarang = ui_dashboard
-        lain maka
-            ketik("🚨 TOLAK: Tugas tidak boleh kosong!")
+            
+            ^^ 2. 🟢 RETAS LAYAR SEKARANG SETELAH DISALIN!
+            takdir.soft teks_tugas = ambil_tugas_sebagai_teks(user_aktif)
+            retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_tugas)
         putus
     putus
 
     ^^ ---------------- D. AKSI KELUAR ----------------
     jika respon.aksi == "btn_keluar" maka
-        ketik("👋 Keluar dari akun: " + user_aktif)
         user_aktif = ""
         layar_sekarang = ""
         layar_sekarang = ui_login
@@ -180,5 +151,3 @@ ketik("Jendela ditutup. Membebaskan dimensi...")
 pasrah
 jeda "1s"
 pergi
-
-ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")
