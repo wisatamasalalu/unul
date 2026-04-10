@@ -281,5 +281,11 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
     EndDrawing();
 
     if (WindowShouldClose()) { strcpy(aksi_kembalian, "TUTUP_PAKSA"); CloseWindow(); }
+
+    // 🟢 SUNTIKAN ANTI-BLANK: Jika ada tombol ditekan, kembalikan scroll ke paling atas!
+    if (strlen(aksi_kembalian) > 0) {
+        scroll_y = 0; 
+    }
+
     return strdup(aksi_kembalian);
 }
