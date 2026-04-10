@@ -160,6 +160,51 @@ void proses_escape_teks(char* teks) {
     *tulis = '\0';
 }
 
+// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (VERSI BERSIH/SILENT)
+void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* teks_baru) {
+    if (!elemen || elemen->tipe != ENKI_OBJEK) return;
+    
+    char* id_elemen = NULL;
+    int atribut_idx = -1;
+    EnkiObject* anak_anak = NULL;
+    
+    for (int i = 0; i < elemen->panjang; i++) {
+        char* k = elemen->nilai.objek_peta.kunci[i]->nilai.teks;
+        if (strcmp(k, "id") == 0 && elemen->nilai.objek_peta.konten[i]->tipe == ENKI_TEKS) {
+            id_elemen = elemen->nilai.objek_peta.konten[i]->nilai.teks;
+        }
+        if (strcmp(k, "atribut") == 0) {
+            atribut_idx = i;
+        }
+        if (strcmp(k, "anak_anak") == 0) {
+            anak_anak = elemen->nilai.objek_peta.konten[i];
+        }
+    }
+    
+    // Jika ID cocok, tembak langsung ke jantung atributnya!
+    if (id_elemen && strcmp(id_elemen, target_id) == 0) {
+        if (atribut_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx]);
+            elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru);
+        } else {
+            // Jika atribut belum ada, buat baru
+            elemen->panjang++;
+            elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
+            elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
+            elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("atribut");
+            elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(teks_baru);
+        }
+        return; 
+    }
+    
+    // Menyelam ke anak-anaknya
+    if (anak_anak && anak_anak->tipe == ENKI_ARRAY) {
+        for (int i = 0; i < anak_anak->panjang; i++) {
+            sihir_suntik_dom(anak_anak->nilai.array_elemen[i], target_id, teks_baru);
+        }
+    }
+}
+
 // 🌌 FUNGSI HELPER: PEMBANGUN DIMENSI URANTIA (REKURSIF)
 // Menggali objek terdalam dan membuatkan Mini RAM untuk masing-masing lapisan
 void sihir_bangun_dimensi(KavlingMemori* kavling, EnkiObject* nilai, EnkiRAM* ram_pusat) {
@@ -2018,15 +2063,20 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
                 if (is_enkripsi) {
                     // ENKRIPSI: Teks -> XOR -> Base64
-                    char* teks_copy = strdup(obj_teks->nilai.teks);
-                    mutasi_xor(teks_copy, strlen(teks_copy), obj_kunci->nilai.teks);
                     
-                    // 🟢 KOREKSI 1: Tampung hasil string mentah, ubah jadi Objek, lalu bebaskan mentahnya
-                    char* b64_mentah = proses_ke_base64((unsigned char*)teks_copy, strlen(teks_copy));
+                    // 🟢 1. SIMPAN PANJANG ASLI SEBELUM DIMUTASI!
+                    size_t panjang_asli = strlen(obj_teks->nilai.teks);
+                    char* teks_copy = strdup(obj_teks->nilai.teks);
+                    
+                    // 🟢 2. GUNAKAN 'panjang_asli', BUKAN 'strlen' LAGI!
+                    mutasi_xor(teks_copy, panjang_asli, obj_kunci->nilai.teks);
+                    char* b64_mentah = proses_ke_base64((unsigned char*)teks_copy, panjang_asli);
+                    
                     hasil = ciptakan_teks(b64_mentah);
                     free(b64_mentah); 
                     free(teks_copy);
                 } else {
+                    
                     // DEKRIPSI: Base64 -> Biner -> XOR -> Teks
                     // 🟢 KOREKSI 2: Gunakan penampung ukuran untuk fungsi Base64
                     size_t ukuran_biner = 0;
@@ -2932,6 +2982,33 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
             free(id_hasil);
             return obj_kembalian;
+        }
+
+        // =======================================================
+        // 🌐 SIHIR DOM (NATIVE C) - INJEKSI RAM LANGSUNG
+        // =======================================================
+        else if (strcmp(node->nilai_teks, "retas_memori_dom") == 0) {
+            if (node->jumlah_anak < 3) return ciptakan_kosong();
+            
+            // 🟢 BYPASS EVALUATOR! Tangkap nama variabel murni!
+            if (node->anak_anak[0]->jenis != AST_IDENTITAS) return ciptakan_kosong();
+            char* nama_var = node->anak_anak[0]->nilai_teks;
+            
+            // 🟢 TEMBUS LANGSUNG KE RAM GLOBAL!
+            EnkiObject** pointer_asli = temukan_pointer_asli(ram, nama_var);
+            
+            EnkiObject* obj_id = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[2], ram);
+            
+            if (pointer_asli && *pointer_asli && obj_id->tipe == ENKI_TEKS && obj_teks->tipe == ENKI_TEKS) {
+                printf("🔥 [C RAM HACK] Meretas variabel '%s' langsung di memori...\n", nama_var);
+                sihir_suntik_dom(*pointer_asli, obj_id->nilai.teks, obj_teks->nilai.teks);
+            }
+            
+            if (obj_id) hancurkan_objek(obj_id);
+            if (obj_teks) hancurkan_objek(obj_teks);
+            
+            return ciptakan_kosong(); 
         }
 
         // =======================================================

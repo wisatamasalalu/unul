@@ -88,11 +88,40 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya, int* x_kursor, int
         *y_kursor = awal_y + tinggi_asumsi + 20; 
         *x_kursor -= 20; 
     }
+
     else if (strcmp(jenis, "teks") == 0 || strcmp(tag_nama, "teks") == 0) {
         char* t = (strlen(teks_isi) > 0) ? teks_isi : atribut; 
-        DrawText(t, *x_kursor, *y_kursor, 20, warna_teks);
-        *y_kursor += 35; 
+        
+        // 🟢 1. X-RAY TERMINAL: Cetak persis apa yang dilihat Raylib!
+        if (strcmp(tag_id, "id_daftar_todo") == 0) {
+            printf("🎨 [X-RAY] Raylib menerima teks: '%s'\n", t);
+        }
+
+        char* teks_copy = strdup(t);
+        
+        // 🟢 2. PENGHANCUR LITERAL: Jika UNUL mengirim '\' dan 'n', paksa jadi Enter Asli!
+        for (int i = 0; teks_copy[i] != '\0'; i++) {
+            if (teks_copy[i] == '\\' && teks_copy[i+1] == 'n') {
+                teks_copy[i] = ' ';       // Hapus backslash
+                teks_copy[i+1] = '\n';    // Ubah 'n' jadi Enter sungguhan
+            }
+        }
+        
+        char* baris = strtok(teks_copy, "\n");
+        
+        while (baris != NULL) {
+            // 🟢 3. X-RAY GRAFIS: Kotak Magenta Menyala + Teks Putih (MUSTAHIL SEMBUNYI!)
+            DrawRectangle(*x_kursor - 5, *y_kursor - 2, 400, 25, MAGENTA);
+            DrawText(baris, *x_kursor, *y_kursor, 20, WHITE); 
+            
+            *y_kursor += 30; // Jarak ke bawah
+            baris = strtok(NULL, "\n");
+        }
+        
+        free(teks_copy);
+        *y_kursor += 15; 
     }
+
     else if (strcmp(tag_nama, "masukan") == 0 || strcmp(tag_nama, "masukan_sandi") == 0) {
         DrawText(atribut, *x_kursor, *y_kursor, 20, warna_teks);
         Rectangle area = { (float)*x_kursor + 200, (float)*y_kursor - 5, 250, 30 };

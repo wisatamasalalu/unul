@@ -1,11 +1,11 @@
 ^^ ==========================================
-^^ UJIAN MUTLAK: TUI TODO LIST MULTI-USER (SPA MODE)
+^^ UJIAN MUTLAK: GUI TODO LIST MULTI-USER (SPA MODE)
 ^^ ==========================================
+
 untuk array.statis
 untuk array.dinamis
 butuh .anu
-sowan bridge
-
+sowan bridge  
 
 takdir.soft ui_login = muat_otim("login.otim")
 takdir.soft ui_dashboard = muat_otim("dashboard.otim")
@@ -18,15 +18,17 @@ takdir.soft db_file = "database.imah"
 ciptakan fungsi login(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    jika sandi_tersimpan maka
-        jika cocok(sandi_aman, sandi_tersimpan) maka pulang 1
+    
+    jika sandi_tersimpan != "" maka
+        jika sandi_aman == sandi_tersimpan maka pulang 1
         lain maka pulang 0 putus
     lain maka pulang 0 putus
 putus
 
 ciptakan fungsi register(nama_user, sandi_mentah) maka
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    jika sandi_tersimpan maka pulang 0
+    
+    jika sandi_tersimpan != "" maka pulang 0
     lain maka
         takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
         tanam_imah(db_file, "pengguna." + nama_user, sandi_aman)
@@ -37,87 +39,132 @@ putus
 ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     takdir.soft tugas_rahasia = enkripsi(teks_tugas, KUNCI)
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
-    coba maka
-        tambah_array(daftar_ku, tugas_rahasia)
-        tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
-    tabu melanggar e maka
-        takdir.soft daftar_baru = []
-        tambah_array(daftar_baru, tugas_rahasia)
-        tanam_imah(db_file, "tugas." + nama_user, daftar_baru)
-    tebus maka pasrah
+    
+    jika panjang(daftar_ku) == 0 maka
+        daftar_ku = []
+    putus
+    
+    tambah_array(daftar_ku, tugas_rahasia)
+    tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
+    ketik("💾 [DATABASE] Tugas berhasil ditanam di dimensi IMAH!")
 putus
 
 ^^ ==========================================
-^^ EKSEKUSI TUI & JANTUNG GUI (STATE ROUTER)
+^^ FUNGSI PEMUAT TUGAS (NATIVE DOM INJECTION)
+^^ ==========================================
+ciptakan fungsi muat_tugas_ke_layar(nama_user) maka
+    takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
+    takdir.soft teks_gabungan = ""
+    
+    jika panjang(daftar_ku) != 0 maka
+        takdir.soft batas = panjang(daftar_ku)
+        takdir.soft i = 1
+        siklus selama i <= batas maka
+            takdir.soft teks_asli = dekripsi(daftar_ku[i], KUNCI)
+            teks_gabungan = teks_gabungan + "- " + teks_asli + "\n"
+            i = i + 1
+        putus
+    lain maka
+        teks_gabungan = "- Belum ada tugas -"
+    putus
+
+    ketik("🔥 [SUNTIK DOM] Mengirim sinyal peretas RAM C...")
+    
+    ^^ 🟢 TEMBAK LANGSUNG KE VARIABEL GLOBAL ui_dashboard!
+    retas_memori_dom(ui_dashboard, "id_daftar_todo", teks_gabungan)
+putus
+
+^^ ==========================================
+^^ EKSEKUSI GUI (STATE ROUTER)
 ^^ ==========================================
 
 takdir.soft aplikasi_hidup = 1
-takdir.soft layar_sekarang = ui_login
+takdir.soft layar_sekarang = ""
+layar_sekarang = ui_login
 takdir.soft user_aktif = ""            
 
 siklus selama aplikasi_hidup == 1 maka
     
     takdir.soft respon = tampilkan_gui(layar_sekarang, gaya_utama)
+    layar_sekarang = respon.ui
     
-        ketik("DEBUG: respon.aksi = " + respon.aksi)
-        takdir.soft test_anak = ku(respon.ui, "anak_anak")  
-        jika test_anak == "" maka
-            ketik("DEBUG: respon.ui tidak memiliki anak_anak!")
-        lain maka
-            ketik("DEBUG: Jumlah anak = " + panjang(test_anak))
-        putus
-
     jika respon.aksi == "TUTUP_PAKSA" maka
         aplikasi_hidup = 0
     putus
     
+    ^^ ---------------- A. AKSI MASUK ----------------
     jika respon.aksi == "btn_masuk" maka
-        ^^ Gunakan respon.ui, bukan layar_sekarang
-        takdir.soft input_nama = ambil_nilai_ui(respon.ui, "id_nama")
-        takdir.soft input_sandi = ambil_nilai_ui(respon.ui, "id_sandi")
+        takdir.soft input_nama = ambil_nilai_ui(layar_sekarang, "id_nama")
+        takdir.soft input_sandi = ambil_nilai_ui(layar_sekarang, "id_sandi")
         
         jika input_nama != "" maka
             jika login(input_nama, input_sandi) == 1 maka
-                ketik("✅ BERHASIL LOGIN! Selamat datang, " + input_nama)
+                ketik("✅ BERHASIL LOGIN!")
                 user_aktif = input_nama
-                layar_sekarang = ui_dashboard  ^^ Ganti layar
+                
+                ^^ 🟢 MEMUAT TUGAS! (Otomatis meretas ui_dashboard)
+                muat_tugas_ke_layar(user_aktif)
+                
+                layar_sekarang = ""
+                layar_sekarang = ui_dashboard  
             lain maka
-                ketik("❌ GAGAL LOGIN! Sandi salah untuk: " + input_nama)
+                ketik("❌ GAGAL LOGIN! Sandi salah.")
             putus
         lain maka
             ketik("🚨 TOLAK: Nama tidak boleh kosong!")
         putus
     putus
     
+    ^^ ---------------- B. AKSI DAFTAR ----------------
     jika respon.aksi == "btn_daftar" maka
-        takdir.soft input_nama = ambil_nilai_ui(respon.ui, "id_nama")
-        takdir.soft input_sandi = ambil_nilai_ui(respon.ui, "id_sandi")
+        takdir.soft input_nama = ambil_nilai_ui(layar_sekarang, "id_nama")
+        takdir.soft input_sandi = ambil_nilai_ui(layar_sekarang, "id_sandi")
+        takdir.soft input_konfirm = ambil_nilai_ui(layar_sekarang, "id_sandi_konfirm")
         
         jika input_nama != "" maka
-            jika register(input_nama, input_sandi) == 1 maka
-                ketik("✅ PENDAFTARAN SUKSES! Silakan klik Masuk Sistem.")
+            jika input_sandi == input_konfirm maka
+                jika input_sandi != "" maka
+                    jika register(input_nama, input_sandi) == 1 maka
+                        ketik("✅ PENDAFTARAN SUKSES! Silakan klik Masuk Sistem.")
+                    lain maka
+                        ketik("❌ PENDAFTARAN GAGAL! Pengguna sudah ada.")
+                    putus
+                lain maka
+                    ketik("🚨 TOLAK: Sandi tidak boleh kosong!")
+                putus
             lain maka
-                ketik("❌ PENDAFTARAN GAGAL! User sudah ada: " + input_nama)
+                ketik("🚨 TOLAK: Konfirmasi sandi tidak cocok!")
             putus
         lain maka
             ketik("🚨 TOLAK: Nama tidak boleh kosong!")
         putus
     putus
     
+    ^^ ---------------- C. AKSI TAMBAH TUGAS ----------------
     jika respon.aksi == "btn_tambah" maka
-        ^^ Dashboard juga pakai respon.ui
-        takdir.soft teks_baru = ambil_nilai_ui(respon.ui, "id_todo")
+        takdir.soft teks_baru = ambil_nilai_ui(layar_sekarang, "id_todo")
         
         jika teks_baru != "" maka
             ketik("Menyimpan tugas: " + teks_baru)
             tambah_todo(user_aktif, teks_baru)
+            
+            ^^ 🟢 MEMUAT TUGAS BARU! (Otomatis meretas ui_dashboard)
+            muat_tugas_ke_layar(user_aktif)
+            
+            layar_sekarang = ""
+            layar_sekarang = ui_dashboard
         lain maka
             ketik("🚨 TOLAK: Tugas tidak boleh kosong!")
         putus
     putus
 
-    ^^ Opsional: simpan UI yang sudah diisi sebagai state layar saat ini
-    layar_sekarang = respon.ui
+    ^^ ---------------- D. AKSI KELUAR ----------------
+    jika respon.aksi == "btn_keluar" maka
+        ketik("👋 Keluar dari akun: " + user_aktif)
+        user_aktif = ""
+        layar_sekarang = ""
+        layar_sekarang = ui_login
+    putus
 
 putus
 

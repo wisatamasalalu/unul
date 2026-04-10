@@ -1,67 +1,29 @@
 ^^ ==========================================
-^^ JEMBATAN DIMENSI UI (DOM PARSER SAPU JAGAT)
+^^ STANDARD LIBRARY: JEMBATAN DOM GUI (bridge.unll)
 ^^ ==========================================
 
-untuk array.dinamis
 untuk array.statis
+untuk array.dinamis
 
-^^ 1. EKSTRAKTOR AMAN (Anti Segfault C)
-ciptakan fungsi ambil_properti(obj, kunci_dicari) maka
-    jika obj == "" maka pulang "" putus
+ciptakan fungsi ambil_nilai_ui(elemen, target_id) maka
+    ^^ 1. Pastikan elemen ini adalah tag sebelum membaca ID-nya (Anti Segfault)
+    jika elemen.jenis == "tag" maka
+        jika elemen.id == target_id maka
+            pulang elemen.teks_input
+        putus
+    putus
     
-    takdir.soft daftar_kunci = ku(obj)
-    takdir.soft daftar_nilai = ko(obj)
-    
-    jika daftar_kunci == "" maka pulang "" putus
-    
-    takdir.soft batas = panjang(daftar_kunci)
-    takdir.soft i = 1 ^^ Array UNUL mulai dari 1
+    ^^ 2. Semua elemen pasti punya anak_anak (meskipun kosong)
+    takdir.soft anak = elemen.anak_anak
+    takdir.soft batas = panjang(anak)
+    takdir.soft i = 1
     
     siklus selama i <= batas maka
-        jika daftar_kunci[i] == kunci_dicari maka
-            pulang daftar_nilai[i]
+        takdir.soft hasil = ambil_nilai_ui(anak[i], target_id)
+        jika hasil != "" maka
+            pulang hasil
         putus
         i = i + 1
-    putus
-    
-    pulang ""
-putus
-
-^^ 2. JEMBATAN PENELUSUR DOM
-ciptakan fungsi ambil_nilai_ui(elemen, target_id) maka
-    jika elemen == "" maka pulang "" putus
-
-    ^^ 1. Ambil ID dengan aman
-    takdir.soft el_id = ambil_properti(elemen, "id")
-    
-    jika el_id == target_id maka
-        ^^ BINGO! Coba ambil teks_input, kalau kosong coba ambil "isi"
-        takdir.soft teks = ambil_properti(elemen, "teks_input")
-        jika teks == "" maka teks = ambil_properti(elemen, "isi") putus
-        
-        ketik("🎯 BINGO! Menemukan ID: " + target_id)
-        pulang teks
-    putus
-    
-    ^^ 2. SAPU JAGAT ANAK: Coba cari "anak_anak", kalau gagal cari "anak" !
-    takdir.soft turunan = ambil_properti(elemen, "anak_anak")
-    jika turunan == "" maka
-        turunan = ambil_properti(elemen, "anak")
-    putus
-    
-    jika turunan != "" maka
-        takdir.soft batas_anak = panjang(turunan)
-        takdir.soft j = 1  ^^ Array UNUL mulai dari 1
-        
-        siklus selama j <= batas_anak maka
-            takdir.soft hasil = ambil_nilai_ui(turunan[j], target_id)
-            
-            jika hasil != "" maka
-                pulang hasil
-            putus
-            
-            j = j + 1
-        putus
     putus
     
     pulang ""

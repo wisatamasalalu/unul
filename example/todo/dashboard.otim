@@ -4,6 +4,8 @@
     <masukan:id_todo, Tugas Baru: ></masukan>
     <tombol:btn_tambah, Tambah Tugas></tombol>
     <teks:t3, Daftar Tugas Anda:></teks>
-    <wadah_dinamis:id_daftar_todo, @layar.utama></wadah_dinamis>
+    <teks:id_daftar_todo, - Belum ada tugas -></teks>
+    ^^ 🟢 TAMBAHAN TOMBOL KELUAR:
+    <tombol:btn_keluar, Keluar Akun></tombol>
 </wadah>
 pergi!#
