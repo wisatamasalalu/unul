@@ -321,3 +321,38 @@ Penyebab Kiamat ini:
 💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
 =================================
 
+=== [WAKTU KIAMAT: 1775927903] ===
+🚨 [./lib/bridge.unll: Baris 17:31] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: anak_anak
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1775937290] ===
+🚨 [app.unul: Baris 14:27] KIAMAT SINTAKSIS: Kiamat Sintaksis OTIM
+   Kode Penyebab: muat_otim
+   Saran: Sintaks file .otim hancur berantakan! Mesin menolak membacanya.
+=================================
+
+=== [WAKTU KIAMAT: 1775937295] ===
+🚨 [app.unul: Baris 14:27] KIAMAT SINTAKSIS: Kiamat Sintaksis OTIM
+   Kode Penyebab: muat_otim
+   Saran: Sintaks file .otim hancur berantakan! Mesin menolak membacanya.
+=================================
+
+=== [WAKTU KIAMAT: 1775937639] ===
+🚨 [app.unul: Baris 30:6] KIAMAT SINTAKSIS: Variabel 'respon' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: respon
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+

@@ -1,0 +1,11 @@
+#!datang
+<wadah:layar_register, @layar.utama>
+    <teks:t1> === PENDAFTARAN URANTIA === </teks>
+    <masukan:id_nama> Nama Baru : </masukan>
+    <masukan_sandi:id_sandi> Sandi Baru : </masukan_sandi>
+    <masukan_sandi:id_sandi_konfirm> Ulangi Sandi : </masukan_sandi>
+    <teks:id_notif, @teks.peringatan> </teks>
+    <tombol:btn_daftar, @tombol> Daftarkan Saya! </tombol>
+    <tombol:pindah_login, @tombol> Kembali ke Login </tombol>
+</wadah>
+pergi!#

@@ -1,11 +1,16 @@
 #!datang
 <wadah:layar_login, @layar.utama>
-    <teks:t1, === PORTAL TODO URANTIA ===></teks>
-    <masukan:id_nama, Nama Pengguna : ></masukan>
-    <masukan_sandi:id_sandi, Kata Sandi : ></masukan_sandi>
-    ^^ 🟢 TAMBAHAN KOTAK KONFIRMASI SANDI:
-    <masukan_sandi:id_sandi_konfirm, Ulangi Sandi: ></masukan_sandi>
-    <tombol:btn_masuk, Masuk Sistem></tombol>
-    <tombol:btn_daftar, Daftar Baru></tombol>
+    ^^ 1. Hapus @teks.peringatan dari sini agar kembali hijau!
+    <teks:t1> === PORTAL TODO URANTIA === </teks>
+    
+    <masukan:id_nama> Nama Pengguna : </masukan>
+    <masukan_sandi:id_sandi> Kata Sandi : </masukan_sandi>
+    
+    ^^ 2. 🟢 TAMBAHKAN WADAH KOSONG INI UNTUK NOTIFIKASI ERROR!
+    <teks:id_notif, @teks.peringatan> </teks>
+    
+    <tombol:btn_masuk, @tombol> Masuk Sistem </tombol>
+    <tombol:pindah_register, @tombol> Belum punya akun? Daftar sekarang </tombol>
+    <tombol:pindah_reset, @tombol> Ubah Kata Sandi </tombol>
 </wadah>
 pergi!#

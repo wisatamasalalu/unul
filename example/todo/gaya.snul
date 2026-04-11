@@ -10,6 +10,16 @@
     warna_teks: #FFFFFF;
 }
 
+^^ 🟢 KEKUATAN BARU: Tombol akan berubah warna saat disentuh mouse!
+@tombol:hover {
+    warna_latar: #FF0000; ^^ Berubah jadi merah!
+    warna_teks: #FFFF00; ^^ Teks berubah jadi kuning!
+}
+
 @teks.peringatan {
     warna_teks: #FF0000;
+}
+
+@teks {
+    warna_teks: #FFFFFF;
 }

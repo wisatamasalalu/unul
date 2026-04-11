@@ -6,24 +6,28 @@ untuk array.statis
 untuk array.dinamis
 
 ciptakan fungsi ambil_nilai_ui(elemen, target_id) maka
-    ^^ 1. Pastikan elemen ini adalah tag sebelum membaca ID-nya (Anti Segfault)
-    jika elemen.jenis == "tag" maka
-        jika elemen.id == target_id maka
-            pulang elemen.teks_input
+    ^^ 1. HANYA "tag" dan "akar_dokumen" yang boleh ditelusuri!
+    jika elemen.jenis == "tag" atau elemen.jenis == "akar_dokumen" maka
+        
+        ^^ 2. Cek apakah ini target kita (hanya jika dia tag)
+        jika elemen.jenis == "tag" maka
+            jika elemen.id == target_id maka
+                pulang elemen.teks_input
+            putus
         putus
-    putus
-    
-    ^^ 2. Semua elemen pasti punya anak_anak (meskipun kosong)
-    takdir.soft anak = elemen.anak_anak
-    takdir.soft batas = panjang(anak)
-    takdir.soft i = 1
-    
-    siklus selama i <= batas maka
-        takdir.soft hasil = ambil_nilai_ui(anak[i], target_id)
-        jika hasil != "" maka
-            pulang hasil
+        
+        ^^ 3. Telusuri anak-anaknya dengan aman
+        takdir.soft anak = elemen.anak_anak
+        takdir.soft batas = panjang(anak)
+        takdir.soft i = 1
+        
+        siklus selama i <= batas maka
+            takdir.soft hasil = ambil_nilai_ui(anak[i], target_id)
+            jika hasil != "" maka
+                pulang hasil
+            putus
+            i = i + 1
         putus
-        i = i + 1
     putus
     
     pulang ""

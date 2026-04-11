@@ -1,7 +1,11 @@
 ^^ IMAH: DATABASE DIMENSI URANTIA
 {
   "pengguna":   {
-    "kambing":     "135a1e62ef511b0a"
+    "kambing":     "135a1e62ef511b0a",
+    "anjing":     "e575e8883c0f89f8",
+    "kelinci":     "e575e8883c0f89f8",
+    "ayam":     "e575e8883c0f89f8",
+    "kucing":     "de9a6bc7d0e208df"
   },
   "tugas":   {
     "kambing":     [
@@ -32,6 +36,22 @@
       "NxcNB1QCFCQ=",
       "NxcNB1QEACoMDw9fEkNRWzIVBAMWCA0g",
       "IRMMDBUBCiADQQhYRkZGFRInKA=="
+    ],
+    "anjing":     [
+      "PxMGD1QbFCwMCQ==",
+      "IRsFGwZJBShNDRtQQA==",
+      "OBcPCRMGDyYKDgBW",
+      "OBMKDxpJBSAKCABW",
+      "OBMKDxpJFTQBAABW"
+    ],
+    "kelinci":     [
+      "OBMKDxpJFi4fFQtd"
+    ],
+    "ayam":     [
+      "OBMKDxpJDyAeCA=="
+    ],
+    "kucing":     [
+      "NxcNB1QeCSgeCg9C"
     ]
   }
 }

@@ -1,0 +1,12 @@
+#!datang
+<wadah:layar_reset, @layar.utama>
+    <teks:t1> === UBAH SANDI ANDA === </teks>
+    <masukan:id_nama> Nama Pengguna : </masukan>
+    <masukan_sandi:id_sandi_lama> Sandi Lama : </masukan_sandi>
+    <masukan_sandi:id_sandi_baru> Sandi Baru : </masukan_sandi>
+    <masukan_sandi:id_sandi_konfirm> Konfirmasi Sandi Baru : </masukan_sandi>
+    <teks:id_notif, @teks.peringatan> </teks>
+    <tombol:btn_ganti_sandi, @tombol> Ganti Sandi </tombol>
+    <tombol:pindah_login, @tombol> Kembali ke Login </tombol>
+</wadah>
+pergi!#

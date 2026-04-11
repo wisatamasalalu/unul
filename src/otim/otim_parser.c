@@ -17,9 +17,6 @@ static void t_maju(OtimParser* p) {
     if (p->kursor < p->tokens.jumlah) p->kursor++;
 }
 
-// =======================================================
-// 🟢 ASISTEN MEMORI OTIM -> UNUL (Satu 'o' saja agar rapi)
-// =======================================================
 static void o_tambah_elemen_array(EnkiObject* arr, EnkiObject* elemen) {
     if (!arr || arr->tipe != ENKI_ARRAY) return;
     arr->panjang++;
@@ -41,34 +38,22 @@ static EnkiObject* parse_otim_elemen(OtimParser* p);
 EnkiObject* parse_otim(OtimTokenArray tokens) {
     OtimParser p = {tokens, 0};
     
-    if (t_sekarang(&p).jenis == TOKEN_OTIM_HEADER) {
-        t_maju(&p);
-    } else {
-        printf("🚨 KIAMAT VISUAL: Dokumen .otim harus diawali dengan '#!datang'!\n");
-        return NULL;
-    }
+    if (t_sekarang(&p).jenis == TOKEN_OTIM_HEADER) { t_maju(&p); } 
+    else { printf("🚨 KIAMAT VISUAL: Dokumen harus diawali '#!datang'!\n"); return NULL; }
 
     EnkiObject* root_ui = ciptakan_objek_peta(0); 
-    EnkiObject* array_anak = ciptakan_array(0); // 🟢 SUDAH PAKAI (0)
+    EnkiObject* array_anak = ciptakan_array(0); 
     
     while (t_sekarang(&p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(&p).jenis != TOKEN_OTIM_EOF) {
         EnkiObject* elemen = parse_otim_elemen(&p);
-        if (elemen) {
-            o_tambah_elemen_array(array_anak, elemen);
-        } else {
-            t_maju(&p);
-        }
+        if (elemen) o_tambah_elemen_array(array_anak, elemen);
+        else t_maju(&p);
     }
 
-    if (t_sekarang(&p).jenis == TOKEN_OTIM_FOOTER) {
-        t_maju(&p);
-    } else {
-        printf("🚨 KIAMAT VISUAL: Dokumen .otim kehilangan penutup 'pergi!#'!\n");
-    }
+    if (t_sekarang(&p).jenis == TOKEN_OTIM_FOOTER) t_maju(&p);
 
     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"));
     o_simpan_ke_objek(root_ui, "anak_anak", array_anak);
-
     return root_ui;
 }
 
@@ -91,17 +76,16 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
         if (t.tag_id) o_simpan_ke_objek(node_elemen, "id", ciptakan_teks(t.tag_id));
         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut));
 
-        EnkiObject* array_anak = ciptakan_array(0); // 🟢 SUDAH PAKAI (0)
+        EnkiObject* array_anak = ciptakan_array(0); 
         char* nama_tag_buka = strdup(t.tag_nama);
         t_maju(p);
 
         while (t_sekarang(p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(p).jenis != TOKEN_OTIM_EOF) {
             if (t_sekarang(p).jenis == TOKEN_OTIM_TAG_TUTUP) {
                 if (strcmp(t_sekarang(p).tag_nama, nama_tag_buka) == 0) {
-                    t_maju(p);
-                    break; 
+                    t_maju(p); break; 
                 } else {
-                    printf("🚨 KIAMAT VISUAL: Tag <%s> malah ditutup dengan </%s>!\n", nama_tag_buka, t_sekarang(p).tag_nama);
+                    printf("🚨 KIAMAT VISUAL: <%s> ditutup dengan </%s>!\n", nama_tag_buka, t_sekarang(p).tag_nama);
                     return NULL;
                 }
             }
@@ -110,9 +94,20 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
         }
 
         o_simpan_ke_objek(node_elemen, "anak_anak", array_anak);
+
+        // 🟢 SUNTIKAN SAKU TENGAH: Jika punya anak berupa Teks, jadikan "teks_dalam"
+        if (array_anak->panjang > 0) {
+            EnkiObject* anak_pertama = array_anak->nilai.array_elemen[0];
+            for (int j = 0; j < anak_pertama->panjang; j++) {
+                if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
+                    o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks));
+                    break;
+                }
+            }
+        }
+
         free(nama_tag_buka);
         return node_elemen;
     }
-
     return NULL;
 }

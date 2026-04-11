@@ -7,14 +7,19 @@ untuk array.dinamis
 butuh .anu
 sowan bridge  
 
+^^ 1. MUAT SEMUA TAMPILAN
 takdir.soft ui_login = muat_otim("login.otim")
+takdir.soft ui_register = muat_otim("register.otim") 
+takdir.soft ui_reset = muat_otim("reset.otim")       
 takdir.soft ui_dashboard = muat_otim("dashboard.otim")
 takdir.soft gaya_utama = muat_snul("gaya.snul")
 
+^^ 2. SIAPKAN DATABASE
 takdir.hard KUNCI = tarik_rahasia("KUNCI_MUTLAK")
 takdir.hard GARAM = tarik_rahasia("GARAM_SANDI")
 takdir.soft db_file = "database.imah"
 
+^^ 3. FUNGSI-FUNGSI LOGIKA (Tidak Boleh Ada 'jika respon' Di Sini!)
 ciptakan fungsi login(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
@@ -22,6 +27,26 @@ ciptakan fungsi login(nama_user, sandi_mentah) maka
         jika sandi_aman == sandi_tersimpan maka pulang 1
         lain maka pulang 0 putus
     lain maka pulang 0 putus
+putus
+
+ciptakan fungsi ganti_sandi(nama_user, sandi_lama_mentah, sandi_baru_mentah) maka
+    takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
+    
+    ^^ 1. Pastikan user-nya ada
+    jika sandi_tersimpan == "" atau sandi_tersimpan == "TIDAK_DITEMUKAN" maka 
+        pulang 0 
+    putus
+    
+    ^^ 2. Verifikasi sandi lama
+    takdir.soft sandi_lama_aman = hash(sandi_lama_mentah, GARAM)
+    jika sandi_lama_aman != sandi_tersimpan maka 
+        pulang -1 ^^ Kode -1 berarti Sandi Lama Salah
+    putus
+    
+    ^^ 3. Tanam sandi baru ke alam Imah!
+    takdir.soft sandi_baru_aman = hash(sandi_baru_mentah, GARAM)
+    tanam_imah(db_file, "pengguna." + nama_user, sandi_baru_aman)
+    pulang 1 ^^ Sukses!
 putus
 
 ciptakan fungsi register(nama_user, sandi_mentah) maka
@@ -44,9 +69,6 @@ ciptakan fungsi tambah_todo(nama_user, teks_tugas) maka
     tanam_imah(db_file, "tugas." + nama_user, daftar_ku)
 putus
 
-^^ ==========================================
-^^ 🟢 FUNGSI BARU: HANYA MENGAMBIL TEKS SAJA!
-^^ ==========================================
 ciptakan fungsi ambil_tugas_sebagai_teks(nama_user) maka
     takdir.soft daftar_ku = tarik_imah(db_file, "tugas." + nama_user)
     takdir.soft teks_gabungan = ""
@@ -62,15 +84,12 @@ ciptakan fungsi ambil_tugas_sebagai_teks(nama_user) maka
     lain maka
         teks_gabungan = "- Belum ada tugas -"
     putus
-
-    ^^ Kembalikan teksnya, jangan retas memori di sini!
     pulang teks_gabungan
 putus
 
 ^^ ==========================================
-^^ EKSEKUSI GUI (STATE ROUTER)
+^^ 4. EKSEKUSI GUI UTAMA (STATE ROUTER)
 ^^ ==========================================
-
 takdir.soft aplikasi_hidup = 1
 takdir.soft layar_sekarang = ""
 layar_sekarang = ui_login
@@ -78,6 +97,7 @@ takdir.soft user_aktif = ""
 
 siklus selama aplikasi_hidup == 1 maka
     
+    ^^ Panggil Jasad C untuk Menggambar!
     takdir.soft respon = tampilkan_gui(layar_sekarang, gaya_utama)
     layar_sekarang = respon.ui
     
@@ -85,7 +105,23 @@ siklus selama aplikasi_hidup == 1 maka
         aplikasi_hidup = 0
     putus
     
-    ^^ ---------------- A. AKSI MASUK ----------------
+    ^^ ---------------- A. NAVIGASI HALAMAN ----------------
+    jika respon.aksi == "pindah_register" maka
+        layar_sekarang = ""
+        layar_sekarang = ui_register 
+    putus
+
+    jika respon.aksi == "pindah_login" maka
+        layar_sekarang = ""
+        layar_sekarang = ui_login 
+    putus
+
+    jika respon.aksi == "pindah_reset" maka
+        layar_sekarang = ""
+        layar_sekarang = ui_reset 
+    putus
+    
+    ^^ ---------------- B. AKSI MASUK (LOGIN) ----------------
     jika respon.aksi == "btn_masuk" maka
         takdir.soft input_nama = ambil_nilai_ui(layar_sekarang, "id_nama")
         takdir.soft input_sandi = ambil_nilai_ui(layar_sekarang, "id_sandi")
@@ -95,59 +131,95 @@ siklus selama aplikasi_hidup == 1 maka
                 ketik("✅ BERHASIL LOGIN!")
                 user_aktif = input_nama
                 
-                ^^ 1. Pindah layar dulu
                 layar_sekarang = ""
                 layar_sekarang = ui_dashboard  
                 
-                ^^ 2. 🟢 RETAS LAYAR SEKARANG SETELAH DISALIN!
+                ^^ 🟢 TAMPILKAN NAMA USER DI DASHBOARD
+                retas_memori_dom(layar_sekarang, "id_nama_user", "Pengguna Aktif: " + user_aktif)
+
                 takdir.soft teks_tugas = ambil_tugas_sebagai_teks(user_aktif)
                 retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_tugas)
                 
             lain maka
                 ketik("❌ GAGAL LOGIN! Sandi salah.")
+                retas_memori_dom(layar_sekarang, "id_notif", "❌ Gagal: Sandi salah / user tak ada!")
             putus
         putus
     putus
     
-    ^^ ---------------- B. AKSI DAFTAR ----------------
+    ^^ ---------------- C. AKSI DAFTAR ----------------
     jika respon.aksi == "btn_daftar" maka
         takdir.soft input_nama = ambil_nilai_ui(layar_sekarang, "id_nama")
         takdir.soft input_sandi = ambil_nilai_ui(layar_sekarang, "id_sandi")
         takdir.soft input_konfirm = ambil_nilai_ui(layar_sekarang, "id_sandi_konfirm")
         
         jika input_nama != "" dan input_sandi == input_konfirm maka
-            register(input_nama, input_sandi)
-            ketik("✅ PENDAFTARAN SUKSES!")
+            jika register(input_nama, input_sandi) == 1 maka
+                ketik("✅ PENDAFTARAN SUKSES!")
+                retas_memori_dom(layar_sekarang, "id_notif", "✅ Sukses! Silakan Login.")
+            lain maka
+                retas_memori_dom(layar_sekarang, "id_notif", "❌ User sudah ada!")
+            putus
+        lain maka
+             retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi tidak cocok / Nama kosong!")
         putus
     putus
     
-    ^^ ---------------- C. AKSI TAMBAH TUGAS ----------------
+    ^^ ---------------- D. AKSI TAMBAH TUGAS ----------------
     jika respon.aksi == "btn_tambah" maka
         takdir.soft teks_baru = ambil_nilai_ui(layar_sekarang, "id_todo")
         
         jika teks_baru != "" maka
             tambah_todo(user_aktif, teks_baru)
             
-            ^^ 1. Reset layar ke dashboard asli
             layar_sekarang = ""
             layar_sekarang = ui_dashboard
             
-            ^^ 2. 🟢 RETAS LAYAR SEKARANG SETELAH DISALIN!
+            ^^ 🟢 RENDER ULANG KEDUANYA (NAMA & TUGAS)
+            retas_memori_dom(layar_sekarang, "id_nama_user", "Pengguna Aktif: " + user_aktif)
             takdir.soft teks_tugas = ambil_tugas_sebagai_teks(user_aktif)
             retas_memori_dom(layar_sekarang, "id_daftar_todo", teks_tugas)
         putus
     putus
 
-    ^^ ---------------- D. AKSI KELUAR ----------------
+    ^^ ---------------- E. AKSI KELUAR ----------------
     jika respon.aksi == "btn_keluar" maka
+        ^^ Notifikasi Terminal!
+        ketik("User " + user_aktif + " telah keluar dari sistem.")
+        
         user_aktif = ""
         layar_sekarang = ""
         layar_sekarang = ui_login
+        
+        ^^ Notifikasi GUI (Menyapa di layar login)
+        retas_memori_dom(layar_sekarang, "id_notif", "✅ Berhasil keluar.")
+    putus
+
+    ^^ ---------------- F. AKSI UBAH SANDI ----------------
+    jika respon.aksi == "btn_ganti_sandi" maka
+        takdir.soft input_nama = ambil_nilai_ui(layar_sekarang, "id_nama")
+        takdir.soft input_sandi_lama = ambil_nilai_ui(layar_sekarang, "id_sandi_lama")
+        takdir.soft input_sandi_baru = ambil_nilai_ui(layar_sekarang, "id_sandi_baru")
+        takdir.soft input_konfirm = ambil_nilai_ui(layar_sekarang, "id_sandi_konfirm")
+        
+        jika input_nama != "" dan input_sandi_baru == input_konfirm maka
+            takdir.soft status_ubah = ganti_sandi(input_nama, input_sandi_lama, input_sandi_baru)
+            
+            jika status_ubah == 1 maka
+                ketik("✅ Sandi user " + input_nama + " berhasil diubah!")
+                retas_memori_dom(layar_sekarang, "id_notif", "✅ Sukses diubah! Silakan Login.")
+            lain jika status_ubah == -1 maka
+                retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi lama salah!")
+            lain maka
+                retas_memori_dom(layar_sekarang, "id_notif", "❌ User tidak ditemukan!")
+            putus
+        lain maka
+            retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi baru tidak cocok / Nama kosong!")
+        putus
     putus
 
 putus
 
-ketik("Jendela ditutup. Membebaskan dimensi...")
+ketik("Jendela ditutup. Membebaskan memori...")
 pasrah
-jeda "1s"
 pergi
