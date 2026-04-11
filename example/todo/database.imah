@@ -5,7 +5,7 @@
     "anjing":     "e575e8883c0f89f8",
     "kelinci":     "e575e8883c0f89f8",
     "ayam":     "e575e8883c0f89f8",
-    "kucing":     "e575e8883c0f89f8"
+    "kucing":     "de9a6bc7d0e208df"
   },
   "tugas":   {
     "kambing":     [
@@ -51,7 +51,8 @@
       "OBMKDxpJDyAeCA=="
     ],
     "kucing":     [
-      "NxcNB1QeCSgeCg9C"
+      "NxcNB1QeCSgeCg9C",
+      "OBMKDxpJESgDBQ9fVQ=="
     ]
   }
 }
