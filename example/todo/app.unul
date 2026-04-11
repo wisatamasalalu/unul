@@ -156,8 +156,15 @@ siklus selama aplikasi_hidup == 1 maka
         jika input_nama != "" dan input_sandi == input_konfirm maka
             jika register(input_nama, input_sandi) == 1 maka
                 ketik("✅ PENDAFTARAN SUKSES!")
-                retas_memori_dom(layar_sekarang, "id_notif", "✅ Sukses! Silakan Login.")
+                
+                ^^ 🟢 PINDAHKAN LAYAR KE LOGIN
+                layar_sekarang = ""
+                layar_sekarang = ui_login
+                
+                ^^ 🟢 RETAS LAYAR LOGIN AGAR MUNCUL PESAN SUKSES
+                retas_memori_dom(layar_sekarang, "id_notif", "✅ Sukses mendaftar! Silakan Login.")
             lain maka
+                ketik("❌ GAGAL PENDAFTARAN!")
                 retas_memori_dom(layar_sekarang, "id_notif", "❌ User sudah ada!")
             putus
         lain maka
@@ -205,13 +212,21 @@ siklus selama aplikasi_hidup == 1 maka
         jika input_nama != "" dan input_sandi_baru == input_konfirm maka
             takdir.soft status_ubah = ganti_sandi(input_nama, input_sandi_lama, input_sandi_baru)
             
+            ^^ 🟢 MENGGUNAKAN JIKA-LAIN BERSARANG (NESTED IF-ELSE) ANTI KIAMAT!
             jika status_ubah == 1 maka
                 ketik("✅ Sandi user " + input_nama + " berhasil diubah!")
-                retas_memori_dom(layar_sekarang, "id_notif", "✅ Sukses diubah! Silakan Login.")
-            lain jika status_ubah == -1 maka
-                retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi lama salah!")
+                
+                ^^ 🟢 PINDAHKAN LAYAR KE LOGIN
+                layar_sekarang = ""
+                layar_sekarang = ui_login
+                
+                ^^ 🟢 RETAS LAYAR LOGIN AGAR MUNCUL PESAN SUKSES
             lain maka
-                retas_memori_dom(layar_sekarang, "id_notif", "❌ User tidak ditemukan!")
+                jika status_ubah == -1 maka
+                    retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi lama salah!")
+                lain maka
+                    retas_memori_dom(layar_sekarang, "id_notif", "❌ User tidak ditemukan!")
+                putus
             putus
         lain maka
             retas_memori_dom(layar_sekarang, "id_notif", "❌ Sandi baru tidak cocok / Nama kosong!")

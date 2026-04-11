@@ -694,64 +694,87 @@ ASTNode* parse_pernyataan(Parser* p) {
         return node;
     }
 
-    // 3. Apakah ini HUKUM KARMA? (jika ... maka ... lain ... putus)
+    // 3. Apakah ini HUKUM KARMA? (jika ... maka ... lain jika ... lain maka ... putus)
     if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
-        ASTNode* node = buat_node(AST_HUKUM_KARMA, p);
-        maju(p); // lewati kata 'jika'
+        ASTNode* node_utama = buat_node(AST_HUKUM_KARMA, p);
+        ASTNode* node_sekarang = node_utama;
+        
+        maju(p); // lewati kata 'jika' utama
 
-        // A. Tangkap Syarat
-        node->syarat = parse_syarat_logika(p);
+        while (1) { // 🟢 Rantai Tak Berujung untuk 'Lain Jika'
+            // A. Tangkap Syarat
+            node_sekarang->syarat = parse_syarat_logika(p);
 
-        // B. Lewati kata 'maka'
-        Token t_maka = token_sekarang(p);
-        if (t_maka.jenis == TOKEN_KARMA && strcmp(t_maka.isi, "maka") == 0) {
-            maju(p);
-        } else {
-            kiamat_sintaksis(p, "Struktur percabangan kehilangan gerbang 'maka'!", 
-                             "Sepertinya Anda melewatkan kata kunci 'maka'.\n"
-                             "Silakan tambahkan setelah kondisi 'jika'.\n"
-                             "Contoh: jika x == 1 maka");
-        }
-
-        // C. Tangkap isi blok MAKA
-        node->blok_maka = buat_node(AST_PROGRAM, p);
-        while (token_sekarang(p).jenis != TOKEN_EOF) {
-            Token t_cek = token_sekarang(p);
-            if (t_cek.jenis == TOKEN_KARMA && (strcmp(t_cek.isi, "lain") == 0 || strcmp(t_cek.isi, "putus") == 0)) break;
-            ASTNode* stmt = parse_pernyataan(p);
-            if (stmt) tambah_anak(node->blok_maka, stmt);
-        }
-
-        // D. Cek apakah ada blok LAIN
-        Token t_lain = token_sekarang(p);
-        if (t_lain.jenis == TOKEN_KARMA && strcmp(t_lain.isi, "lain") == 0) {
-            maju(p); // lewati kata 'lain'
-            // 🟢 HUKUM MUTLAK DISIPLIN MILITER!
+            // B. Lewati kata 'maka'
             if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
-                maju(p); // lewati 'maka'
+                maju(p);
             } else {
-                kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Kata 'lain' sebagai pembuka blok perintah WAJIB diikuti oleh kata 'maka'.");
+                // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
+                kiamat_sintaksis(p, "Struktur percabangan kehilangan gerbang 'maka'!", 
+                                 "Sepertinya Anda melewatkan kata kunci 'maka'.\n"
+                                 "Silakan tambahkan setelah kondisi 'jika' atau 'lain jika'.\n"
+                                 "Contoh: jika x == 1 maka");
             }
-            node->blok_lain = buat_node(AST_PROGRAM, p);
+
+            // C. Tangkap isi blok MAKA
+            node_sekarang->blok_maka = buat_node(AST_PROGRAM, p);
             while (token_sekarang(p).jenis != TOKEN_EOF) {
                 Token t_cek = token_sekarang(p);
-                if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+                if (t_cek.jenis == TOKEN_KARMA && (strcmp(t_cek.isi, "lain") == 0 || strcmp(t_cek.isi, "putus") == 0)) break;
                 ASTNode* stmt = parse_pernyataan(p);
-                if (stmt) tambah_anak(node->blok_lain, stmt);
+                if (stmt) tambah_anak(node_sekarang->blok_maka, stmt);
+            }
+
+            // D. Cek apakah ada blok LAIN
+            Token t_lain = token_sekarang(p);
+            if (t_lain.jenis == TOKEN_KARMA && strcmp(t_lain.isi, "lain") == 0) {
+                maju(p); // lewati kata 'lain'
+                
+                // 🟢 SIHIR 'LAIN JIKA' (ELSE IF)
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "jika") == 0) {
+                    maju(p); // lewati 'jika'
+                    
+                    node_sekarang->blok_lain = buat_node(AST_PROGRAM, p);
+                    ASTNode* node_elif = buat_node(AST_HUKUM_KARMA, p);
+                    tambah_anak(node_sekarang->blok_lain, node_elif);
+                    
+                    node_sekarang = node_elif; // Geser fokus ke node elif ini!
+                    continue; // 🔄 Ulangi siklus C untuk menangkap syarat elif!
+                } 
+                // 🟢 LAIN MAKA MURNI (ELSE)
+                else if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                    maju(p); // lewati 'maka'
+                    node_sekarang->blok_lain = buat_node(AST_PROGRAM, p);
+                    while (token_sekarang(p).jenis != TOKEN_EOF) {
+                        Token t_cek = token_sekarang(p);
+                        if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+                        ASTNode* stmt = parse_pernyataan(p);
+                        if (stmt) tambah_anak(node_sekarang->blok_lain, stmt);
+                    }
+                    break; // Selesai! Tidak ada lagi rantai!
+                } else {
+                    // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
+                    kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", 
+                                     "Kata 'lain' WAJIB diikuti oleh kata 'maka' (untuk blok else) \n"
+                                     "Atau diikuti kata 'jika' (untuk blok else-if).");
+                }
+            } else {
+                break; // Tidak ada 'lain', langsung keluar untuk mencari 'putus'
             }
         }
 
-        // E. WAJIB ADA KATA 'PUTUS' (HUKUM DISIPLIN MUTLAK)
+        // E. WAJIB ADA KATA 'PUTUS' UNTUK MENUTUP SELURUH RANTAI
         Token t_putus = token_sekarang(p);
         if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) {
-            maju(p); // lewati 'putus' dengan selamat
+            maju(p); // lewati 'putus' utama dengan selamat
         } else {
+            // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
             kiamat_sintaksis(p, "Hukum Karma kehilangan ujung ('putus')!", 
-                             "Sebuah blok 'jika' atau 'lain' wajib ditutup dengan kata kunci 'putus'.\n"
+                             "Sebuah rantai 'jika' wajib ditutup dengan satu kata kunci 'putus'.\n"
                              "Jika tidak, mesin akan menganggap seluruh sisa file berada di dalam blok ini.");
         }
 
-        return node;
+        return node_utama;
     }
 
     // --- PENANGKAP HUKUM KECUALI (UNLESS) ---
