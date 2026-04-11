@@ -1,0 +1,8 @@
+@tombol {
+    warna_latar: #87CEEB;  ^^ Ini adalah hex untuk SKYBLUE
+    warna_teks: #FFFFFF;
+}
+
+@wadah {
+    warna_latar: #D3D3D3;  ^^ Ini adalah hex untuk LIGHTGRAY
+}

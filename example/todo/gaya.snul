@@ -2,9 +2,10 @@
     warna_latar: #000000;
     warna_teks: #00FF00;
     bingkai: ganda;
+    lebar: penuh;
 }
 
-@tombol.aksi {
+@tombol {
     warna_latar: #0000FF;
     warna_teks: #FFFFFF;
 }
