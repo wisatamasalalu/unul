@@ -1,6 +1,5 @@
-inisialisasi_kolam_memori();
-
 #include <stdio.h>
+#include "../core/enki_memory.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -58,7 +57,7 @@ void suntik_data_ke_ram(const char* path, EnkiRAM* ram) {
     char* nama_var = buat_nama_variabel(path);
     
     // 🟢 SUNTIKAN JANTUNG: Bungkus teks mentah menjadi Objek Dewa!
-    EnkiObject* obj_isi = ciptakan_teks(isi);
+    EnkiObject* obj_isi = ciptakan_teks(isi, ram->status_array_dinamis);
     
     // Simpan ke RAM menggunakan objek yang baru diciptakan
     simpan_ke_ram(ram, nama_var, obj_isi);
@@ -88,6 +87,7 @@ void muat_ingatan(EnkiRAM* ram) {
 // --- 2. MAIN PROGRAM ---
 
 int main(int argc, char* argv[]) {
+    inisialisasi_kolam_memori();
     EnkiRAM ram = inisialisasi_ram();
     muat_anu(&ram); 
 

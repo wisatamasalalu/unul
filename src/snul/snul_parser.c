@@ -25,13 +25,13 @@ static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* ni
     obj->panjang++;
     obj->nilai.objek_peta.kunci = realloc(obj->nilai.objek_peta.kunci, obj->panjang * sizeof(EnkiObject*));
     obj->nilai.objek_peta.konten = realloc(obj->nilai.objek_peta.konten, obj->panjang * sizeof(EnkiObject*));
-    obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci);
+    obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci, 1);
     obj->nilai.objek_peta.konten[obj->panjang - 1] = nilai;
 }
 
 EnkiObject* parse_snul(SnulTokenArray tokens) {
     SnulParser p = {tokens, 0};
-    EnkiObject* root_gaya = ciptakan_objek_peta(0); // Kamus Besar Kosmetik
+    EnkiObject* root_gaya = ciptakan_objek_peta(0, 1); // Kamus Besar Kosmetik
 
     while (t_sekarang(&p).jenis != TOKEN_SNUL_EOF) {
         
@@ -44,7 +44,7 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
             if (t_sekarang(&p).jenis == TOKEN_SNUL_LBRACE) {
                 t_maju(&p);
                 
-                EnkiObject* aturan_gaya = ciptakan_objek_peta(0); // Kamus kecil untuk properti
+                EnkiObject* aturan_gaya = ciptakan_objek_peta(0, 1); // Kamus kecil untuk properti
 
                 // 3. Kumpulkan semua properti di dalam blok
                 while (t_sekarang(&p).jenis != TOKEN_SNUL_RBRACE && t_sekarang(&p).jenis != TOKEN_SNUL_EOF) {
@@ -55,10 +55,10 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
 
                         // Tangkap nilainya
                         if (t_sekarang(&p).jenis == TOKEN_SNUL_NILAI) {
-                            o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks(t_sekarang(&p).teks));
+                            o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks(t_sekarang(&p).teks, 1));
                             t_maju(&p);
                         } else {
-                            o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks(""));
+                            o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks("", 1));
                         }
                         free(nama_prop);
                     } else {

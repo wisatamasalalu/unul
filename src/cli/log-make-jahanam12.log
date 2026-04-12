@@ -1,0 +1,220 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:1023:52: error: expected ‘)’ before ‘ram’
+ 1023 |             return ciptakan_angka(atof(teks_mentah)ram->status_array_dinamis); // 🪄 Ubah string "2.0" jadi double 2.0
+      |                                  ~                 ^~~
+      |                                                    )
+../core_c/enki_interpreter.c:1023:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1023 |             return ciptakan_angka(atof(teks_mentah)ram->status_array_dinamis); // 🪄 Ubah string "2.0" jadi double 2.0
+      |                    ^~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_interpreter.c:15:
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1157:49: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1157 |                     hancurkan_objek(induk, ram->status_array_dinami);
+      |                                                 ^~~~~~~~~~~~~~~~~~~
+      |                                                 status_array_dinamis
+../core_c/enki_interpreter.c:1164:48: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1164 |         if (induk) hancurkan_objek(induk, ram->status_array_dinami);
+      |                                                ^~~~~~~~~~~~~~~~~~~
+      |                                                status_array_dinamis
+../core_c/enki_interpreter.c:1211:74: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1211 |                 if (*alamat_target) hancurkan_objek(*alamat_target, ram->status_array_dinami);
+      |                                                                          ^~~~~~~~~~~~~~~~~~~
+      |                                                                          status_array_dinamis
+../core_c/enki_interpreter.c:1221:92: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1221 |                     if (target_kavling->objek) hancurkan_objek(target_kavling->objek, ram->status_array_dinami);
+      |                                                                                            ^~~~~~~~~~~~~~~~~~~
+      |                                                                                            status_array_dinamis
+../core_c/enki_interpreter.c:1228:82: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1228 |                     if (hasil_masa_depan) hancurkan_objek(hasil_masa_depan, ram->status_array_dinami);
+      |                                                                                  ^~~~~~~~~~~~~~~~~~~
+      |                                                                                  status_array_dinamis
+../core_c/enki_interpreter.c:1263:66: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1263 |                     if (obj_kiri) hancurkan_objek(obj_kiri, ram->status_array_dinami);
+      |                                                                  ^~~~~~~~~~~~~~~~~~~
+      |                                                                  status_array_dinamis
+../core_c/enki_interpreter.c:1264:68: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1264 |                     if (obj_kanan) hancurkan_objek(obj_kanan, ram->status_array_dinami);
+      |                                                                    ^~~~~~~~~~~~~~~~~~~
+      |                                                                    status_array_dinamis
+../core_c/enki_interpreter.c:1286:54: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1286 |         if (obj_kiri) hancurkan_objek(obj_kiri, ram->status_array_dinami);
+      |                                                      ^~~~~~~~~~~~~~~~~~~
+      |                                                      status_array_dinamis
+../core_c/enki_interpreter.c:1287:56: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1287 |         if (obj_kanan) hancurkan_objek(obj_kanan, ram->status_array_dinami);
+      |                                                        ^~~~~~~~~~~~~~~~~~~
+      |                                                        status_array_dinamis
+../core_c/enki_interpreter.c:1293:93: error: expected ‘,’ or ‘;’ before ‘)’ token
+ 1293 |         EnkiObject* obj_array = ciptakan_array(node->jumlah_anak, ram->status_array_dinamis));
+      |                                                                                             ^
+../core_c/enki_interpreter.c:1309:46: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1309 |                 hancurkan_objek(elemen, ram->status_array_dinami);
+      |                                              ^~~~~~~~~~~~~~~~~~~
+      |                                              status_array_dinamis
+../core_c/enki_interpreter.c:1332:60: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1332 |             if (obj_kunci) hancurkan_objek(obj_kunci, ram->status_array_dinami);
+      |                                                            ^~~~~~~~~~~~~~~~~~~
+      |                                                            status_array_dinamis
+../core_c/enki_interpreter.c:1333:62: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1333 |             if (obj_konten) hancurkan_objek(obj_konten, ram->status_array_dinami);
+      |                                                              ^~~~~~~~~~~~~~~~~~~
+      |                                                              status_array_dinamis
+../core_c/enki_interpreter.c:1348:62: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1348 |             if (obj_target) hancurkan_objek(obj_target, ram->status_array_dinami);
+      |                                                              ^~~~~~~~~~~~~~~~~~~
+      |                                                              status_array_dinamis
+../core_c/enki_interpreter.c:1415:106: error: ‘EnkiRAM’ has no member named ‘status_ar’; did you mean ‘status_terus’?
+ 1415 |                         if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka, ram->status_ar
+      |                                                                                                          ^~~~~~~~~
+      |                                                                                                          status_terus
+../core_c/enki_interpreter.c:1415:115: error: expected ‘)’ before ‘ray_dinamis’
+ 1415 |                         if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka, ram->status_ar
+      |                                                                               ~                                   ^
+      |                                                                                                                   )
+......
+ 1418 |                             ray_dinamis);
+      |                             ~~~~~~~~~~~                                                                            
+../core_c/enki_interpreter.c:1441:58: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1441 |         if (obj_target) hancurkan_objek(obj_target, ram->status_array_dinami);
+      |                                                          ^~~~~~~~~~~~~~~~~~~
+      |                                                          status_array_dinamis
+../core_c/enki_interpreter.c:1442:25: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 1442 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                         ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1442:59: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1442 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                                                           ^~~~~~~~~~~~~~~~~~~
+      |                                                           status_array_dinamis
+../core_c/enki_interpreter.c:1442:52: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 1442 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                                                    ^
+../core_c/enki_interpreter.c:1490:42: error: expected ‘)’ before ‘,’ token
+ 1490 |             return ciptakan_angka((double, ram->status_array_dinamis)hasil, ram->status_array_dinamis);
+      |                                   ~      ^
+      |                                          )
+../core_c/enki_interpreter.c:1506:9: error: expected expression before ‘,’ token
+ 1506 |         , ram->status_array_dinamis
+      |         ^
+../core_c/enki_interpreter.c:1506:9: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+../core_c/enki_interpreter.c:1506:9: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c: In function ‘eksekusi_node’:
+../core_c/enki_interpreter.c:3550:71: error: expected ‘)’ before ‘,’ token
+ 3550 |                         ram->kavling[j].objek = ciptakan_angka((double, ram->status_array_dinamis)i);
+      |                                                                ~      ^
+      |                                                                       )
+../core_c/enki_interpreter.c:3550:49: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3550 |                         ram->kavling[j].objek = ciptakan_angka((double, ram->status_array_dinamis)i);
+      |                                                 ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3558:55: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3558 |                     ram->kavling[ram->jumlah].objek = ciptakan_angka((double)i);
+      |                                                       ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3731:52: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 3731 |             akar_utama->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL; , ram->status_array_dinamis
+      |                                                    ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3731:101: error: expected expression before ‘,’ token
+ 3731 |             akar_utama->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL; , ram->status_array_dinamis
+      |                                                                                                     ^
+../core_c/enki_interpreter.c:3731:101: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+../core_c/enki_interpreter.c:3731:101: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:3803:1: error: expected declaration or statement at end of input
+ 3803 | } // <--- 🟢 KURUNG PENUTUP UNTUK FUNGSI 'eksekusi_program' (DAN AKHIR FILE)
+      | ^
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:3788:6: warning: ‘eksekusi_program’ defined but not used [-Wunused-function]
+ 3788 | void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
+      |      ^~~~~~~~~~~~~~~~
+../core_c/enki_scheduler.c: In function ‘pelari_effort’:
+../core_c/enki_scheduler.c:69:21: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+   69 |     if (target_obj) hancurkan_objek(target_obj);
+      |                     ^~~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_scheduler.h:5,
+                 from ../core_c/enki_scheduler.c:6:
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim’:
+../otim/otim_parser.c:44:27: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   44 |     EnkiObject* root_ui = ciptakan_objek_peta(0);
+      |                           ^~~~~~~~~~~~~~~~~~~
+In file included from ../otim/otim_parser.h:5,
+                 from ../otim/otim_parser.c:4:
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:45:30: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   45 |     EnkiObject* array_anak = ciptakan_array(0);
+      |                              ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:55:41: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |                                         ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:55:5: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |     ^~~~~~~~~~~~~~~~~                                                  ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim_elemen’:
+../otim/otim_parser.c:64:33: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   64 |         EnkiObject* node_teks = ciptakan_objek_peta(0);
+      |                                 ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:72:35: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   72 |         EnkiObject* node_elemen = ciptakan_objek_peta(0);
+      |                                   ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:73:71: error: expected ‘)’ before ‘{’ token
+   73 |         o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag", 1
+      |                                                              ~        ^
+      |                                                                       )
+   74 |         {}));
+      |         ~                                                              
+../otim/otim_parser.c:78:92: error: expected expression before ‘)’ token
+   78 |         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, !));
+      |                                                                                            ^
+../otim/otim_parser.c:80:34: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   80 |         EnkiObject* array_anak = ciptakan_array(0);
+      |                                  ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:104:66: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                                                                  ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:104:21: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                     ^~~~~~~~~~~~~~~~~                                                                                                 ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+make: *** [Makefile:35: build] Error 1

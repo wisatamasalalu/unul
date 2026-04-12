@@ -1,0 +1,69 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:1774:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1774 |             return ciptakan_angka((double)hasil_akhir);
+      |                    ^~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_interpreter.c:15:
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2360:28: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 2360 |             if (obj_index) hancurkan_objek(obj_index), ram->status_array_dinamis;
+      |                            ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2360:54: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 2360 |             if (obj_index) hancurkan_objek(obj_index), ram->status_array_dinamis;
+      |                                                      ^
+../core_c/enki_interpreter.c:2360:54: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c:2550:62: error: ‘ukuran_asliram’ undeclared (first use in this function); did you mean ‘ukuran_asli’?
+ 2550 |                     EnkiObject* hasil = ciptakan_blob(biner, ukuran_asliram->status_array_dinamis); // 🟢 KEMBALIKAN KE BLOB
+      |                                                              ^~~~~~~~~~~~~~
+      |                                                              ukuran_asli
+../core_c/enki_interpreter.c:2550:62: note: each undeclared identifier is reported only once for each function it appears in
+../core_c/enki_interpreter.c:2550:41: error: too few arguments to function ‘ciptakan_blob’; expected 3, have 2
+ 2550 |                     EnkiObject* hasil = ciptakan_blob(biner, ukuran_asliram->status_array_dinamis); // 🟢 KEMBALIKAN KE BLOB
+      |                                         ^~~~~~~~~~~~~
+../core_c/../core/enki_object.h:42:13: note: declared here
+   42 | EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3090:25: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 3090 |             if (obj_id) hancurkan_objek(obj_id), ram->status_array_dinamis;
+      |                         ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3090:48: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 3090 |             if (obj_id) hancurkan_objek(obj_id), ram->status_array_dinamis;
+      |                                                ^
+../core_c/enki_interpreter.c:3090:48: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c: In function ‘eksekusi_node’:
+../core_c/enki_interpreter.c:3546:49: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3546 |                         ram->kavling[j].objek = ciptakan_angka((double)i);
+      |                                                 ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3554:55: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3554 |                     ram->kavling[ram->jumlah].objek = ciptakan_angka((double)i);
+      |                                                       ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3727:52: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 3727 |             akar_utama->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL;
+      |                                                    ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:3799:1: error: expected declaration or statement at end of input
+ 3799 | } // <--- 🟢 KURUNG PENUTUP UNTUK FUNGSI 'eksekusi_program' (DAN AKHIR FILE)
+      | ^
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:3784:6: warning: ‘eksekusi_program’ defined but not used [-Wunused-function]
+ 3784 | void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
+      |      ^~~~~~~~~~~~~~~~
+make: *** [Makefile:35: build] Error 1

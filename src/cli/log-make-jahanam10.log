@@ -1,0 +1,94 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘pemicu_kiamat_presisi’:
+../core_c/enki_interpreter.c:367:8: warning: statement with no effect [-Wunused-value]
+  367 |     ram->status_array_dinamis;
+      |     ~~~^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:1003:61: error: expected identifier or ‘(’ before ‘{’ token
+ 1003 | EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram); {
+      |                                                             ^
+../core_c/enki_scheduler.c: In function ‘pelari_jadwal’:
+../core_c/enki_scheduler.c:46:21: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+   46 |     if (target_obj) hancurkan_objek(target_obj);
+      |                     ^~~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_scheduler.h:5,
+                 from ../core_c/enki_scheduler.c:6:
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_scheduler.c: In function ‘pelari_effort’:
+../core_c/enki_scheduler.c:69:21: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+   69 |     if (target_obj) hancurkan_objek(target_obj);
+      |                     ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim’:
+../otim/otim_parser.c:44:27: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   44 |     EnkiObject* root_ui = ciptakan_objek_peta(0);
+      |                           ^~~~~~~~~~~~~~~~~~~
+In file included from ../otim/otim_parser.h:5,
+                 from ../otim/otim_parser.c:4:
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:45:30: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   45 |     EnkiObject* array_anak = ciptakan_array(0);
+      |                              ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:55:41: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |                                         ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:55:5: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |     ^~~~~~~~~~~~~~~~~                                                  ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim_elemen’:
+../otim/otim_parser.c:64:33: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   64 |         EnkiObject* node_teks = ciptakan_objek_peta(0);
+      |                                 ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:72:35: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   72 |         EnkiObject* node_elemen = ciptakan_objek_peta(0);
+      |                                   ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:73:71: error: expected ‘)’ before ‘{’ token
+   73 |         o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag", 1
+      |                                                              ~        ^
+      |                                                                       )
+   74 |         {}));
+      |         ~                                                              
+../otim/otim_parser.c:78:92: error: expected expression before ‘)’ token
+   78 |         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, !));
+      |                                                                                            ^
+../otim/otim_parser.c:80:34: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   80 |         EnkiObject* array_anak = ciptakan_array(0);
+      |                                  ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:104:66: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                                                                  ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:104:21: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                     ^~~~~~~~~~~~~~~~~                                                                                                 ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+make: *** [Makefile:35: build] Error 1

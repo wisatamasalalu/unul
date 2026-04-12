@@ -43,7 +43,7 @@ void* pelari_jadwal(void* arg) {
     if (target_obj && target_obj->tipe == ENKI_TEKS) {
         strcpy(target_str, target_obj->nilai.teks);
     }
-    if (target_obj) hancurkan_objek(target_obj);
+    if (target_obj) hancurkan_objek(target_obj, 1);
     
     long jeda_ms = hitung_jeda_ke_jadwal(target_str);
     // 🟢 TIDAK ADA free(target_str) karena ini bukan malloc
@@ -66,7 +66,7 @@ void* pelari_effort(void* arg) {
     } else if (target_obj && target_obj->tipe == ENKI_ANGKA) {
         snprintf(interval_str, sizeof(interval_str), "%d", (int)target_obj->nilai.angka);
     }
-    if (target_obj) hancurkan_objek(target_obj);
+    if (target_obj) hancurkan_objek(target_obj, 1);
     
     long jeda_ms = hitung_ms_interval(interval_str);
     // 🟢 TIDAK ADA free(interval_str) karena ini bukan malloc

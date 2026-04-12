@@ -1,0 +1,476 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:1023:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1023 |             return ciptakan_angka(atof(teks_mentah)); // 🪄 Ubah string "2.0" jadi double 2.0
+      |                    ^~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_interpreter.c:15:
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1153:56: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1153 |                     if (v->tipe == ENKI_ANGKA) hasil = ciptakan_angka(v->nilai.angka);
+      |                                                        ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1155:86: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1155 |                     else if (v->tipe == ENKI_OBJEK || v->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(v);
+      |                                                                                      ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1157:49: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1157 |                     hancurkan_objek(induk, ram->status_array_dinami);
+      |                                                 ^~~~~~~~~~~~~~~~~~~
+      |                                                 status_array_dinamis
+../core_c/enki_interpreter.c:1164:48: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1164 |         if (induk) hancurkan_objek(induk, ram->status_array_dinami);
+      |                                                ^~~~~~~~~~~~~~~~~~~
+      |                                                status_array_dinamis
+../core_c/enki_interpreter.c:1211:74: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1211 |                 if (*alamat_target) hancurkan_objek(*alamat_target, ram->status_array_dinami);
+      |                                                                          ^~~~~~~~~~~~~~~~~~~
+      |                                                                          status_array_dinamis
+../core_c/enki_interpreter.c:1221:92: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1221 |                     if (target_kavling->objek) hancurkan_objek(target_kavling->objek, ram->status_array_dinami);
+      |                                                                                            ^~~~~~~~~~~~~~~~~~~
+      |                                                                                            status_array_dinamis
+../core_c/enki_interpreter.c:1228:82: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1228 |                     if (hasil_masa_depan) hancurkan_objek(hasil_masa_depan, ram->status_array_dinami);
+      |                                                                                  ^~~~~~~~~~~~~~~~~~~
+      |                                                                                  status_array_dinamis
+../core_c/enki_interpreter.c:1263:66: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1263 |                     if (obj_kiri) hancurkan_objek(obj_kiri, ram->status_array_dinami);
+      |                                                                  ^~~~~~~~~~~~~~~~~~~
+      |                                                                  status_array_dinamis
+../core_c/enki_interpreter.c:1264:68: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1264 |                     if (obj_kanan) hancurkan_objek(obj_kanan, ram->status_array_dinami);
+      |                                                                    ^~~~~~~~~~~~~~~~~~~
+      |                                                                    status_array_dinamis
+../core_c/enki_interpreter.c:1286:54: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1286 |         if (obj_kiri) hancurkan_objek(obj_kiri, ram->status_array_dinami);
+      |                                                      ^~~~~~~~~~~~~~~~~~~
+      |                                                      status_array_dinamis
+../core_c/enki_interpreter.c:1287:56: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1287 |         if (obj_kanan) hancurkan_objek(obj_kanan, ram->status_array_dinami);
+      |                                                        ^~~~~~~~~~~~~~~~~~~
+      |                                                        status_array_dinamis
+../core_c/enki_interpreter.c:1288:16: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1288 |         return ciptakan_angka(hasil_akhir);
+      |                ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1293:33: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+ 1293 |         EnkiObject* obj_array = ciptakan_array(node->jumlah_anak);
+      |                                 ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1301:89: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1301 |                 else if (elemen->tipe == ENKI_ANGKA) obj_array->nilai.array_elemen[i] = ciptakan_angka(elemen->nilai.angka);
+      |                                                                                         ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1305:56: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1305 |                     obj_array->nilai.array_elemen[i] = ciptakan_salinan_objek(elemen);
+      |                                                        ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1309:46: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1309 |                 hancurkan_objek(elemen, ram->status_array_dinami);
+      |                                              ^~~~~~~~~~~~~~~~~~~
+      |                                              status_array_dinamis
+../core_c/enki_interpreter.c:1320:32: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+ 1320 |         EnkiObject* obj_peta = ciptakan_objek_peta(jumlah_pasangan);
+      |                                ^~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1329:56: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1329 |                 obj_peta->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(obj_konten);
+      |                                                        ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1332:60: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1332 |             if (obj_kunci) hancurkan_objek(obj_kunci, ram->status_array_dinami);
+      |                                                            ^~~~~~~~~~~~~~~~~~~
+      |                                                            status_array_dinamis
+../core_c/enki_interpreter.c:1333:62: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1333 |             if (obj_konten) hancurkan_objek(obj_konten, ram->status_array_dinami);
+      |                                                              ^~~~~~~~~~~~~~~~~~~
+      |                                                              status_array_dinamis
+../core_c/enki_interpreter.c:1348:62: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1348 |             if (obj_target) hancurkan_objek(obj_target, ram->status_array_dinami);
+      |                                                              ^~~~~~~~~~~~~~~~~~~
+      |                                                              status_array_dinamis
+../core_c/enki_interpreter.c:1384:61: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1384 |                     if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
+      |                                                             ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1387:96: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1387 |                     else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(elemen);
+      |                                                                                                ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1415:65: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1415 |                         if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
+      |                                                                 ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1418:100: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1418 |                         else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(elemen);
+      |                                                                                                    ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1438:58: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1438 |         if (obj_target) hancurkan_objek(obj_target, ram->status_array_dinami);
+      |                                                          ^~~~~~~~~~~~~~~~~~~
+      |                                                          status_array_dinamis
+../core_c/enki_interpreter.c:1439:25: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 1439 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                         ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1439:59: error: ‘EnkiRAM’ has no member named ‘status_array_dinami’; did you mean ‘status_array_dinamis’?
+ 1439 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                                                           ^~~~~~~~~~~~~~~~~~~
+      |                                                           status_array_dinamis
+../core_c/enki_interpreter.c:1439:52: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 1439 |         if (obj_indeks) hancurkan_objek(obj_indeks), ram->status_array_dinami;
+      |                                                    ^
+../core_c/enki_interpreter.c:1487:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1487 |             return ciptakan_angka((double)hasil);
+      |                    ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1534:37: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1534 |                             hasil = ciptakan_salinan_objek(target->nilai.objek_peta.konten[i]);
+      |                                     ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1546:35: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+ 1546 |                 EnkiObject* arr = ciptakan_array(mini->jumlah);
+      |                                   ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1549:50: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1549 |                     arr->nilai.array_elemen[i] = ciptakan_salinan_objek(mini->kavling[i].objek);
+      |                                                  ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1579:24: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1579 |                 return ciptakan_angka(ada);
+      |                        ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1584:35: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+ 1584 |                 EnkiObject* arr = ciptakan_array(mini->jumlah);
+      |                                   ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1685:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1685 |             return ciptakan_angka((double)angka); // 🟢 Langsung jadi angka murni!
+      |                    ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1714:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1714 |             return ciptakan_angka(round(angka));
+      |                    ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1726:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1726 |             return ciptakan_angka(nilai_ascii);
+      |                    ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1743:24: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1743 |                 return ciptakan_angka(0);
+      |                        ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1774:20: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 1774 |             return ciptakan_angka((double)hasil_akhir);
+      |                    ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:1885:33: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 1885 |                         hasil = ciptakan_salinan_objek(ram->kavling[i].objek);
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2001:27: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 2001 |             if (obj_data) hancurkan_objek(obj_data), ram->status_array_dinamis;
+      |                           ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2001:52: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 2001 |             if (obj_data) hancurkan_objek(obj_data), ram->status_array_dinamis;
+      |                                                    ^
+../core_c/enki_interpreter.c:2001:52: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c:2022:66: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2022 |                         obj_target->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(elemen_baru);
+      |                                                                  ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2030:79: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2030 |                     obj_target->nilai.objek_peta.kunci[obj_target->panjang] = ciptakan_salinan_objek(obj_kunci);
+      |                                                                               ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2031:80: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2031 |                     obj_target->nilai.objek_peta.konten[obj_target->panjang] = ciptakan_salinan_objek(elemen_baru);
+      |                                                                                ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2282:35: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2282 |                     hasil_final = ciptakan_salinan_objek(obj_sumber);
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2317:39: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+ 2317 |             EnkiObject* array_hasil = ciptakan_array(jumlah);
+      |                                       ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2353:66: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 2353 |                     else if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka);
+      |                                                                  ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2360:28: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 2360 |             if (obj_index) hancurkan_objek(obj_index), ram->status_array_dinamis;
+      |                            ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2360:54: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 2360 |             if (obj_index) hancurkan_objek(obj_index), ram->status_array_dinamis;
+      |                                                      ^
+../core_c/enki_interpreter.c:2360:54: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c:2392:73: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2392 |                     obj_array->nilai.array_elemen[obj_array->panjang] = ciptakan_salinan_objek(elemen_baru);
+      |                                                                         ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2509:33: error: too few arguments to function ‘ciptakan_blob’; expected 3, have 2
+ 2509 |             EnkiObject* hasil = ciptakan_blob(buffer_biner, ukuran); // 🟢 BUNGKUS JADI BLOB AMAN
+      |                                 ^~~~~~~~~~~~~
+../core_c/../core/enki_object.h:42:13: note: declared here
+   42 | EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2550:41: error: too few arguments to function ‘ciptakan_blob’; expected 3, have 2
+ 2550 |                     EnkiObject* hasil = ciptakan_blob(biner, ukuran_asli); // 🟢 KEMBALIKAN KE BLOB
+      |                                         ^~~~~~~~~~~~~
+../core_c/../core/enki_object.h:42:13: note: declared here
+   42 | EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2697:63: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2697 |                                             hasil_pencarian = ciptakan_salinan_objek(baris);
+      |                                                               ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2713:55: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2713 |                                     hasil_pencarian = ciptakan_salinan_objek(db_sementara);
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2757:34: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+ 2757 |                 EnkiObject* db = ciptakan_objek_peta(0); // Default jika file kosong
+      |                                  ^~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2786:72: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2786 |                                 saat_ini->nilai.objek_peta.konten[i] = ciptakan_salinan_objek(obj_nilai);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2794:84: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2794 |                             saat_ini->nilai.objek_peta.konten[saat_ini->panjang] = ciptakan_salinan_objek(obj_nilai);
+      |                                                                                    ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2809:55: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+ 2809 |                             EnkiObject* cabang_baru = ciptakan_objek_peta(0);
+      |                                                       ^~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:2874:49: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 2874 |                                         hasil = ciptakan_salinan_objek(saat_ini->nilai.objek_peta.konten[i]);
+      |                                                 ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3023:41: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+ 3023 |             EnkiObject* obj_kembalian = ciptakan_objek_peta(2);
+      |                                         ^~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3056:41: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+ 3056 |             EnkiObject* obj_kembalian = ciptakan_objek_peta(2);
+      |                                         ^~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3090:25: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+ 3090 |             if (obj_id) hancurkan_objek(obj_id), ram->status_array_dinamis;
+      |                         ^~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3090:48: warning: left-hand operand of comma expression has no effect [-Wunused-value]
+ 3090 |             if (obj_id) hancurkan_objek(obj_id), ram->status_array_dinamis;
+      |                                                ^
+../core_c/enki_interpreter.c:3090:48: warning: statement with no effect [-Wunused-value]
+../core_c/enki_interpreter.c:3103:69: error: ‘ramram’ undeclared (first use in this function)
+ 3103 |             EnkiObject* obj = evaluasi_ekspresi(node->anak_anak[0], ramram->status_array_dinamis);
+      |                                                                     ^~~~~~
+../core_c/enki_interpreter.c:3103:69: note: each undeclared identifier is reported only once for each function it appears in
+../core_c/enki_interpreter.c:3152:29: error: too many arguments to function ‘inisialisasi_ram’; expected 0, have 1
+ 3152 |         EnkiRAM ram_lokal = inisialisasi_ram(ram->status_array_dinamis);
+      |                             ^~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:295:9: note: declared here
+  295 | EnkiRAM inisialisasi_ram() {
+      |         ^~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c: In function ‘eksekusi_node’:
+../core_c/enki_interpreter.c:3546:49: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3546 |                         ram->kavling[j].objek = ciptakan_angka((double)i);
+      |                                                 ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3554:55: error: too few arguments to function ‘ciptakan_angka’; expected 2, have 1
+ 3554 |                     ram->kavling[ram->jumlah].objek = ciptakan_angka((double)i);
+      |                                                       ^~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:38:13: note: declared here
+   38 | EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:3727:52: error: too few arguments to function ‘ciptakan_salinan_objek’; expected 2, have 1
+ 3727 |             akar_utama->objek = masa_lalu->objek ? ciptakan_salinan_objek(masa_lalu->objek) : NULL;
+      |                                                    ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/../core/enki_object.h:43:13: note: declared here
+   43 | EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~~~~
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:3799:1: error: expected declaration or statement at end of input
+ 3799 | } // <--- 🟢 KURUNG PENUTUP UNTUK FUNGSI 'eksekusi_program' (DAN AKHIR FILE)
+      | ^
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:3784:6: warning: ‘eksekusi_program’ defined but not used [-Wunused-function]
+ 3784 | void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
+      |      ^~~~~~~~~~~~~~~~
+../core_c/enki_scheduler.c: In function ‘pelari_effort’:
+../core_c/enki_scheduler.c:69:21: error: too few arguments to function ‘hancurkan_objek’; expected 2, have 1
+   69 |     if (target_obj) hancurkan_objek(target_obj);
+      |                     ^~~~~~~~~~~~~~~
+In file included from ../core_c/enki_interpreter.h:6,
+                 from ../core_c/enki_scheduler.h:5,
+                 from ../core_c/enki_scheduler.c:6:
+../core_c/../core/enki_object.h:47:6: note: declared here
+   47 | void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+      |      ^~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim’:
+../otim/otim_parser.c:44:27: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   44 |     EnkiObject* root_ui = ciptakan_objek_peta(0);
+      |                           ^~~~~~~~~~~~~~~~~~~
+In file included from ../otim/otim_parser.h:5,
+                 from ../otim/otim_parser.c:4:
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:45:30: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   45 |     EnkiObject* array_anak = ciptakan_array(0);
+      |                              ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:55:41: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |                                         ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:55:5: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+   55 |     o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"), 1);
+      |     ^~~~~~~~~~~~~~~~~                                                  ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+../otim/otim_parser.c: In function ‘parse_otim_elemen’:
+../otim/otim_parser.c:64:33: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   64 |         EnkiObject* node_teks = ciptakan_objek_peta(0);
+      |                                 ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:72:35: error: too few arguments to function ‘ciptakan_objek_peta’; expected 2, have 1
+   72 |         EnkiObject* node_elemen = ciptakan_objek_peta(0);
+      |                                   ^~~~~~~~~~~~~~~~~~~
+../otim/../core/enki_object.h:41:13: note: declared here
+   41 | EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~~~~~~
+../otim/otim_parser.c:73:71: error: expected ‘)’ before ‘{’ token
+   73 |         o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag", 1
+      |                                                              ~        ^
+      |                                                                       )
+   74 |         {}));
+      |         ~                                                              
+../otim/otim_parser.c:78:92: error: expected expression before ‘)’ token
+   78 |         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, !));
+      |                                                                                            ^
+../otim/otim_parser.c:80:34: error: too few arguments to function ‘ciptakan_array’; expected 2, have 1
+   80 |         EnkiObject* array_anak = ciptakan_array(0);
+      |                                  ^~~~~~~~~~~~~~
+../otim/../core/enki_object.h:40:13: note: declared here
+   40 | EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+      |             ^~~~~~~~~~~~~~
+../otim/otim_parser.c:104:66: error: too few arguments to function ‘ciptakan_teks’; expected 2, have 1
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                                                                  ^~~~~~~~~~~~~
+../otim/../core/enki_object.h:39:13: note: declared here
+   39 | EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+      |             ^~~~~~~~~~~~~
+../otim/otim_parser.c:104:21: error: too many arguments to function ‘o_simpan_ke_objek’; expected 3, have 4
+  104 |                     o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks), 1);
+      |                     ^~~~~~~~~~~~~~~~~                                                                                                 ~
+../otim/otim_parser.c:27:13: note: declared here
+   27 | static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+      |             ^~~~~~~~~~~~~~~~~
+make: *** [Makefile:35: build] Error 1

@@ -246,8 +246,8 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                 elemen->panjang++;
                 elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
                 elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
-                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input");
-                elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(daftar_nilai[indeks_saya]);
+                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input", 1);
+                elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
             }
         }
 
@@ -367,7 +367,7 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
     if (WindowShouldClose()) { strcpy(aksi_kembalian, "TUTUP_PAKSA"); CloseWindow(); }
     if (strlen(aksi_kembalian) > 0) scroll_y = 0; 
     
-    if (gaya_bawaan_ast) hancurkan_objek(gaya_bawaan_ast);
+    if (gaya_bawaan_ast) hancurkan_objek(gaya_bawaan_ast, 1);
     bebaskan_snul_token(&tokens_bawaan);
 
     return strdup(aksi_kembalian);

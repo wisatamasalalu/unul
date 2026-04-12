@@ -29,7 +29,7 @@ static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* ni
     obj->panjang++;
     obj->nilai.objek_peta.kunci = realloc(obj->nilai.objek_peta.kunci, obj->panjang * sizeof(EnkiObject*));
     obj->nilai.objek_peta.konten = realloc(obj->nilai.objek_peta.konten, obj->panjang * sizeof(EnkiObject*));
-    obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci);
+    obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci, 1);
     obj->nilai.objek_peta.konten[obj->panjang - 1] = nilai;
 }
 
@@ -41,8 +41,8 @@ EnkiObject* parse_otim(OtimTokenArray tokens) {
     if (t_sekarang(&p).jenis == TOKEN_OTIM_HEADER) { t_maju(&p); } 
     else { printf("🚨 KIAMAT VISUAL: Dokumen harus diawali '#!datang'!\n"); return NULL; }
 
-    EnkiObject* root_ui = ciptakan_objek_peta(0); 
-    EnkiObject* array_anak = ciptakan_array(0); 
+    EnkiObject* root_ui = ciptakan_objek_peta(0, 1); 
+    EnkiObject* array_anak = ciptakan_array(0, 1); 
     
     while (t_sekarang(&p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(&p).jenis != TOKEN_OTIM_EOF) {
         EnkiObject* elemen = parse_otim_elemen(&p);
@@ -52,7 +52,7 @@ EnkiObject* parse_otim(OtimTokenArray tokens) {
 
     if (t_sekarang(&p).jenis == TOKEN_OTIM_FOOTER) t_maju(&p);
 
-    o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen"));
+    o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen", 1));
     o_simpan_ke_objek(root_ui, "anak_anak", array_anak);
     return root_ui;
 }
@@ -61,22 +61,22 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
     OtimToken t = t_sekarang(p);
 
     if (t.jenis == TOKEN_OTIM_TEKS) {
-        EnkiObject* node_teks = ciptakan_objek_peta(0);
-        o_simpan_ke_objek(node_teks, "jenis", ciptakan_teks("teks"));
-        o_simpan_ke_objek(node_teks, "isi", ciptakan_teks(t.isi_teks));
+        EnkiObject* node_teks = ciptakan_objek_peta(0, 1);
+        o_simpan_ke_objek(node_teks, "jenis", ciptakan_teks("teks", 1));
+        o_simpan_ke_objek(node_teks, "isi", ciptakan_teks(t.isi_teks, 1));
         t_maju(p);
         return node_teks;
     }
 
     if (t.jenis == TOKEN_OTIM_TAG_BUKA) {
-        EnkiObject* node_elemen = ciptakan_objek_peta(0);
-        o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag"));
-        o_simpan_ke_objek(node_elemen, "tag", ciptakan_teks(t.tag_nama));
+        EnkiObject* node_elemen = ciptakan_objek_peta(0, 1);
+        o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag", 1));
+        o_simpan_ke_objek(node_elemen, "tag", ciptakan_teks(t.tag_nama, 1));
         
-        if (t.tag_id) o_simpan_ke_objek(node_elemen, "id", ciptakan_teks(t.tag_id));
-        if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut));
+        if (t.tag_id) o_simpan_ke_objek(node_elemen, "id", ciptakan_teks(t.tag_id, 1));
+        if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, 1));
 
-        EnkiObject* array_anak = ciptakan_array(0); 
+        EnkiObject* array_anak = ciptakan_array(0, 1); 
         char* nama_tag_buka = strdup(t.tag_nama);
         t_maju(p);
 
@@ -100,7 +100,7 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
             EnkiObject* anak_pertama = array_anak->nilai.array_elemen[0];
             for (int j = 0; j < anak_pertama->panjang; j++) {
                 if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
-                    o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks));
+                    o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks, 1));
                     break;
                 }
             }
