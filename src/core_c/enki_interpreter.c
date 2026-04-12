@@ -732,86 +732,108 @@ char* ambil_elemen_array(const char* teks_array, int target_indeks) {
 }
 
 // =================================================================
-// 🟢 SIHIR SISIPAN TEKS (String Interpolation: "Halo {nama}")
+// 🟢 SIHIR SISIPAN TEKS (String Interpolation Kelas Berat: 64KB)
 // =================================================================
 char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
     if (!teks_asli) return strdup("");
     
-    // Jalan pintas: Jika tidak ada '{', langsung kembalikan teks aslinya (Sangat Cepat & Hemat CPU)
+    // Jalan pintas: Jika tidak ada '{', langsung kembalikan teks aslinya
     if (strchr(teks_asli, '{') == NULL) {
         return strdup(teks_asli);
     }
 
-    char buffer[4096] = {0}; // Batas aman: 4096 karakter per kalimat
-    int buf_idx = 0;
+    // 🟢 MINTA MEMORI DARI HEAP (Bukan Stack!) AGAR TIDAK MELEDAK
+    // 65536 Bytes = 64KB
+    size_t batas_maksimal = 65536; 
+    char* buffer = (char*)malloc(batas_maksimal);
+    if (!buffer) return strdup(teks_asli); 
+    memset(buffer, 0, batas_maksimal);
+
+    // 🟢 KOREKSI 1: Gunakan size_t agar tidak diprotes GCC saat dibandingkan
+    size_t buf_idx = 0; 
     const char* p = teks_asli;
 
     while (*p != '\0') {
+        // 🛡️ PENJAGA DIMENSI: Jangan biarkan buffer jebol
+        if (buf_idx >= batas_maksimal - 2048) {
+            break; 
+        }
+
         if (*p == '{') {
             p++; // Lewati kurung kurawal buka '{'
-            char nama_var[256] = {0};
+            char nama_var[1024] = {0}; 
             int var_idx = 0;
 
-            // Menangkap nama variabel di dalamnya
-            while (*p != '}' && *p != '\0' && var_idx < 255) {
+            // Menangkap semua teks di dalam kurung {}
+            while (*p != '}' && *p != '\0' && var_idx < 1023) {
                 nama_var[var_idx++] = *p++;
             }
 
             if (*p == '}') {
                 p++; // Lewati kurung kurawal tutup '}'
                 
-                // 🟢 SUNTIKAN CERDAS: Cek apakah isi kurungnya murni angka/koma (Pola Regex)
-                int murni_angka_regex = 1;
+                // 🟢 PENJAGA DIMENSI JSON & REGEX
+                int adalah_variabel_sah = 1;
+                if (var_idx == 0) adalah_variabel_sah = 0;
+
                 for(int i = 0; i < var_idx; i++) {
-                    // Jika ada huruf biasa, berarti ini nama variabel, bukan regex
-                    if (!isdigit(nama_var[i]) && nama_var[i] != ',') {
-                        murni_angka_regex = 0; 
+                    if (!isalnum(nama_var[i]) && nama_var[i] != '_') {
+                        adalah_variabel_sah = 0; 
                         break;
                     }
                 }
 
-                // JIKA INI REGEX (contoh: {4} atau {1,3}), cetak ulang apa adanya!
-                if (murni_angka_regex) {
+                // JIKA BUKAN VARIABEL SAH (JSON/Regex)
+                if (!adalah_variabel_sah) {
                     buffer[buf_idx++] = '{';
                     strcpy(buffer + buf_idx, nama_var);
                     buf_idx += strlen(nama_var);
                     buffer[buf_idx++] = '}';
                 } 
-                // JIKA BUKAN REGEX (Berarti variabel beneran, misal {nama})
+                // JIKA INI VARIABEL SAH
                 else {
-                    // 🟢 BARU: Baca objeknya, lalu terjemahkan ke teks!
                     EnkiObject* obj_nilai = baca_dari_ram(ram, nama_var);
                     
                     if (obj_nilai == NULL) {
-                        // KIAMAT PRESISI JIKA VARIABEL GAIB
-                        char pesan_error[512];
+                        char pesan_error[2048];
                         snprintf(pesan_error, sizeof(pesan_error), "Variabel sisipan '{%s}' belum diciptakan!", nama_var);
                         pemicu_kiamat_presisi(node, ram, pesan_error, 
                             "Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.\n"
                             "Pastikan tidak ada salah eja. Contoh yang sah:\n"
                             "takdir.soft nama = \"Enki\"\n"
                             "ketik(\"Halo {nama}\")");
+                        
+                        free(buffer); 
+                        // 🟢 KOREKSI 2: Kembalikan strdup("") karena fungsi ini bertipe char*, BUKAN EnkiObject*
+                        return strdup(""); 
                     } else {
-                        // 🟢 Jika ADA nilainya, gabungkan ke dalam buffer teks!
-                        char buf_temp[8192] = ""; 
-                        objek_ke_string(obj_nilai, buf_temp, sizeof(buf_temp));
-                        strcpy(buffer + buf_idx, buf_temp);
-                        buf_idx += strlen(buf_temp);
+                        // ALOKASI HEAP UNTUK KONVERSI OBJEK (64KB)
+                        char* buf_temp = (char*)malloc(batas_maksimal);
+                        buf_temp[0] = '\0';
+                        
+                        // Asumsi Anda punya fungsi objek_ke_string() di interpreter Anda
+                        objek_ke_string(obj_nilai, buf_temp, batas_maksimal);
+                        
+                        if (buf_idx + strlen(buf_temp) < batas_maksimal) {
+                            strcpy(buffer + buf_idx, buf_temp);
+                            buf_idx += strlen(buf_temp);
+                        }
+                        free(buf_temp); 
                     }
                 }
             } else {
-                // Jika kurung tidak ditutup (misal teksnya aneh), cetak apa adanya
                 buffer[buf_idx++] = '{';
                 strcpy(buffer + buf_idx, nama_var);
                 buf_idx += var_idx;
             }
         } else {
-            // Salin huruf biasa
             buffer[buf_idx++] = *p++;
         }
     }
     
-    return strdup(buffer);
+    char* hasil_akhir = strdup(buffer);
+    free(buffer); 
+    return hasil_akhir;
 }
 
 // Pengumuman Fungsi (Forward Declaration)
@@ -1866,6 +1888,9 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // =======================================================
         // K. ALAM JARINGAN (HTTP GET & POST) - HUKUM MUTLAK UNUL
         // =======================================================
+        // ---------------------------------------------------------
+        // 🌐 FUNGSI AMBIL (HTTP GET)
+        // ---------------------------------------------------------
         else if (strcmp(node->nilai_teks, "ambil") == 0) {
             if (node->jumlah_anak < 1) {
                 pemicu_kiamat_presisi(node, ram, "Dosa Jaringan!", "Fungsi ambil() butuh argumen Tautan. Contoh: ambil(\"https://api.urantia.com\")");
@@ -1887,8 +1912,16 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 }
                 
                 if (tautan_sah) {
-                    // 🚀 Logika libcurl HTTP GET akan Anda tulis di sini nanti
+                    // 🚀 LOGIKA LIBCURL DI SINI!
                     printf("🌐 [JARINGAN] Membuka portal ke: %s\n", obj_tautan->nilai.teks);
+                    char* respon_mentah = sihir_ambil(obj_tautan->nilai.teks);
+                    EnkiObject* hasil_akhir = ciptakan_teks(respon_mentah);
+                    
+                    // Kita pakai free() standar dari OS karena respon_mentah dialokasikan oleh libcurl di enki_network.c
+                    free(respon_mentah); 
+                    
+                    hancurkan_objek(obj_tautan);
+                    return hasil_akhir;
                 } else {
                     pemicu_kiamat_presisi(node, ram, "Tautan Dimensi Tidak Sah!", 
                         "Argumen yang diberikan bukan Tautan (URL) yang sah.\n"
@@ -1899,9 +1932,12 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             }
             
             if (obj_tautan) hancurkan_objek(obj_tautan);
-            return ciptakan_kosong(); // Nanti diubah untuk mengembalikan response web
+            return ciptakan_kosong(); 
         }
         
+        // ---------------------------------------------------------
+        // 🚀 FUNGSI SETOR (HTTP POST)
+        // ---------------------------------------------------------
         else if (strcmp(node->nilai_teks, "setor") == 0) {
             if (node->jumlah_anak < 2) {
                 pemicu_kiamat_presisi(node, ram, "Dosa Jaringan!", "Fungsi setor() butuh 2 argumen! Contoh: setor(\"https://api.urantia.com\", data)");
@@ -1923,8 +1959,21 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 }
                 
                 if (tautan_sah) {
-                    // 🚀 Logika libcurl HTTP POST akan Anda tulis di sini nanti
-                    printf("🚀 [JARINGAN] Menyetor objek ke: %s\n", obj_tautan->nilai.teks);
+                    // 🛡️ PASTIKAN DATA ADALAH TEKS JSON
+                    if (obj_data && obj_data->tipe == ENKI_TEKS) {
+                        // 🚀 LOGIKA LIBCURL POST DI SINI!
+                        printf("🚀 [JARINGAN] Menyetor objek ke: %s\n", obj_tautan->nilai.teks);
+                        char* respon_mentah = sihir_setor(obj_tautan->nilai.teks, obj_data->nilai.teks);
+                        EnkiObject* hasil_akhir = ciptakan_teks(respon_mentah);
+                        
+                        free(respon_mentah);
+                        
+                        hancurkan_objek(obj_tautan);
+                        hancurkan_objek(obj_data);
+                        return hasil_akhir;
+                    } else {
+                        pemicu_kiamat_presisi(node, ram, "Format Data Ditolak!", "Saat ini setor() hanya menerima format Teks JSON murni.");
+                    }
                 } else {
                     pemicu_kiamat_presisi(node, ram, "Tautan Dimensi Tidak Sah!", 
                         "Argumen PERTAMA harus berupa Tautan (URL) yang sah.\n"

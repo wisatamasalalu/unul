@@ -1,0 +1,14 @@
+ketik("=== MENGUJI OBJEK & API INTERNET ===")
+
+^^ 1. Kita persiapkan data dalam bentuk JSON Teks Murni!
+takdir.soft alamat_post = "https://httpbin.org/post"
+takdir.soft data_user = "{\"nama\": \"Developer Kece\", \"sistem\": \"LinuxDNC\"}"
+
+ketik("Mengirim data ke awan...")
+takdir.soft hasil_post = setor(alamat_post, data_user)
+
+ketik("=== BALASAN DARI INTERNET ===")
+^^ Mesin akan mencetak teks mentah JSON dari server httpbin!
+ketik(hasil_post)
+
+ketik("=== SELESAI ===")

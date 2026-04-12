@@ -53,6 +53,20 @@ EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran);
 EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber);
 EnkiObject* ciptakan_kosong();
 
+// ... [Enum dan Struct EnkiObject tetap sama] ...
+
+// 🟢 MODIFIKASI: Sekarang semua fungsi menerima (..., int mode_dinamis)
+EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
+EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
+EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);
+EnkiObject* ciptakan_objek_peta(int kapasitas, int mode_dinamis); 
+EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran, int mode_dinamis);
+EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis);
+EnkiObject* ciptakan_kosong(int mode_dinamis);
+
+void hancurkan_objek(EnkiObject* obj, int mode_dinamis);
+void cetak_objek(EnkiObject* obj);
+
 // 4. Mantra Penghancur
 void hancurkan_objek(EnkiObject* obj);
 

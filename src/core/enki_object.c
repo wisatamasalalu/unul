@@ -4,7 +4,7 @@
 // 🏭 PABRIK PENCIPTAAN (CONSTRUCTORS)
 // ==========================================
 
-EnkiObject* ciptakan_angka(double nilai) {
+EnkiObject* ciptakan_angka(double nilai) { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_ANGKA;
     obj->nilai.angka = nilai;
@@ -12,7 +12,7 @@ EnkiObject* ciptakan_angka(double nilai) {
     return obj;
 }
 
-EnkiObject* ciptakan_teks(const char* nilai) {
+EnkiObject* ciptakan_teks(const char* nilai) { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_TEKS;
     if (nilai) {
@@ -25,7 +25,7 @@ EnkiObject* ciptakan_teks(const char* nilai) {
     return obj;
 }
 
-EnkiObject* ciptakan_array(int kapasitas) {
+EnkiObject* ciptakan_array(int kapasitas) { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_ARRAY;
     obj->panjang = 0; // Mulai dari 0, bertambah saat diisi
@@ -37,7 +37,7 @@ EnkiObject* ciptakan_array(int kapasitas) {
     return obj;
 }
 
-EnkiObject* ciptakan_objek_peta(int kapasitas) {
+EnkiObject* ciptakan_objek_peta(int kapasitas) { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_OBJEK;
     obj->panjang = 0;
@@ -51,7 +51,7 @@ EnkiObject* ciptakan_objek_peta(int kapasitas) {
     return obj;
 }
 
-EnkiObject* ciptakan_kosong() {
+EnkiObject* ciptakan_kosong() { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_KOSONG;
     obj->panjang = 0;
@@ -62,7 +62,7 @@ EnkiObject* ciptakan_kosong() {
 // ☠️ PENGHANCUR DIMENSI (DESTRUCTOR)
 // ==========================================
 
-void hancurkan_objek(EnkiObject* obj) {
+void hancurkan_objek(EnkiObject* obj) { || enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     if (obj == NULL) return;
 
     if (obj->tipe == ENKI_TEKS && obj->nilai.teks != NULL) {
@@ -87,7 +87,7 @@ void hancurkan_objek(EnkiObject* obj) {
     }
 
     free(obj);
-}
+}enki_alokasi(sizeof(EnkiObject), mode_dinamis)
 
 // ==========================================
 // 🖨️ UTILITAS TAMPILAN (VERSI REKURSIF)
@@ -136,7 +136,7 @@ void cetak_objek(EnkiObject* obj) {
 }
 
 // Sihir Pengganda Objek (Deep Copy)
-EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) {
+EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) { enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     if (!sumber) return ciptakan_kosong();
 
     if (sumber->tipe == ENKI_ANGKA) {
@@ -172,7 +172,7 @@ EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber) {
 }
 
 // 📦 PABRIK BLOB (Data Biner Mentah)
-EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran) {
+EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran) { enki_alokasi(sizeof(EnkiObject), mode_dinamis)
     EnkiObject* obj = (EnkiObject*)malloc(sizeof(EnkiObject));
     obj->tipe = ENKI_BLOB;
     obj->panjang = (int)ukuran; // Simpan untuk kompatibilitas panjang()
@@ -186,4 +186,4 @@ EnkiObject* ciptakan_blob(const unsigned char* data, size_t ukuran) {
         obj->nilai.blob.ukuran = 0;
     }
     return obj;
-}
+} || enki_alokasi(sizeof(EnkiObject), mode_dinamis)

@@ -529,3 +529,12 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
    Saran: Dimensi visual 'beranda.otim' tidak ditemukan!
 =================================
 
+=== [WAKTU KIAMAT: 1775955227] ===
+🚨 [tes_upload.unul: Baris 5:25] KIAMAT SINTAKSIS: Variabel sisipan '{"nama": "Developer Kece", "sistem": "LinuxDNC"}' belum diciptakan!
+   Kode Penyebab: "{"nama": "Developer Kece", "sistem": "LinuxDNC"}"
+   Saran: Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.
+Pastikan tidak ada salah eja. Contoh yang sah:
+takdir.soft nama = "Enki"
+ketik("Halo {nama}")
+=================================
+

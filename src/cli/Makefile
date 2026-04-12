@@ -25,7 +25,8 @@ SRCS = main.c \
        ../otim/otim_parser.c \
        ../snul/snul_lexer.c \
        ../snul/snul_parser.c \
-       ../gui/gui_renderer.c    
+       ../gui/gui_renderer.c \
+       ../core/enki_memory.c   
 
 CC = gcc
 

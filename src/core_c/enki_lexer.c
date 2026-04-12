@@ -86,25 +86,59 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
         if (c == ':') { tambah_token(&token_list, TOKEN_TITIK_DUA, ":", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
         if (c == '.') { tambah_token(&token_list, TOKEN_TITIK, ".", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
 
-        // 4. Tangkap Teks ("..." atau '...')
+        // 4. Tangkap Teks ("..." atau '...') dengan Dukungan Escape Character (\)
         if (c == '"' || c == '\'') {
             char kutip = c;
-            int awal = i;
-            int awal_kolom = kolom; 
-            i++; kolom++;
-            while (kode_sumber[i] != kutip && kode_sumber[i] != '\0') {
-                if (kode_sumber[i] == '\n') { baris++; kolom = 0; }
+            int awal_kolom = kolom;
+            i++; kolom++; // Lewati kutip pembuka
+            
+            // Siapkan buffer penampung teks yang besar (untuk JSON)
+            char buffer_teks[4096];
+            int indeks_buffer = 0;
+            
+            // Simpan kutip pembuka agar saat dicetak ulang di interpreter strukturnya sama
+            buffer_teks[indeks_buffer++] = kutip; 
+
+            while (kode_sumber[i] != '\0') {
+                char huruf = kode_sumber[i];
+                
+                // Jika bertemu Backslash (\), aktifkan mode Escape
+                if (huruf == '\\') {
+                    i++; kolom++; // Lewati backslash
+                    char huruf_berikutnya = kode_sumber[i];
+                    
+                    if (huruf_berikutnya == 'n') buffer_teks[indeks_buffer++] = '\n';
+                    else if (huruf_berikutnya == 't') buffer_teks[indeks_buffer++] = '\t';
+                    else if (huruf_berikutnya == 'r') buffer_teks[indeks_buffer++] = '\r';
+                    else if (huruf_berikutnya == '"') buffer_teks[indeks_buffer++] = '"';
+                    else if (huruf_berikutnya == '\'') buffer_teks[indeks_buffer++] = '\'';
+                    else if (huruf_berikutnya == '\\') buffer_teks[indeks_buffer++] = '\\';
+                    else {
+                        // Jika tidak dikenal, simpan apa adanya
+                        buffer_teks[indeks_buffer++] = '\\';
+                        buffer_teks[indeks_buffer++] = huruf_berikutnya;
+                    }
+                    i++; kolom++;
+                    continue;
+                }
+                
+                // Jika bertemu tanda kutip penutup, BERHENTI
+                if (huruf == kutip) {
+                    buffer_teks[indeks_buffer++] = kutip; // Simpan kutip penutup
+                    i++; kolom++;
+                    break;
+                }
+                
+                // Jika huruf normal (termasuk baris baru aktual)
+                if (huruf == '\n') { baris++; kolom = 0; }
+                
+                buffer_teks[indeks_buffer++] = huruf;
                 i++; kolom++;
             }
-            if (kode_sumber[i] == kutip) { i++; kolom++; }
             
-            int panjang = i - awal;
-            char* teks_buffer = (char*)malloc(panjang + 1);
-            strncpy(teks_buffer, &kode_sumber[awal], panjang);
-            teks_buffer[panjang] = '\0';
+            buffer_teks[indeks_buffer] = '\0'; // Tutup string C
             
-            tambah_token(&token_list, TOKEN_TEKS, teks_buffer, baris, awal_kolom, nama_file_sumber);
-            free(teks_buffer);
+            tambah_token(&token_list, TOKEN_TEKS, buffer_teks, baris, awal_kolom, nama_file_sumber);
             continue;
         }
 

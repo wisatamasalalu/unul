@@ -1,3 +1,5 @@
+inisialisasi_kolam_memori();
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
