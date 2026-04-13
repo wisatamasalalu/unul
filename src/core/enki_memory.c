@@ -78,3 +78,41 @@ void enki_bebas(void* pointer, int mode_dinamis) {
         // 🟢 Di Mode Statis, No-Op (Sangat hemat CPU!)
     }
 }
+
+// ==========================================
+// 🧹 ALOKASI BERSIH (CALLOC WRAPPER)
+// ==========================================
+void* enki_kalokasi(size_t jumlah, size_t ukuran, int mode_dinamis) {
+    size_t total_ukuran = jumlah * ukuran;
+    if (total_ukuran == 0) return NULL;
+
+    if (mode_dinamis == 1) {
+        // 🔵 MODE DINAMIS: Gunakan calloc bawaan C
+        return calloc(jumlah, ukuran);
+    } else {
+        // 🟢 MODE STATIS: Panggil enki_alokasi
+        // Perhatikan bahwa enki_alokasi di mode statis SUDAH memiliki 
+        // memset(ptr, 0, ukuran) di dalamnya, jadi ia otomatis berperilaku seperti calloc!
+        return enki_alokasi(total_ukuran, 0);
+    }
+}
+
+// ==========================================
+// 📝 DUPLIKASI TEKS (STRDUP WRAPPER)
+// ==========================================
+char* enki_salin_teks(const char* sumber, int mode_dinamis) {
+    if (sumber == NULL) return NULL;
+    
+    // Hitung panjang string ditambah 1 untuk karakter null terminator '\0'
+    size_t panjang = strlen(sumber) + 1;
+    
+    // Minta memori melalui Gerbang Tol Enki
+    char* salinan = (char*)enki_alokasi(panjang, mode_dinamis);
+    
+    if (salinan != NULL) {
+        // Salin isi teks dari sumber ke salinan baru
+        memcpy(salinan, sumber, panjang);
+    }
+    
+    return salinan;
+}

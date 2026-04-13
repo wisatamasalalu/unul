@@ -19,4 +19,10 @@ void* enki_realokasi(void* pointer_lama, size_t ukuran_lama, size_t ukuran_baru,
 // 🟢 FUNGSI BEBAS (Ganti semua free dengan ini!)
 void enki_bebas(void* pointer, int mode_dinamis);
 
+// 🟢 FUNGSI ALOKASI BERSIH (Ganti semua calloc dengan ini!)
+void* enki_kalokasi(size_t jumlah, size_t ukuran, int mode_dinamis);
+
+// 🟢 FUNGSI DUPLIKASI TEKS (Ganti semua strdup dengan ini!)
+char* enki_salin_teks(const char* sumber, int mode_dinamis);
+
 #endif

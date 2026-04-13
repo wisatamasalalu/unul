@@ -1,0 +1,28 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘sihir_temukan_alamat_memori’:
+../core_c/enki_interpreter.c:676:65: error: implicit declaration of function ‘enki_realokasi’ [-Wimplicit-function-declaration]
+  676 |             objek_induk->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
+      |                                                                 ^~~~~~~~~~~~~~
+../core_c/enki_interpreter.c:676:51: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  676 |             objek_induk->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
+      |                                                   ^
+../core_c/enki_interpreter.c:682:52: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  682 |             objek_induk->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(
+      |                                                    ^
+../core_c/enki_interpreter.c:735:49: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  735 |                 induk->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
+      |                                                 ^
+../core_c/enki_interpreter.c:741:50: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  741 |                 induk->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(
+      |                                                  ^
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:2065:58: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 2065 |                     obj_target->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
+      |                                                          ^
+../core_c/enki_interpreter.c:2071:59: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 2071 |                     obj_target->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(
+      |                                                           ^
+../core_c/enki_interpreter.c:2453:53: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+ 2453 |                     obj_array->nilai.array_elemen = (EnkiObject**)enki_realokasi(
+      |                                                     ^
+make: *** [Makefile:35: build] Error 1

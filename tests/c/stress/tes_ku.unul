@@ -1,6 +1,24 @@
 datang
-
+^^ // ini komentar ala C
+^^ # ini pakai pagar
+^^ <-- cuma 1 itunya
+untuk array.statis
 takdir.soft hehe = "kucing ku"
-jika ku(hehe) == 0 maka
-    takdir.soft = "kambing"
+ketik(hehe)
+debug()
+debug(hehe)
+debug("kucing ku")
+jika ku(hehe) == hampa  maka
+    takdir.soft hewan  = "kambing"
+    kambing.garut = "buat qurban"
+ketik(hewan)
+debug("kambing")
+debug(kambing.garut)
+debug("buat qurban")
+debug(presiden)
 putus
+pergi
+takdir.soft presiden = "Jokowi"
+kecuali 2019 maka presiden ^^ Aku lupa syntax kecuali, kaga tau bener atau engga, kalau salah, harusnya sih kaga kiamat wkwk, karena ditaruh setelah 'pergi'
+ketik("HIDUP JOKOWIIIIIIII") ^^ Harusnya ini kaga boleh kelihatan
+tanya("Aspirasi Untuk Prabowo Gibran 2024:") ^^ Harusnya gak bisa/ga boleh ditanyakan

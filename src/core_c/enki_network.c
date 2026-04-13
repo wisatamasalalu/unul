@@ -3,6 +3,7 @@
 #include <string.h>
 #include <curl/curl.h>
 #include "enki_network.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 struct MemoriJaringan {
     char *respon;
@@ -13,7 +14,8 @@ static size_t tulis_memori_callback(void *konten, size_t ukuran, size_t nmemb, v
     size_t ukuran_asli = ukuran * nmemb;
     struct MemoriJaringan *mem = (struct MemoriJaringan *)userp;
 
-    char *ptr = realloc(mem->respon, mem->ukuran + ukuran_asli + 1);
+    // 🟢 MENGGUNAKAN ENKI_REALOKASI (Mode Dinamis = 1)
+    char *ptr = (char*)enki_realokasi(mem->respon, mem->ukuran, mem->ukuran + ukuran_asli + 1, 1);
     if(!ptr) return 0; 
 
     mem->respon = ptr;
@@ -28,7 +30,8 @@ char* sihir_ambil(const char* url) {
     CURL *curl;
     CURLcode res;
     struct MemoriJaringan chunk;
-    chunk.respon = malloc(1); chunk.ukuran = 0;
+    chunk.respon = (char*)enki_alokasi(1, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    chunk.ukuran = 0;
 
     curl = curl_easy_init();
     if(curl) {
@@ -36,13 +39,12 @@ char* sihir_ambil(const char* url) {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tulis_memori_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
-        // curl_easy_setopt(curl, CURLOPT_USERAGENT, "UNUL-OS-Engine/1.0");
         
         res = curl_easy_perform(curl);
         if(res != CURLE_OK) {
-            free(chunk.respon);
+            enki_bebas(chunk.respon, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
             curl_easy_cleanup(curl);
-            return strdup("🚨 ERROR: Gagal mengambil data.");
+            return enki_salin_teks("🚨 ERROR: Gagal mengambil data.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         }
         curl_easy_cleanup(curl);
     }
@@ -53,7 +55,8 @@ char* sihir_setor(const char* url, const char* muatan_json) {
     CURL *curl;
     CURLcode res;
     struct MemoriJaringan chunk;
-    chunk.respon = malloc(1); chunk.ukuran = 0;
+    chunk.respon = (char*)enki_alokasi(1, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    chunk.ukuran = 0;
 
     curl = curl_easy_init();
     if(curl) {
@@ -71,8 +74,8 @@ char* sihir_setor(const char* url, const char* muatan_json) {
         curl_easy_cleanup(curl);
         
         if(res != CURLE_OK) {
-            free(chunk.respon);
-            return strdup("🚨 ERROR: Gagal menyetor data.");
+            enki_bebas(chunk.respon, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+            return enki_salin_teks("🚨 ERROR: Gagal menyetor data.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         }
     }
     return chunk.respon;

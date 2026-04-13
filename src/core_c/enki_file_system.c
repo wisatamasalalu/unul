@@ -3,6 +3,7 @@
 #include <string.h>
 #include <glob.h>
 #include "enki_file_system.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 char* sihir_cari(const char* pola) {
     glob_t hasil_glob;
@@ -10,7 +11,7 @@ char* sihir_cari(const char* pola) {
     
     if (status != 0) {
         globfree(&hasil_glob);
-        return strdup(""); // Kembalikan kosong jika tidak ada yang cocok
+        return enki_salin_teks("", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS (Mode 1)
     }
 
     // Hitung total panjang string yang dibutuhkan
@@ -19,7 +20,8 @@ char* sihir_cari(const char* pola) {
         total_panjang += strlen(hasil_glob.gl_pathv[i]) + 1; // +1 untuk pemisah (koma atau spasi)
     }
 
-    char* hasil_akhir = malloc(total_panjang + 1);
+    // 🟢 MENGGUNAKAN ENKI_ALOKASI (Mode 1)
+    char* hasil_akhir = (char*)enki_alokasi(total_panjang + 1, 1);
     hasil_akhir[0] = '\0';
 
     for (size_t i = 0; i < hasil_glob.gl_pathc; i++) {
@@ -35,13 +37,14 @@ char* sihir_cari(const char* pola) {
 
 char* sihir_baca_file(const char* path) {
     FILE* f = fopen(path, "rb");
-    if (!f) return strdup("🚨 ERROR: File tidak bisa dibuka.");
+    if (!f) return enki_salin_teks("🚨 ERROR: File tidak bisa dibuka.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
     
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    char* string = malloc(fsize + 1);
+    // 🟢 MENGGUNAKAN ENKI_ALOKASI (Mode 1)
+    char* string = (char*)enki_alokasi(fsize + 1, 1);
     fread(string, fsize, 1, f);
     fclose(f);
 

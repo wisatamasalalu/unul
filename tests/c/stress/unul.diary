@@ -63,3 +63,73 @@ Penyebab Kiamat ini:
    Saran: Gunakan 'untuk array.statis'.
 =================================
 
+=== [WAKTU KIAMAT: 1776082036] ===
+🚨 [tes_ku.unul: Baris 4:6] KIAMAT SINTAKSIS: Sihir Array Tertidur!
+   Kode Penyebab: ku
+   Saran: Gunakan 'untuk array.statis'.
+=================================
+
+=== [WAKTU KIAMAT: 1776095348] ===
+🚨 [tes_ku.unul: Baris 4:6] KIAMAT SINTAKSIS: Sihir Array Tertidur!
+   Kode Penyebab: ku
+   Saran: Gunakan 'untuk array.statis'.
+=================================
+
+=== [WAKTU KIAMAT: 1776095362] ===
+🚨 [stress_modern.unul: Baris 82:7] KIAMAT SINTAKSIS: Variabel 'senajata_dewa' tidak ditemukan. Apakah maksud Anda 'senjata_dewa'?
+   Kode Penyebab: senajata_dewa
+   Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
+=================================
+
+=== [WAKTU KIAMAT: 1776097084] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'hampa' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: hampa
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1776100458] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'hampa' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: hampa
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1776100574] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'hampa' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: hampa
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1776100825] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'NULL' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: NULL
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1776100864] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'kosong' belum diciptakan di realita ini. Coba periksa kembali apakah anda menuliskannya kurang/kelebihan tanda kutip.
+   Kode Penyebab: kosong
+   Saran: 1. Jika Anda bermaksud mencetak teks/kalimat, pastikan Anda mengapitnya dengan tanda kutip ganda (").
+   Contoh: ketik("Halo Dunia")
+2. Jika ini adalah variabel, pastikan Anda sudah menciptakannya dengan 'takdir.soft' atau 'takdir.hard' terlebih dahulu.
+=================================
+
+=== [WAKTU KIAMAT: 1776101216] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'hihi' tidak ditemukan. Apakah maksud Anda 'hehe'?
+   Kode Penyebab: hihi
+   Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
+=================================
+
+=== [WAKTU KIAMAT: 1776101222] ===
+🚨 [tes_ku.unul: Baris 6:18] KIAMAT SINTAKSIS: Variabel 'hihi' tidak ditemukan. Apakah maksud Anda 'hehe'?
+   Kode Penyebab: hihi
+   Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
+=================================
+

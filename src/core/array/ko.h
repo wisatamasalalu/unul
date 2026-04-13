@@ -3,8 +3,7 @@
 
 #include "../enki_object.h"
 
-// Fungsi untuk mengekstrak daftar konten (nilai) dari sebuah objek
-// Mengembalikan EnkiObject baru bertipe ENKI_ARRAY
-EnkiObject* ambil_konten_objek(EnkiObject* obj);
+// 🟢 Menambahkan mode_dinamis agar bisa dikendalikan oleh Pragma
+EnkiObject* ambil_konten_objek(EnkiObject* obj, int mode_dinamis);
 
 #endif

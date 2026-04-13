@@ -58,6 +58,7 @@ typedef enum {
     TOKEN_KURUNG_S_T,    // ]
     TOKEN_KURUNG_K_B,    // {
     TOKEN_KURUNG_K_T,    // }
+    TOKEN_KOSONG,        // LITERAL NULL (penanda kosong/kekosongan atau kehampaan)
 
     TOKEN_EOF,           // End of File (Penanda akhir kitab)
     TOKEN_MISMATCH       // Karakter asing (Trigger Kernel Panic)

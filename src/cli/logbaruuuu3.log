@@ -1,0 +1,44 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:1865:13: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 1865 |             enki_bebas(input);
+      |             ^~~~~~~~~~
+In file included from ../core_c/enki_interpreter.c:24:
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+../core_c/enki_interpreter.c:1957:21: error: implicit declaration of function ‘regenki_bebas’; did you mean ‘enki_bebas’? [-Wimplicit-function-declaration]
+ 1957 |                     regenki_bebas(&regex);
+      |                     ^~~~~~~~~~~~~
+      |                     enki_bebas
+../core_c/enki_interpreter.c:2015:25: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 2015 |                         enki_bebas(respon_mentah);
+      |                         ^~~~~~~~~~
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+../core_c/enki_interpreter.c:2795:32: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 2795 |                 if (teks_imah) enki_bebas(teks_imah);
+      |                                ^~~~~~~~~~
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+../core_c/enki_interpreter.c:2897:32: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 2897 |                 if (teks_imah) enki_bebas(teks_imah);
+      |                                ^~~~~~~~~~
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+../core_c/enki_interpreter.c:2958:32: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 2958 |                 if (teks_imah) enki_bebas(teks_imah);
+      |                                ^~~~~~~~~~
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+../core_c/enki_interpreter.c:3134:13: error: too few arguments to function ‘enki_bebas’; expected 2, have 1
+ 3134 |             enki_bebas(id_hasil);
+      |             ^~~~~~~~~~
+../core_c/../core/enki_memory.h:20:6: note: declared here
+   20 | void enki_bebas(void* pointer, int mode_dinamis);
+      |      ^~~~~~~~~~
+make: *** [Makefile:35: build] Error 1

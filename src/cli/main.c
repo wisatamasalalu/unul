@@ -11,6 +11,8 @@
 #include "../core_c/enki_interpreter.h"
 #include "../core_c/enki_os.h"
 #include "../core_c/enki_file_system.h"
+#include "../core/enki_memory.h"
+#include "../core/enki_object.h"
 
 // --- 1. DEKLARASI PEMBANTU (Agar tidak implicit declaration) ---
 

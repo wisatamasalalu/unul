@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include "enki_lexer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 // =================================================================
 // DAPUR MESIN LEXER (CHARACTER STEPPER)
@@ -14,30 +15,30 @@
 void inisialisasi_array(TokenArray* array) {
     array->kapasitas = 64; 
     array->jumlah = 0;
-    array->data = (Token*)malloc(array->kapasitas * sizeof(Token));
+    array->data = (Token*)enki_alokasi(array->kapasitas * sizeof(Token), 1); // 🟢 ENKI_ALOKASI
 }
 
 // 🟢 SUNTIKAN: Tambahkan parameter nama_file
 void tambah_token(TokenArray* array, TokenJenis jenis, const char* teks_isi, int baris, int kolom, const char* nama_file) {
     if (array->jumlah >= array->kapasitas) {
         array->kapasitas *= 2; 
-        array->data = (Token*)realloc(array->data, array->kapasitas * sizeof(Token));
+        array->data = (Token*)enki_realokasi(array->data, (array->kapasitas/2) * sizeof(Token), array->kapasitas * sizeof(Token), 1); // 🟢 ENKI_REALOKASI
     }
     Token* t = &array->data[array->jumlah++];
     t->jenis = jenis;
-    t->isi = teks_isi ? strdup(teks_isi) : NULL; 
+    t->isi = teks_isi ? enki_salin_teks(teks_isi, 1) : NULL; // 🟢 ENKI_SALIN_TEKS
     t->baris = baris;
     t->kolom = kolom;
-    t->nama_file = nama_file ? strdup(nama_file) : strdup("TakDiketahui"); 
+    t->nama_file = nama_file ? enki_salin_teks(nama_file, 1) : enki_salin_teks("TakDiketahui", 1); // 🟢 ENKI_SALIN_TEKS
 }
 
 // Fungsi wajib untuk membuang sampah memori agar tidak bocor
 void bebaskan_token_array(TokenArray* array) {
     for (int i = 0; i < array->jumlah; i++) {
-        if (array->data[i].isi != NULL) free(array->data[i].isi); 
-        if (array->data[i].nama_file != NULL) free(array->data[i].nama_file);
+        if (array->data[i].isi != NULL) enki_bebas(array->data[i].isi, 1); // 🟢 ENKI_BEBAS
+        if (array->data[i].nama_file != NULL) enki_bebas(array->data[i].nama_file, 1); // 🟢 ENKI_BEBAS
     }
-    free(array->data); 
+    enki_bebas(array->data, 1); // 🟢 ENKI_BEBAS
     array->data = NULL;
     array->jumlah = array->kapasitas = 0;
 }
@@ -149,12 +150,12 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
             while (isdigit(kode_sumber[i]) || kode_sumber[i] == '.') { i++; kolom++; }
             
             int panjang = i - awal;
-            char* angka = (char*)malloc(panjang + 1);
+            char* angka = (char*)enki_alokasi(panjang + 1, 1); // 🟢 ENKI_ALOKASI
             strncpy(angka, &kode_sumber[awal], panjang);
             angka[panjang] = '\0';
             
             tambah_token(&token_list, TOKEN_ANGKA, angka, baris, awal_kolom, nama_file_sumber);
-            free(angka);
+            enki_bebas(angka, 1); // 🟢 ENKI_BEBAS
             continue;
         }
 
@@ -214,23 +215,23 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
             while (is_identitas(kode_sumber[i])) { i++; kolom++; }
             
             int panjang = i - awal;
-            char* kata = (char*)malloc(panjang + 1);
+            char* kata = (char*)enki_alokasi(panjang + 1, 1); // 🟢 ENKI_ALOKASI
             strncpy(kata, &kode_sumber[awal], panjang);
             kata[panjang] = '\0';
 
             // Pragma Lanjutan
             if (strcmp(kata, "butuh") == 0 && strncmp(&kode_sumber[i], " .anu", 5) == 0) {
                 tambah_token(&token_list, TOKEN_PRAGMA, "butuh .anu", baris, awal_kolom, nama_file_sumber);
-                i += 5; kolom += 5; free(kata); continue;
+                i += 5; kolom += 5; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
             }
             if (strcmp(kata, "untuk") == 0) {
                 if (strncmp(&kode_sumber[i], " array.dinamis", 14) == 0) {
                     tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.dinamis", baris, awal_kolom, nama_file_sumber);
-                    i += 14; kolom += 14; free(kata); continue;
+                    i += 14; kolom += 14; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
                 }
                 if (strncmp(&kode_sumber[i], " array.statis", 13) == 0) {
                     tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.statis", baris, awal_kolom, nama_file_sumber);
-                    i += 13; kolom += 13; free(kata); continue;
+                    i += 13; kolom += 13; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
                 }
             }
 
@@ -253,9 +254,17 @@ TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
             else if (strcmp(kata, "utas") == 0 || strcmp(kata, "gaib") == 0) tambah_token(&token_list, TOKEN_UTAS, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0 || strcmp(kata, "terus") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, awal_kolom, nama_file_sumber);
             else if (strcmp(kata, "jadwal") == 0) tambah_token(&token_list, TOKEN_JADWAL, kata, baris, awal_kolom, nama_file_sumber);
-            else tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, awal_kolom, nama_file_sumber);
+            
+            // 🟢 DETEKSI KEKOSONGAN MUTLAK (NILAI NULL)
+            else if (strcmp(kata, "hampa") == 0 || strcmp(kata, "kosong") == 0 || strcmp(kata, "NULL") == 0) {
+                tambah_token(&token_list, TOKEN_KOSONG, kata, baris, awal_kolom, nama_file_sumber);
+            }
+            // JIKA BUKAN KATA KUNCI ATAU LITERAL, BERARTI INI ADALAH IDENTITAS (VARIABEL)
+            else {
+                tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, awal_kolom, nama_file_sumber);
+            }
 
-            free(kata);
+            enki_bebas(kata, 1); // 🟢 ENKI_BEBAS
             continue;
         }
 

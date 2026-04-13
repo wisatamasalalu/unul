@@ -12,14 +12,13 @@ nama = "LinuxDNC"
 ketik("Nama Mutasi : " + nama)
 
 ketik("\n[2] UJI DIMENSI BERSARANG (OBJEK & DOMAIN)")
-takdir.soft dewa = {
-    "nama": "Anu",
-    "elemen": "Langit",
-    "stats": {
-        "level": 99,
-        "HP": 10000
-    }
-}
+takdir.soft dewa = {}
+dewa.nama = "Anu"
+dewa.elemen = "Langit"
+dewa.stats = {}
+dewa.stats.level = 99
+dewa.stats.HP = 10000
+
 ketik("Nama Dewa  : " + dewa.nama)
 ketik("HP Asli    : " + dewa.stats.HP)
 dewa.stats.HP = 50000

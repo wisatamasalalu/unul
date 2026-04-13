@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "enki_parser.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 // --- 1. MANAJEMEN MEMORI POHON ---
 Parser inisialisasi_parser(TokenArray tokens) {
@@ -62,7 +63,7 @@ void harapkan_token(Parser* p, TokenJenis jenis_harapan, const char* pesan_error
 
 // --- 2. PENCIPTAAN NODE ---
 ASTNode* buat_node(ASTJenis jenis, Parser* p) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    ASTNode* node = (ASTNode*)enki_alokasi(sizeof(ASTNode), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
     node->jenis = jenis;
     node->anak_anak = NULL;
     node->jumlah_anak = 0;
@@ -84,7 +85,7 @@ ASTNode* buat_node(ASTJenis jenis, Parser* p) {
     Token t = token_sekarang(p);
     node->baris = t.baris;
     node->kolom = t.kolom;
-    node->nama_file = t.nama_file ? strdup(t.nama_file) : NULL;
+    node->nama_file = t.nama_file ? enki_salin_teks(t.nama_file, 1) : NULL; // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
 
     return node;
 }
@@ -93,7 +94,7 @@ ASTNode* buat_node(ASTJenis jenis, Parser* p) {
 void tambah_anak(ASTNode* induk, ASTNode* anak) {
     if (induk->jumlah_anak >= induk->kapasitas_anak) {
         induk->kapasitas_anak = induk->kapasitas_anak == 0 ? 4 : induk->kapasitas_anak * 2;
-        induk->anak_anak = (ASTNode**)realloc(induk->anak_anak, induk->kapasitas_anak * sizeof(ASTNode*));
+        induk->anak_anak = (ASTNode**)enki_realokasi(induk->anak_anak, (induk->kapasitas_anak/2) * sizeof(ASTNode*), induk->kapasitas_anak * sizeof(ASTNode*), 1); // 🟢 MENGGUNAKAN ENKI_REALOKASI
     }
     induk->anak_anak[induk->jumlah_anak++] = anak;
 }
@@ -102,7 +103,7 @@ void tambah_anak(ASTNode* induk, ASTNode* anak) {
 void sisip_anak_pertama(ASTNode* induk, ASTNode* anak) {
     if (induk->jumlah_anak >= induk->kapasitas_anak) {
         induk->kapasitas_anak = induk->kapasitas_anak == 0 ? 4 : induk->kapasitas_anak * 2;
-        induk->anak_anak = (ASTNode**)realloc(induk->anak_anak, induk->kapasitas_anak * sizeof(ASTNode*));
+        induk->anak_anak = (ASTNode**)enki_realokasi(induk->anak_anak, (induk->kapasitas_anak/2) * sizeof(ASTNode*), induk->kapasitas_anak * sizeof(ASTNode*), 1); // 🟢 MENGGUNAKAN ENKI_REALOKASI
     }
     // Geser semua anak yang sudah ada ke kanan 1 langkah
     for (int i = induk->jumlah_anak; i > 0; i--) {
@@ -116,10 +117,10 @@ void sisip_anak_pertama(ASTNode* induk, ASTNode* anak) {
 // Wajib: Mengembalikan seluruh ranting pohon ke OS agar RAM tidak bocor!
 void bebaskan_ast(ASTNode* node) {
     if (!node) return;
-    if (node->nilai_teks) free(node->nilai_teks);
+    if (node->nilai_teks) enki_bebas(node->nilai_teks, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
     if (node->kiri) bebaskan_ast(node->kiri);
     if (node->kanan) bebaskan_ast(node->kanan);
-    if (node->pembanding) free(node->pembanding);
+    if (node->pembanding) enki_bebas(node->pembanding, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
     if (node->syarat) bebaskan_ast(node->syarat);
     if (node->blok_maka) bebaskan_ast(node->blok_maka);
     if (node->blok_lain) bebaskan_ast(node->blok_lain);
@@ -127,12 +128,12 @@ void bebaskan_ast(ASTNode* node) {
     for (int i = 0; i < node->jumlah_anak; i++) {
         bebaskan_ast(node->anak_anak[i]);
     }
-    if (node->anak_anak) free(node->anak_anak);
+    if (node->anak_anak) enki_bebas(node->anak_anak, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
     if (node->batas_loop) bebaskan_ast(node->batas_loop);
     if (node->blok_siklus) bebaskan_ast(node->blok_siklus);
     if (node->blok_tebus) bebaskan_ast(node->blok_tebus);
     
-    free(node);
+    enki_bebas(node, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
 }
 
 // --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
@@ -153,13 +154,20 @@ ASTNode* parse_struktur_objek(Parser* p) {
     while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
         // 1. Tangkap Kunci
         ASTNode* kunci = parse_ekspresi(p); 
-        tambah_anak(node, kunci);
+        
+        // 🟢 SUNTIKAN ANTI BLACK HOLE (KUNCI OBJEK)
+        if (kunci) {
+            tambah_anak(node, kunci);
+        } else {
+            kiamat_sintaksis(p, "Kunci Objek Cacat!", 
+                "Mesin tidak bisa membaca kunci di dalam kamus objek.\n"
+                "💡 PENYEBAB: Kunci objek harus berupa teks, bukan perintah sistem.");
+        }
         
         // 2. KIAMAT: Lupa Titik Dua (:)
         if (token_sekarang(p).jenis == TOKEN_TITIK_DUA) {
             maju(p);
         } else {
-            // Tetap menggunakan pesan Anda yang legendaris!
             kiamat_sintaksis(p, "Wujud objek kehilangan titik dua ':' !", 
                 "Dalam struktur objek {}, Anda harus memisahkan Kunci dan Nilai menggunakan titik dua.\n"
                 "Contoh yang benar: takdir.soft dewa = {\"nama\": \"Enki\"}");
@@ -167,13 +175,25 @@ ASTNode* parse_struktur_objek(Parser* p) {
         
         // 3. Tangkap Nilai
         ASTNode* konten = parse_ekspresi(p);
-        tambah_anak(node, konten);
         
-        if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+        // 🟢 SUNTIKAN ANTI BLACK HOLE (NILAI OBJEK)
+        if (konten) {
+            tambah_anak(node, konten);
+        } else {
+            kiamat_sintaksis(p, "Nilai Objek Cacat!", 
+                "Mesin tidak bisa membaca nilai di dalam kamus objek.\n"
+                "💡 PENYEBAB: Anda mungkin memasukkan perintah sistem sebagai nilai.");
+        }
+        
+        // 🟢 PERISAI KOMA & PENUTUP
+        if (token_sekarang(p).jenis == TOKEN_KOMA) {
+            maju(p);
+        } else if (token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
+            kiamat_sintaksis(p, "Pemisah Properti Hilang!", "Gunakan koma ',' untuk memisahkan isi objek, atau tutup dengan '}'.");
+        }
     }
     
-    // 3. KIAMAT: Lupa Kurung Tutup (})
-    // Ini dipicu oleh harapkan_token yang memanggil kiamat_sintaksis secara otomatis
+    // 4. KIAMAT: Lupa Kurung Tutup (})
     harapkan_token(p, TOKEN_KURUNG_K_T, 
         "Kehilangan kurung kurawal penutup '}' pada pembuatan Objek/Domain.\n"
         "💡 PANDUAN: Pastikan format Anda sesuai. Contoh: { \"nama\": \"Enki\" }");
@@ -230,7 +250,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             while (token_sekarang(p).jenis != TOKEN_KURUNG_T) {
                 if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
                     ASTNode* param = buat_node(AST_IDENTITAS, p);
-                    param->nilai_teks = strdup(token_sekarang(p).isi);
+                    param->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
                     tambah_anak(node_panah, param);
                     maju(p);
                 }
@@ -257,7 +277,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
     // 1. Tangkap Teks atau Angka Murni
     else if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA) {
         simpul_kiri = buat_node(AST_LITERAL_TEKS, p);
-        simpul_kiri->nilai_teks = strdup(t.isi);
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         maju(p);
         return simpul_kiri;
     }
@@ -265,7 +285,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
     // 2. Tangkap Identitas (Variabel, Fungsi)
     else if (t.jenis == TOKEN_IDENTITAS) {
         simpul_kiri = buat_node(AST_IDENTITAS, p);
-        simpul_kiri->nilai_teks = strdup(t.isi);
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         maju(p);
 
         // Cek Panggilan Fungsi Tunggal
@@ -275,8 +295,21 @@ ASTNode* parse_nilai_dasar(Parser* p) {
             
             while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
                 ASTNode* arg = parse_ekspresi(p); 
-                if (arg) tambah_anak(simpul_kiri, arg); 
-                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+                
+                // 🟢 SUNTIKAN ANTI BLACK HOLE (INFINITE LOOP)
+                if (arg) {
+                    tambah_anak(simpul_kiri, arg); 
+                } else {
+                    kiamat_sintaksis(p, "Sintaksis Argumen Cacat!", 
+                        "Mesin tidak bisa membaca argumen yang dimasukkan ke dalam fungsi.\n"
+                        "💡 PENYEBAB: Anda mungkin memasukkan Kata Kunci Sistem (seperti takdir.soft, effort, dll) ke dalam kurung fungsi.");
+                }
+                
+                if (token_sekarang(p).jenis == TOKEN_KOMA) {
+                    maju(p);
+                } else if (token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                    kiamat_sintaksis(p, "Pemisah Argumen Hilang!", "Gunakan koma ',' untuk memisahkan argumen, atau tutup dengan ')'.");
+                }
             }
             
             // 🟢 MENGEMBALIKAN PESAN ERROR & SMART HINT LAMA ANDA
@@ -300,7 +333,7 @@ ASTNode* parse_nilai_dasar(Parser* p) {
                     if (t_anak.jenis == TOKEN_IDENTITAS) {
                         ASTNode* akses = buat_node(AST_AKSES_DOMAIN, p);
                         akses->kiri = simpul_kiri;              
-                        akses->nilai_teks = strdup(t_anak.isi); 
+                        akses->nilai_teks = enki_salin_teks(t_anak.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
                         simpul_kiri = akses;
                         maju(p);
                     } else {
@@ -329,15 +362,38 @@ ASTNode* parse_nilai_dasar(Parser* p) {
         return simpul_kiri;
     }
 
+    // 🟢 SUNTIKAN PORTAL KEKOSONGAN (hampa/kosong/NULL) 🟢
+    else if (t.jenis == TOKEN_KOSONG) {
+        simpul_kiri = buat_node(AST_IDENTITAS, p); // Kita gunakan bentuk identitas khusus
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1);
+        maju(p);
+        return simpul_kiri;
+    }
+
     // 3. Tangkap Pembuatan Array Baru
     else if (t.jenis == TOKEN_KURUNG_S_B) {
         simpul_kiri = buat_node(AST_STRUKTUR_ARRAY, p);
         maju(p);
         while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
             ASTNode* elemen = parse_ekspresi(p); 
-            if (elemen) tambah_anak(simpul_kiri, elemen); 
-            if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+            
+            // 🟢 SUNTIKAN ANTI BLACK HOLE (ARRAY)
+            if (elemen) {
+                tambah_anak(simpul_kiri, elemen); 
+            } else {
+                kiamat_sintaksis(p, "Sintaksis Elemen Array Cacat!", 
+                    "Mesin tidak bisa membaca elemen di dalam array.\n"
+                    "💡 PENYEBAB: Anda mungkin memasukkan Kata Kunci Sistem (seperti takdir, effort) ke dalam kurung siku [].");
+            }
+            
+            // 🟢 PERISAI KOMA & PENUTUP
+            if (token_sekarang(p).jenis == TOKEN_KOMA) {
+                maju(p);
+            } else if (token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
+                kiamat_sintaksis(p, "Pemisah Elemen Hilang!", "Gunakan koma ',' untuk memisahkan elemen array, atau tutup dengan ']'.");
+            }
         }
+        
         // 🟢 SUNTIKAN SIKU (ARRAY LITERAL) YANG BENAR!
         harapkan_token(p, TOKEN_KURUNG_S_T, "Kehilangan kurung siku penutup ']' pada pembuatan Array.\n💡 SOLUSI: Pastikan daftar elemen Anda ditutup dengan benar."); 
         return simpul_kiri;
@@ -392,7 +448,7 @@ ASTNode* parse_pangkat(Parser* p) {
         maju(p); // Lewati simbol '^'
         
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
-        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         simpul_matematika->kiri = simpul_kiri;
         
         // Panggil dirinya sendiri (Rekursif) agar pangkat dihitung dari kanan-ke-kiri
@@ -422,7 +478,7 @@ ASTNode* parse_faktor(Parser* p) {
         maju(p); 
         
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
-        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         simpul_matematika->kiri = simpul_kiri;
         simpul_matematika->kanan = parse_pangkat(p); 
         
@@ -445,7 +501,7 @@ ASTNode* parse_penjumlahan(Parser* p) {
         maju(p); 
         
         ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
-        simpul_matematika->operator_math = strdup(t_op.isi);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         simpul_matematika->kiri = simpul_kiri;
         simpul_matematika->kanan = parse_faktor(p); 
         simpul_kiri = simpul_matematika;
@@ -494,7 +550,7 @@ ASTNode* parse_ekspresi(Parser* p) {
         maju(p); // Lewati '=' (kita tidak butuh menyimpan token t_op lagi)
         
         ASTNode* simpul_mutasi = buat_node(AST_OPERASI_MATEMATIKA, p);
-        simpul_mutasi->operator_math = strdup("=");
+        simpul_mutasi->operator_math = enki_salin_teks("=", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         simpul_mutasi->kiri = simpul_kiri; // Target (misal: entitas.level1)
         simpul_mutasi->kanan = parse_ekspresi(p); // Nilai yang baru (misal: {})
         
@@ -518,7 +574,7 @@ ASTNode* parse_syarat_logika(Parser* p) {
         ASTNode* kondisi = buat_node(AST_KONDISI, p);
         kondisi->kiri = parse_ekspresi(p);
         if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
-            kondisi->pembanding = strdup(token_sekarang(p).isi);
+            kondisi->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
             maju(p);
             kondisi->kanan = parse_ekspresi(p);
         }
@@ -529,7 +585,7 @@ ASTNode* parse_syarat_logika(Parser* p) {
         simpul_kiri->kiri = parse_ekspresi(p); 
         
         if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
-            simpul_kiri->pembanding = strdup(token_sekarang(p).isi);
+            simpul_kiri->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
             maju(p); // lewati '==' atau '>'
             simpul_kiri->kanan = parse_ekspresi(p);
         }
@@ -543,14 +599,14 @@ ASTNode* parse_syarat_logika(Parser* p) {
         maju(p); // Lewati kata 'dan' / 'atau'
         
         ASTNode* simpul_logika = buat_node(AST_OPERASI_LOGIKA, p);
-        simpul_logika->pembanding = strdup(t_logika.isi); // Simpan "dan" / "atau"
+        simpul_logika->pembanding = enki_salin_teks(t_logika.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         simpul_logika->kiri = simpul_kiri; // Kiri adalah kondisi sebelumnya
         
         // Kanan adalah kondisi berikutnya (misal: uang > 100)
         ASTNode* kondisi_kanan = buat_node(AST_KONDISI, p);
         kondisi_kanan->kiri = parse_ekspresi(p);
         if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
-            kondisi_kanan->pembanding = strdup(token_sekarang(p).isi);
+            kondisi_kanan->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
             maju(p);
             kondisi_kanan->kanan = parse_ekspresi(p);
         }
@@ -575,7 +631,7 @@ ASTNode* parse_pernyataan(Parser* p) {
     
     if (t.jenis == TOKEN_PRAGMA) {
         ASTNode* node = buat_node(AST_PRAGMA_MEMORI, p);
-        node->nilai_teks = strdup(t.isi); // Simpan info apakah dinamis/statis
+        node->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         maju(p); 
         return node;
     }
@@ -678,13 +734,13 @@ ASTNode* parse_pernyataan(Parser* p) {
     // 2. Apakah ini DEKLARASI? (takdir.soft nama = ...)
     if (t.jenis == TOKEN_TAKDIR) {
         ASTNode* node = buat_node(AST_DEKLARASI_TAKDIR, p);
-        node->nilai_teks = strdup(t.isi);
+        node->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         maju(p); // lewati 'takdir.soft'
         
         // Simpan nama variabel di simpul Kiri
         Token t_nama = token_sekarang(p);
         node->kiri = buat_node(AST_IDENTITAS, p);
-        node->kiri->nilai_teks = strdup(t_nama.isi);
+        node->kiri->nilai_teks = enki_salin_teks(t_nama.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
         maju(p); // lewati nama variabel
         
         maju(p); // lewati tanda '='
@@ -970,7 +1026,7 @@ ASTNode* parse_pernyataan(Parser* p) {
         
         // Tangkap nama fungsi
         if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
-            node->nilai_teks = strdup(token_sekarang(p).isi);
+            node->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
             maju(p);
         }
 
@@ -1082,7 +1138,7 @@ ASTNode* parse_pernyataan(Parser* p) {
             // KEAJAIBAN KHUSUS SOWAN: Jika diketik tanpa kutip (misal: sowan matematika)
             // Paksa mesin membacanya sebagai teks literal agar tidak memicu Kernel Panic
             node->kiri = buat_node(AST_LITERAL_TEKS, p);
-            node->kiri->nilai_teks = strdup(t_target.isi);
+            node->kiri->nilai_teks = enki_salin_teks(t_target.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
             maju(p);
         } else {
             // Jika menggunakan kutip ("matematika") atau ekspresi lain
@@ -1124,7 +1180,7 @@ ASTNode* parse_pernyataan(Parser* p) {
                 maju(p); // lewati 'melanggar'
                 // Tangkap wadah error (misal nama variabel errornya)
                 if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
-                    node->nilai_teks = strdup(token_sekarang(p).isi);
+                    node->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
                     maju(p);
                 }
             }
@@ -1217,6 +1273,8 @@ ASTNode* parse_program(Parser* p) {
         if (pernyataan != NULL) {
             tambah_anak(program, pernyataan);
         }
+
+
     }
     
     return program;

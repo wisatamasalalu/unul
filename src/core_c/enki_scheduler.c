@@ -4,6 +4,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "enki_scheduler.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 // Helper Waktu
 long hitung_jeda_ke_jadwal(const char* waktu_target) {
@@ -34,7 +35,6 @@ long hitung_ms_interval(const char* teks) {
 }
 
 // Pelari Utas (Thread Runners)
-// Pelari Utas (Thread Runners)
 void* pelari_jadwal(void* arg) {
     KapsulJadwal* kapsul = (KapsulJadwal*)arg;
     EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
@@ -43,45 +43,46 @@ void* pelari_jadwal(void* arg) {
     if (target_obj && target_obj->tipe == ENKI_TEKS) {
         strcpy(target_str, target_obj->nilai.teks);
     }
-    if (target_obj) hancurkan_objek(target_obj, 1);
+    // Menggunakan variabel status_array_dinamis dari ram untuk menghancurkan (Hukum A)
+    if (target_obj) hancurkan_objek(target_obj, kapsul->ram_paralel->status_array_dinamis);
     
     long jeda_ms = hitung_jeda_ke_jadwal(target_str);
-    // 🟢 TIDAK ADA free(target_str) karena ini bukan malloc
     
     usleep(jeda_ms * 1000); // Hibernasi hingga waktu tiba
     eksekusi_program(kapsul->blok_eksekusi, kapsul->ram_paralel);
     
     bebaskan_ram(kapsul->ram_paralel);
-    free(kapsul->ram_paralel); free(kapsul);
+    enki_bebas(kapsul->ram_paralel, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+    enki_bebas(kapsul, 1);              // 🟢 MENGGUNAKAN ENKI_BEBAS
     return NULL;
 }
 
 void* pelari_effort(void* arg) {
     KapsulJadwal* kapsul = (KapsulJadwal*)arg;
     EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
-    char interval_str[256] = ""; // 🟢 Wadah yang benar
+    char interval_str[256] = ""; 
     
     if (target_obj && target_obj->tipe == ENKI_TEKS) {
         strcpy(interval_str, target_obj->nilai.teks);
     } else if (target_obj && target_obj->tipe == ENKI_ANGKA) {
         snprintf(interval_str, sizeof(interval_str), "%d", (int)target_obj->nilai.angka);
     }
-    if (target_obj) hancurkan_objek(target_obj, 1);
+    // Menggunakan variabel status_array_dinamis dari ram untuk menghancurkan (Hukum A)
+    if (target_obj) hancurkan_objek(target_obj, kapsul->ram_paralel->status_array_dinamis);
     
     long jeda_ms = hitung_ms_interval(interval_str);
-    // 🟢 TIDAK ADA free(interval_str) karena ini bukan malloc
     
     while (1) {
         usleep(jeda_ms * 1000); // Hibernasi antar siklus
         eksekusi_program(kapsul->blok_eksekusi, kapsul->ram_paralel);
     }
-    return NULL;
+    return NULL; // Secara logis ini berjalan abadi sampai OS mati
 }
 
 // Pintu Eksekusi dari Interpreter Utama
 void eksekusi_jadwal_gaib(ASTNode* node, EnkiRAM* ram_utama) {
     pthread_t id_utas;
-    KapsulJadwal* kapsul = (KapsulJadwal*)malloc(sizeof(KapsulJadwal));
+    KapsulJadwal* kapsul = (KapsulJadwal*)enki_alokasi(sizeof(KapsulJadwal), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
     kapsul->simpul_waktu = node->kiri;
     kapsul->blok_eksekusi = node->blok_maka;
     kapsul->ram_paralel = salin_ram_untuk_utas(ram_utama);
@@ -92,7 +93,7 @@ void eksekusi_jadwal_gaib(ASTNode* node, EnkiRAM* ram_utama) {
 
 void eksekusi_effort_gaib(ASTNode* node, EnkiRAM* ram_utama) {
     pthread_t id_utas;
-    KapsulJadwal* kapsul = (KapsulJadwal*)malloc(sizeof(KapsulJadwal));
+    KapsulJadwal* kapsul = (KapsulJadwal*)enki_alokasi(sizeof(KapsulJadwal), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
     kapsul->simpul_waktu = node->batas_loop;
     kapsul->blok_eksekusi = node->blok_siklus;
     kapsul->ram_paralel = salin_ram_untuk_utas(ram_utama);
