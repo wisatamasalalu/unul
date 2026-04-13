@@ -640,6 +640,7 @@ KavlingMemori* cari_induk_utama(ASTNode* node, EnkiRAM* ram) {
 // =================================================================
 // 🧬 MESIN L-VALUE: PENELUSUR ALAMAT MEMORI BERSARANG (DEEP MUTATION)
 // =================================================================
+
 EnkiObject** sihir_temukan_alamat_memori(ASTNode* node, EnkiRAM* ram) {
     if (!node || !ram) return NULL;
 
@@ -657,16 +658,32 @@ EnkiObject** sihir_temukan_alamat_memori(ASTNode* node, EnkiRAM* ram) {
         return NULL;
     }
 
-    // 2. Akses Domain / Properti (Misal: induk.isi)
+    // 2. Akses Domain / Properti (Misal: dewa.stats.HP)
     if (node->jenis == AST_AKSES_DOMAIN) {
         EnkiObject** alamat_induk = sihir_temukan_alamat_memori(node->kiri, ram);
+        
+        // JIKA INDUKNYA KETEMU DAN WUJUDNYA OBJEK
         if (alamat_induk && *alamat_induk && (*alamat_induk)->tipe == ENKI_OBJEK) {
             EnkiObject* objek_induk = *alamat_induk;
+            
+            // CARI KUNCI DI DALAM OBJEK INDUK
             for (int i = 0; i < objek_induk->panjang; i++) {
                 if (strcmp(objek_induk->nilai.objek_peta.kunci[i]->nilai.teks, node->nilai_teks) == 0) {
+                    // KETEMU! KEMBALIKAN POINTER KONTENNYA!
                     return &(objek_induk->nilai.objek_peta.konten[i]);
                 }
             }
+            
+            // 🟢 AUTO-CREATE: JIKA KUNCI BELUM ADA, BUATKAN DI TEMPAT!
+            // (Fitur ini membuat UNUL bisa dibilang: dewa.senjata_baru = "Panah")
+            objek_induk->nilai.objek_peta.kunci = realloc(objek_induk->nilai.objek_peta.kunci, (objek_induk->panjang + 1) * sizeof(EnkiObject*));
+            objek_induk->nilai.objek_peta.konten = realloc(objek_induk->nilai.objek_peta.konten, (objek_induk->panjang + 1) * sizeof(EnkiObject*));
+            
+            objek_induk->nilai.objek_peta.kunci[objek_induk->panjang] = ciptakan_teks(node->nilai_teks, ram->status_array_dinamis);
+            objek_induk->nilai.objek_peta.konten[objek_induk->panjang] = ciptakan_kosong(ram->status_array_dinamis); // Siapkan slot kosong
+            objek_induk->panjang++;
+            
+            return &(objek_induk->nilai.objek_peta.konten[objek_induk->panjang - 1]);
         }
         return NULL;
     }
@@ -680,7 +697,6 @@ EnkiObject** sihir_temukan_alamat_memori(ASTNode* node, EnkiRAM* ram) {
             
             if (induk->tipe == ENKI_ARRAY && obj_indeks && obj_indeks->tipe == ENKI_ANGKA) {
                 int indeks_c = (int)obj_indeks->nilai.angka - 1; 
-                // 🟢 SUNTIKAN SAKLAR RAM
                 if (obj_indeks) hancurkan_objek(obj_indeks, ram->status_array_dinamis);
                 if (indeks_c >= 0 && indeks_c < induk->panjang) return &(induk->nilai.array_elemen[indeks_c]);
             } 
@@ -688,15 +704,21 @@ EnkiObject** sihir_temukan_alamat_memori(ASTNode* node, EnkiRAM* ram) {
                 char* kunci = obj_indeks->nilai.teks;
                 for (int i = 0; i < induk->panjang; i++) {
                     if (strcmp(induk->nilai.objek_peta.kunci[i]->nilai.teks, kunci) == 0) {
-                        // 🟢 SUNTIKAN SAKLAR RAM
                         if (obj_indeks) hancurkan_objek(obj_indeks, ram->status_array_dinamis);
                         return &(induk->nilai.objek_peta.konten[i]);
                     }
                 }
-                // 🟢 SUNTIKAN SAKLAR RAM
+                
+                // 🟢 AUTO-CREATE UNTUK ARRAY DICTIONARY JIKA KUNCI BELUM ADA
+                induk->nilai.objek_peta.kunci = realloc(induk->nilai.objek_peta.kunci, (induk->panjang + 1) * sizeof(EnkiObject*));
+                induk->nilai.objek_peta.konten = realloc(induk->nilai.objek_peta.konten, (induk->panjang + 1) * sizeof(EnkiObject*));
+                induk->nilai.objek_peta.kunci[induk->panjang] = ciptakan_salinan_objek(obj_indeks, ram->status_array_dinamis);
+                induk->nilai.objek_peta.konten[induk->panjang] = ciptakan_kosong(ram->status_array_dinamis);
+                induk->panjang++;
+                
                 if (obj_indeks) hancurkan_objek(obj_indeks, ram->status_array_dinamis);
+                return &(induk->nilai.objek_peta.konten[induk->panjang - 1]);
             } else {
-                // 🟢 SUNTIKAN SAKLAR RAM
                 if (obj_indeks) hancurkan_objek(obj_indeks, ram->status_array_dinamis);
             }
         }
@@ -744,99 +766,76 @@ char* ambil_elemen_array(const char* teks_array, int target_indeks) {
 }
 
 // =================================================================
-// 🟢 SIHIR SISIPAN TEKS (String Interpolation Kelas Berat: 64KB)
+// 🟢 SIHIR SISIPAN TEKS PARIPURNA (Mendukung Objek, Array & Logika)
 // =================================================================
 char* proses_sisipan_teks(const char* teks_asli, EnkiRAM* ram, ASTNode* node) {
-    if (!teks_asli) return strdup("");
+    (void)node; // 🟢 MEMBUNGKAM WARNING GCC: "unused parameter 'node'"
     
-    // Jalan pintas: Jika tidak ada '{', langsung kembalikan teks aslinya
-    if (strchr(teks_asli, '{') == NULL) {
-        return strdup(teks_asli);
-    }
+    if (!teks_asli) return strdup("");
+    if (strchr(teks_asli, '{') == NULL) return strdup(teks_asli);
 
-    // 🟢 MINTA MEMORI DARI HEAP (Bukan Stack!) AGAR TIDAK MELEDAK
-    // 65536 Bytes = 64KB
     size_t batas_maksimal = 65536; 
     char* buffer = (char*)malloc(batas_maksimal);
     if (!buffer) return strdup(teks_asli); 
     memset(buffer, 0, batas_maksimal);
 
-    // 🟢 KOREKSI 1: Gunakan size_t agar tidak diprotes GCC saat dibandingkan
     size_t buf_idx = 0; 
     const char* p = teks_asli;
 
     while (*p != '\0') {
-        // 🛡️ PENJAGA DIMENSI: Jangan biarkan buffer jebol
-        if (buf_idx >= batas_maksimal - 2048) {
-            break; 
-        }
+        if (buf_idx >= batas_maksimal - 2048) break; 
 
         if (*p == '{') {
-            p++; // Lewati kurung kurawal buka '{'
+            // 🟢 WARNING 'start_bracket' SUDAH DIHAPUS DI SINI!
+            p++; 
             char nama_var[1024] = {0}; 
-            int var_idx = 0;
-
-            // Menangkap semua teks di dalam kurung {}
-            while (*p != '}' && *p != '\0' && var_idx < 1023) {
+            int var_idx = 0;            while (*p != '}' && *p != '\0' && var_idx < 1023) {
                 nama_var[var_idx++] = *p++;
             }
 
             if (*p == '}') {
-                p++; // Lewati kurung kurawal tutup '}'
-                
-                // 🟢 PENJAGA DIMENSI JSON & REGEX
-                int adalah_variabel_sah = 1;
-                if (var_idx == 0) adalah_variabel_sah = 0;
-
+                p++; 
+                // Cek apakah isinya valid (huruf, angka, _, ., [, ])
+                int sah = (var_idx > 0);
                 for(int i = 0; i < var_idx; i++) {
-                    if (!isalnum(nama_var[i]) && nama_var[i] != '_') {
-                        adalah_variabel_sah = 0; 
-                        break;
+                    if (!isalnum(nama_var[i]) && nama_var[i] != '_' && nama_var[i] != '.' && nama_var[i] != '[' && nama_var[i] != ']') {
+                        sah = 0; break;
                     }
                 }
 
-                // JIKA BUKAN VARIABEL SAH (JSON/Regex)
-                if (!adalah_variabel_sah) {
-                    buffer[buf_idx++] = '{';
-                    strcpy(buffer + buf_idx, nama_var);
-                    buf_idx += strlen(nama_var);
+                if (!sah) {
+                    // Jika bukan format variabel/logika, cetak apa adanya
+                    buffer[buf_idx++] = '{'; 
+                    strcpy(buffer + buf_idx, nama_var); buf_idx += strlen(nama_var);
                     buffer[buf_idx++] = '}';
-                } 
-                // JIKA INI VARIABEL SAH
-                else {
-                    EnkiObject* obj_nilai = baca_dari_ram(ram, nama_var);
+                } else {
+                    // 🚀 EKSEKUSI DINAMIS (Delegasi ke Interpreter Inti)
+                    TokenArray tk = enki_lexer(nama_var, "<sisipan>");
+                    Parser ps = inisialisasi_parser(tk);
+                    ASTNode* ast = parse_ekspresi(&ps);
+                    EnkiObject* obj = evaluasi_ekspresi(ast, ram);
                     
-                    if (obj_nilai == NULL) {
-                        char pesan_error[2048];
-                        snprintf(pesan_error, sizeof(pesan_error), "Variabel sisipan '{%s}' belum diciptakan!", nama_var);
-                        pemicu_kiamat_presisi(node, ram, pesan_error, 
-                            "Anda mencoba menyisipkan variabel ke dalam teks, tetapi variabel tersebut tidak ada di RAM.\n"
-                            "Pastikan tidak ada salah eja. Contoh yang sah:\n"
-                            "takdir.soft nama = \"Enki\"\n"
-                            "ketik(\"Halo {nama}\")");
-                        
-                        free(buffer); 
-                        // 🟢 KOREKSI 2: Kembalikan strdup("") karena fungsi ini bertipe char*, BUKAN EnkiObject*
-                        return strdup(""); 
-                    } else {
-                        // ALOKASI HEAP UNTUK KONVERSI OBJEK (64KB)
-                        char* buf_temp = (char*)malloc(batas_maksimal);
-                        buf_temp[0] = '\0';
-                        
-                        // Asumsi Anda punya fungsi objek_ke_string() di interpreter Anda
-                        objek_ke_string(obj_nilai, buf_temp, batas_maksimal);
-                        
+                    if (obj && obj->tipe != ENKI_KOSONG) {
+                        char* buf_temp = (char*)malloc(1024 * 8); // 8KB temp
+                        objek_ke_string(obj, buf_temp, 1024 * 8);
                         if (buf_idx + strlen(buf_temp) < batas_maksimal) {
                             strcpy(buffer + buf_idx, buf_temp);
                             buf_idx += strlen(buf_temp);
                         }
-                        free(buf_temp); 
+                        free(buf_temp);
+                    } else {
+                        // Jika gagal evaluasi, biarkan kode aslinya terlihat agar user tahu ada yang salah
+                        buffer[buf_idx++] = '{';
+                        strcpy(buffer + buf_idx, nama_var); buf_idx += strlen(nama_var);
+                        buffer[buf_idx++] = '}';
                     }
+                    
+                    if (obj) hancurkan_objek(obj, ram->status_array_dinamis);
+                    bebaskan_ast(ast); bebaskan_token_array(&tk);
                 }
             } else {
-                buffer[buf_idx++] = '{';
-                strcpy(buffer + buf_idx, nama_var);
-                buf_idx += var_idx;
+                buffer[buf_idx++] = '{'; 
+                strcpy(buffer + buf_idx, nama_var); buf_idx += var_idx;
             }
         } else {
             buffer[buf_idx++] = *p++;
@@ -2006,6 +2005,11 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // M. HUKUM UBAH (Mutasi RAM Dinamis / Garbage Collected)
         // =======================================================
         else if (strcmp(node->nilai_teks, "ubah") == 0) {
+            if (ram->status_array_dinamis == 0) { 
+                pemicu_kiamat_presisi(node, ram, "Sihir Objek Tertidur!", "Anda mencoba memanipulasi ukuran Objek. Tulis 'untuk array.dinamis' di awal file."); 
+                return ciptakan_kosong(ram->status_array_dinamis); 
+            } // <--- 🚨 KURUNG INI YANG HILANG TADI! 🚨
+
             if (node->jumlah_anak < 3) return ciptakan_kosong(ram->status_array_dinamis);
             char* nama_var = (node->anak_anak[0]->jenis == AST_IDENTITAS) ? node->anak_anak[0]->nilai_teks : NULL;
             EnkiObject** pointer_target = nama_var ? temukan_pointer_asli(ram, nama_var) : NULL;
@@ -2335,6 +2339,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // I. PENGAMBIL DATA ARRAY SEMENTARA
         // =======================================================
         else if (strcmp(node->nilai_teks, "ambil_array") == 0) {
+            if (ram->status_array_dinamis == 0) { 
+                pemicu_kiamat_presisi(node, ram, "Sihir Array Tertidur!", "Fungsi ambil_array() butuh izin Malloc. Tulis 'untuk array.dinamis' di awal kitab."); 
+                return ciptakan_kosong(ram->status_array_dinamis); // 🟢 MENGGUNAKAN VARIABEL
+            }
             if (node->jumlah_anak < 2) {
                 pemicu_kiamat_presisi(node, ram, "Fungsi ambil_array() butuh 2 argumen!", "Contoh: ambil_array(data, 1)");
                 return ciptakan_kosong(ram->status_array_dinamis);
@@ -2348,10 +2356,11 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             if (obj_array && obj_array->tipe == ENKI_ARRAY) {
                 int idx_c = target_index - 1; // UNUL memakai 1-based index (misal: ambil_array(data, 1))
                 if (idx_c >= 0 && idx_c < obj_array->panjang) {
-                    // Karena ini mengambil, kita salin nilainya agar tidak rusak saat aslinya dibebaskan
                     EnkiObject* elemen = obj_array->nilai.array_elemen[idx_c];
+                    // Karena ini mengambil, kita salin nilainya agar tidak rusak saat aslinya dibebaskan
                     if (elemen->tipe == ENKI_TEKS) hasil = ciptakan_teks(elemen->nilai.teks, ram->status_array_dinamis);
                     else if (elemen->tipe == ENKI_ANGKA) hasil = ciptakan_angka(elemen->nilai.angka, ram->status_array_dinamis);
+                    else if (elemen->tipe == ENKI_OBJEK || elemen->tipe == ENKI_ARRAY) hasil = ciptakan_salinan_objek(elemen, ram->status_array_dinamis);
                 }
             } else {
                  pemicu_kiamat_presisi(node, ram, "Argumen bukan Array!", "Fungsi ambil_array() mengharuskan argumen pertama adalah Array.");
@@ -2368,6 +2377,14 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         else if (strcmp(node->nilai_teks, "tambah_array") == 0) {
             if (node->jumlah_anak < 2) {
                 pemicu_kiamat_presisi(node, ram, "Fungsi tambah_array() butuh 2 argumen!", "Contoh: tambah_array(daftar_ku, \"tugas baru\")");
+                return ciptakan_kosong(ram->status_array_dinamis);
+            }
+
+            // 🛡️ SUNTIKAN PERISAI HUKUM MEMORI 🛡️
+            if (ram->status_array_dinamis == 0) {
+                pemicu_kiamat_presisi(node, ram, "Pelanggaran Hukum Memori!", 
+                    "Anda tidak dapat menggunakan fungsi 'tambah_array' karena ukuran Array ini terkunci oleh Kolam Memori statis.\n"
+                    "💡 SOLUSI: Tulis mantra 'untuk array.dinamis' di bagian atas kitab Anda untuk mengaktifkan perluasan memori secara otomatis.");
                 return ciptakan_kosong(ram->status_array_dinamis);
             }
 
@@ -2389,15 +2406,14 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 // 3. Lakukan Mutasi jika benar itu Array
                 if (obj_array && obj_array->tipe == ENKI_ARRAY) {
                     obj_array->nilai.array_elemen = realloc(obj_array->nilai.array_elemen, (obj_array->panjang + 1) * sizeof(EnkiObject*));
-                    // Gunakan ciptakan_salinan_objek agar tidak terjadi Double-Free saat elemen_baru dihancurkan
                     obj_array->nilai.array_elemen[obj_array->panjang] = ciptakan_salinan_objek(elemen_baru, ram->status_array_dinamis);
                     obj_array->panjang++;
                 } else {
                     pemicu_kiamat_presisi(node, ram, "Gagal Menambah!", 
-                        "Argumen pertama harus berupa variabel bertipe Array.\\n"
-                        "💡 PERIKSA KEMBALI:\\n"
-                        "1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor(\"[]\"))\\n"
-                        "2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\\n"
+                        "Argumen pertama harus berupa variabel bertipe Array.\n"
+                        "💡 PERIKSA KEMBALI:\n"
+                        "1. Apakah variabel tersebut sudah diciptakan? (Gunakan: takdir.soft data = impor(\"[]\"))\n"
+                        "2. Apakah Anda mencoba menambah data ke variabel yang isinya Teks atau Kosong?\n"
                         "3. Pastikan Anda tidak mengambil data dari kunci database yang salah."
                     );
                 }

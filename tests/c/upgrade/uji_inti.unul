@@ -1,0 +1,62 @@
+datang
+untuk array.dinamis
+
+ketik("==============================================")
+ketik("🚀 MEMULAI PENGUJIAN JANTUNG RAM URANTIA 🚀")
+ketik("==============================================")
+
+ketik("\n[1] UJI DEKLARASI & MUTASI (L-VALUE)")
+takdir.soft nama = "Enki"
+ketik("Nama Awal   : " + nama)
+nama = "LinuxDNC"
+ketik("Nama Mutasi : " + nama)
+
+ketik("\n[2] UJI DIMENSI BERSARANG (OBJEK & DOMAIN)")
+takdir.soft dewa = {
+    "nama": "Anu",
+    "elemen": "Langit",
+    "stats": {
+        "level": 99,
+        "HP": 10000
+    }
+}
+ketik("Nama Dewa  : " + dewa.nama)
+ketik("HP Asli    : " + dewa.stats.HP)
+dewa.stats.HP = 50000
+ketik("HP Mutasi  : " + dewa.stats.HP)
+
+ketik("\n[3] UJI ARRAY DINAMIS")
+takdir.soft senjata = ["Pedang", "Panah", "Tombak"]
+ketik("Senjata ke-2: " + senjata[2])
+tambah_array(senjata, "Palu Godam")
+ketik("Senjata Baru: " + senjata[4])
+
+ketik("\n[4] UJI HUKUM SIKLUS (LOOPING)")
+takdir.soft hasil_loop = 0
+effort 5 kali maka
+    hasil_loop = hasil_loop + putaran
+putus
+
+ketik("Hasil Loop (1+2+3+4+5): {hasil_loop}")
+
+ketik("\n[5] UJI MESIN WAKTU (BALIKAN)")
+takdir.soft kota = "Jakarta"
+kota = "Bandung"
+ketik("Kota saat ini : " + kota)
+balikan(kota)
+ketik("Kota masa lalu: " + kota)
+
+ketik("\n[6] UJI FUNGSI LOKAL & SCOPE")
+ciptakan fungsi sapa(tamu) maka
+    takdir.soft pesan = "Selamat datang, " + tamu + "!"
+    pulang pesan
+putus
+
+takdir.soft balasan = sapa("Arsitek")
+ketik(balasan)
+
+ketik("\n==============================================")
+ketik("✅ PENGUJIAN SELESAI TANPA KIAMAT SINTAKSIS ✅")
+ketik("==============================================")
+
+pergi
