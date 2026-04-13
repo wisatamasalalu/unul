@@ -1,0 +1,26 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘evaluasi_ekspresi’:
+../core_c/enki_interpreter.c:3800:1: warning: control reaches end of non-void function [-Wreturn-type]
+ 3800 | }
+      | ^
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:3784:6: warning: ‘eksekusi_program’ defined but not used [-Wunused-function]
+ 3784 | void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
+      |      ^~~~~~~~~~~~~~~~
+/usr/bin/ld: warning: /tmp/ccAWn6RI.o: requires executable stack (because the .note.GNU-stack section is executable)
+/usr/bin/ld: /tmp/cc07zBPz.o: in function `jalankan_perintah':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/main.c:34:(.text+0x13b): undefined reference to `eksekusi_program'
+/usr/bin/ld: /tmp/ccAWn6RI.o: in function `evaluasi_ekspresi':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_interpreter.c:1007:(.text+0x3b89): undefined reference to `evaluasi_kondisi'
+/usr/bin/ld: /home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_interpreter.c:1077:(.text+0x3f96): undefined reference to `evaluasi_kondisi'
+/usr/bin/ld: /home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_interpreter.c:2072:(.text+0x8980): undefined reference to `eksekusi_program'
+/usr/bin/ld: /tmp/cc2kNQGO.o: in function `pelari_jadwal':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_scheduler.c:52:(.text+0x3fa): undefined reference to `eksekusi_program'
+/usr/bin/ld: /tmp/cc2kNQGO.o: in function `pelari_effort':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_scheduler.c:76:(.text+0x6c2): undefined reference to `eksekusi_program'
+/usr/bin/ld: /tmp/cc2kNQGO.o: in function `eksekusi_jadwal_gaib':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_scheduler.c:87:(.text+0x71d): undefined reference to `salin_ram_untuk_utas'
+/usr/bin/ld: /tmp/cc2kNQGO.o: in function `eksekusi_effort_gaib':
+/home/nabhanrp/Enki_Studio/UNUL_Compiler/unul/src/cli/../core_c/enki_scheduler.c:98:(.text+0x7c2): undefined reference to `salin_ram_untuk_utas'
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:35: build] Error 1

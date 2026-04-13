@@ -1,0 +1,15 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c: In function ‘salin_ram_untuk_utas’:
+../core_c/enki_interpreter.c:3330:102: error: ‘ram’ undeclared (first use in this function)
+ 3330 |         EnkiObject* obj_aman = sumber->kavling[i].objek ? sumber->kavling[i].objek : ciptakan_kosong(ram->status_array_dinamis);
+      |                                                                                                      ^~~
+../core_c/enki_interpreter.c:3330:102: note: each undeclared identifier is reported only once for each function it appears in
+../core_c/enki_interpreter.c: In function ‘pelari_utas_gaib’:
+../core_c/enki_interpreter.c:3344:39: error: ‘ram’ undeclared (first use in this function)
+ 3344 |     if (hasil) hancurkan_objek(hasil, ram->status_array_dinamis); // 🟢 Ganti free jadi hancurkan_objek
+      |                                       ^~~
+../core_c/enki_interpreter.c: At top level:
+../core_c/enki_interpreter.c:3801:1: error: expected identifier or ‘(’ before ‘}’ token
+ 3801 | }
+      | ^
+make: *** [Makefile:35: build] Error 1

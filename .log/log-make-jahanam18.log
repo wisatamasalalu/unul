@@ -1,0 +1,5 @@
+gcc -Wall -Wextra -g main.c tui_renderer.c ../core_c/enki_os.c ../core_c/enki_lexer.c ../core_c/enki_parser.c ../core_c/enki_interpreter.c ../core_c/enki_scheduler.c ../core_c/enki_network.c ../core_c/enki_file_system.c ../core/enki_object.c ../core/array/ku.c ../core/array/ko.c ../core/array/panjang.c ../otim/otim_lexer.c ../otim/otim_parser.c ../snul/snul_lexer.c ../snul/snul_parser.c ../gui/gui_renderer.c ../core/enki_memory.c    -o ../../bin/unul -lm -lreadline -pthread -lcurl -lraylib
+../core_c/enki_interpreter.c:3801:1: error: expected identifier or ‘(’ before ‘}’ token
+ 3801 | }
+      | ^
+make: *** [Makefile:35: build] Error 1
