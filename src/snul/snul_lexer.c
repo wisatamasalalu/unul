@@ -3,12 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 #include "snul_lexer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
-// Asisten Alokasi Memori Dinamis
 static void tambah_snul_token(SnulTokenArray* array, SnulToken token) {
     if (array->jumlah >= array->kapasitas) {
         array->kapasitas = (array->kapasitas == 0) ? 16 : array->kapasitas * 2;
-        array->data = realloc(array->data, array->kapasitas * sizeof(SnulToken));
+        array->data = (SnulToken*)enki_realokasi(array->data, (array->kapasitas/2) * sizeof(SnulToken), array->kapasitas * sizeof(SnulToken), 1);
     }
     array->data[array->jumlah++] = token;
 }
@@ -17,23 +17,20 @@ SnulTokenArray snul_lexer(const char* kode_sumber) {
     SnulTokenArray tokens = {NULL, 0, 0};
     int i = 0;
     int baris = 1, kolom = 1;
-    int dalam_blok = 0; // 0 = Luar (Cari Selektor), 1 = Dalam (Cari Properti)
+    int dalam_blok = 0; 
 
     while (kode_sumber[i] != '\0') {
-        // 1. Lewati Spasi
         if (isspace(kode_sumber[i])) {
             if (kode_sumber[i] == '\n') { baris++; kolom = 0; }
             i++; kolom++;
             continue;
         }
 
-        // 2. Abaikan Komentar UNUL (^^)
         if (kode_sumber[i] == '^' && kode_sumber[i+1] == '^') {
             while (kode_sumber[i] != '\n' && kode_sumber[i] != '\0') i++;
             continue;
         }
 
-        // 3. Pintu Masuk Gaya '{'
         if (kode_sumber[i] == '{') {
             SnulToken t = {TOKEN_SNUL_LBRACE, NULL, baris, kolom};
             tambah_snul_token(&tokens, t);
@@ -42,7 +39,6 @@ SnulTokenArray snul_lexer(const char* kode_sumber) {
             continue;
         }
 
-        // 4. Pintu Keluar Gaya '}'
         if (kode_sumber[i] == '}') {
             SnulToken t = {TOKEN_SNUL_RBRACE, NULL, baris, kolom};
             tambah_snul_token(&tokens, t);
@@ -51,52 +47,65 @@ SnulTokenArray snul_lexer(const char* kode_sumber) {
             continue;
         }
 
-        // 5. Tangkap Target Selektor (Misal: @wadah.utama)
+        // 🟢 TANGKAP SELEKTOR
         if (!dalam_blok && kode_sumber[i] == '@') {
             int awal = i;
             while (kode_sumber[i] != '{' && !isspace(kode_sumber[i]) && kode_sumber[i] != '\0') {
                 i++; kolom++;
             }
             int panjang = i - awal;
-            SnulToken t = {TOKEN_SNUL_SELECTOR, strndup(&kode_sumber[awal], panjang), baris, kolom};
+            
+            // 🟢 BERSIH
+            char* selektor_mentah = (char*)enki_alokasi(panjang + 1, 1);
+            strncpy(selektor_mentah, &kode_sumber[awal], panjang);
+            selektor_mentah[panjang] = '\0';
+            
+            SnulToken t = {TOKEN_SNUL_SELECTOR, enki_salin_teks(selektor_mentah, 1), baris, kolom};
             tambah_snul_token(&tokens, t);
+            enki_bebas(selektor_mentah, 1);
             continue;
         }
 
-        // 6. Tangkap Properti dan Nilai (Di dalam kurung {})
         if (dalam_blok && (isalpha(kode_sumber[i]) || kode_sumber[i] == '_')) {
-            // A. Menangkap Nama Properti (Misal: warna_latar)
             int awal_prop = i;
             while (kode_sumber[i] != ':' && !isspace(kode_sumber[i]) && kode_sumber[i] != '\0') {
                 i++; kolom++;
             }
             int panjang_prop = i - awal_prop;
-            SnulToken t_prop = {TOKEN_SNUL_PROPERTI, strndup(&kode_sumber[awal_prop], panjang_prop), baris, kolom};
+            
+            // 🟢 BERSIH
+            char* prop_mentah = (char*)enki_alokasi(panjang_prop + 1, 1);
+            strncpy(prop_mentah, &kode_sumber[awal_prop], panjang_prop);
+            prop_mentah[panjang_prop] = '\0';
+            
+            SnulToken t_prop = {TOKEN_SNUL_PROPERTI, enki_salin_teks(prop_mentah, 1), baris, kolom};
             tambah_snul_token(&tokens, t_prop);
+            enki_bebas(prop_mentah, 1);
 
-            // Lewati spasi dan titik dua ':' pemisah
             while ((isspace(kode_sumber[i]) || kode_sumber[i] == ':') && kode_sumber[i] != '\0') {
                 if (kode_sumber[i] == '\n') { baris++; kolom = 0; }
                 i++; kolom++;
             }
 
-            // B. Menangkap Nilainya (Misal: #1A1A1A atau 20px otomatis)
             int awal_nilai = i;
             while (kode_sumber[i] != ';' && kode_sumber[i] != '}' && kode_sumber[i] != '\n' && kode_sumber[i] != '\0') {
                 i++; kolom++;
             }
             int panjang_nilai = i - awal_nilai;
             
-            // Simpan nilai (trim spasi manual jika Anda mau di masa depan, saat ini ditelan utuh)
-            SnulToken t_nilai = {TOKEN_SNUL_NILAI, strndup(&kode_sumber[awal_nilai], panjang_nilai), baris, kolom};
+            // 🟢 BERSIH
+            char* nilai_mentah = (char*)enki_alokasi(panjang_nilai + 1, 1);
+            strncpy(nilai_mentah, &kode_sumber[awal_nilai], panjang_nilai);
+            nilai_mentah[panjang_nilai] = '\0';
+            
+            SnulToken t_nilai = {TOKEN_SNUL_NILAI, enki_salin_teks(nilai_mentah, 1), baris, kolom};
             tambah_snul_token(&tokens, t_nilai);
+            enki_bebas(nilai_mentah, 1);
 
-            // Lewati titik koma ';'
             if (kode_sumber[i] == ';') { i++; kolom++; }
             continue;
         }
 
-        // Abaikan karakter yang tidak dimengerti agar Lexer tidak tersedak
         i++; kolom++;
     }
 
@@ -107,9 +116,9 @@ SnulTokenArray snul_lexer(const char* kode_sumber) {
 
 void bebaskan_snul_token(SnulTokenArray* array) {
     for (int i = 0; i < array->jumlah; i++) {
-        if (array->data[i].teks) free(array->data[i].teks);
+        if (array->data[i].teks) enki_bebas(array->data[i].teks, 1);
     }
-    free(array->data);
+    enki_bebas(array->data, 1);
     array->data = NULL;
     array->jumlah = 0;
     array->kapasitas = 0;

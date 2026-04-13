@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "otim_parser.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 typedef struct {
     OtimTokenArray tokens;
@@ -20,15 +21,15 @@ static void t_maju(OtimParser* p) {
 static void o_tambah_elemen_array(EnkiObject* arr, EnkiObject* elemen) {
     if (!arr || arr->tipe != ENKI_ARRAY) return;
     arr->panjang++;
-    arr->nilai.array_elemen = realloc(arr->nilai.array_elemen, arr->panjang * sizeof(EnkiObject*));
+    arr->nilai.array_elemen = (EnkiObject**)enki_realokasi(arr->nilai.array_elemen, (arr->panjang - 1) * sizeof(EnkiObject*), arr->panjang * sizeof(EnkiObject*), 1);
     arr->nilai.array_elemen[arr->panjang - 1] = elemen;
 }
 
 static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
     if (!obj || obj->tipe != ENKI_OBJEK) return;
     obj->panjang++;
-    obj->nilai.objek_peta.kunci = realloc(obj->nilai.objek_peta.kunci, obj->panjang * sizeof(EnkiObject*));
-    obj->nilai.objek_peta.konten = realloc(obj->nilai.objek_peta.konten, obj->panjang * sizeof(EnkiObject*));
+    obj->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.kunci, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
+    obj->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.konten, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
     obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci, 1);
     obj->nilai.objek_peta.konten[obj->panjang - 1] = nilai;
 }
@@ -74,10 +75,12 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
         o_simpan_ke_objek(node_elemen, "tag", ciptakan_teks(t.tag_nama, 1));
         
         if (t.tag_id) o_simpan_ke_objek(node_elemen, "id", ciptakan_teks(t.tag_id, 1));
+        
+        // Simpan Seluruh Teks Atribut ke dalam Objek (Siap diurai oleh Renderer!)
         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, 1));
 
         EnkiObject* array_anak = ciptakan_array(0, 1); 
-        char* nama_tag_buka = strdup(t.tag_nama);
+        char* nama_tag_buka = enki_salin_teks(t.tag_nama, 1);
         t_maju(p);
 
         while (t_sekarang(p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(p).jenis != TOKEN_OTIM_EOF) {
@@ -86,6 +89,7 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
                     t_maju(p); break; 
                 } else {
                     printf("🚨 KIAMAT VISUAL: <%s> ditutup dengan </%s>!\n", nama_tag_buka, t_sekarang(p).tag_nama);
+                    enki_bebas(nama_tag_buka, 1);
                     return NULL;
                 }
             }
@@ -95,7 +99,6 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
 
         o_simpan_ke_objek(node_elemen, "anak_anak", array_anak);
 
-        // 🟢 SUNTIKAN SAKU TENGAH: Jika punya anak berupa Teks, jadikan "teks_dalam"
         if (array_anak->panjang > 0) {
             EnkiObject* anak_pertama = array_anak->nilai.array_elemen[0];
             for (int j = 0; j < anak_pertama->panjang; j++) {
@@ -106,7 +109,7 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
             }
         }
 
-        free(nama_tag_buka);
+        enki_bebas(nama_tag_buka, 1);
         return node_elemen;
     }
     return NULL;

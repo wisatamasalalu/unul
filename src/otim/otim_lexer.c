@@ -3,16 +3,16 @@
 #include <string.h>
 #include <ctype.h>
 #include "otim_lexer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 void tambah_otim_token(OtimTokenArray* array, OtimToken token) {
     if (array->jumlah >= array->kapasitas) {
         array->kapasitas = (array->kapasitas == 0) ? 16 : array->kapasitas * 2;
-        array->data = realloc(array->data, array->kapasitas * sizeof(OtimToken));
+        array->data = (OtimToken*)enki_realokasi(array->data, (array->kapasitas/2) * sizeof(OtimToken), array->kapasitas * sizeof(OtimToken), 1);
     }
     array->data[array->jumlah++] = token;
 }
 
-// 🟢 MESIN PEMBERSIH SPASI (Trim)
 static void trim_string(char* str) {
     if (!str) return;
     char* start = str;
@@ -49,7 +49,7 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
             i += 7; kolom += 7; continue;
         }
 
-        // 🟢 TANGKAP TAG (Sekarang memisahkan ID dan Atribut dengan presisi mutlak)
+        // 🟢 TANGKAP TAG & ATRIBUT (Format Kunci="Nilai")
         if (kode_sumber[i] == '<') {
             int awal_tag = ++i; kolom++;
             int is_tutup = 0;
@@ -58,7 +58,11 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
             while (kode_sumber[i] != '>' && kode_sumber[i] != '\0') { i++; kolom++; }
             
             int panjang_tag = i - awal_tag;
-            char* isi_tag_mentah = strndup(&kode_sumber[awal_tag], panjang_tag);
+            
+            // 🟢 BERSIH: enki_alokasi
+            char* isi_tag_mentah = (char*)enki_alokasi(panjang_tag + 1, 1);
+            strncpy(isi_tag_mentah, &kode_sumber[awal_tag], panjang_tag);
+            isi_tag_mentah[panjang_tag] = '\0';
             
             OtimToken t = {0};
             t.baris = baris; t.kolom = kolom;
@@ -66,37 +70,49 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
             if (is_tutup) {
                 t.jenis = TOKEN_OTIM_TAG_TUTUP;
                 trim_string(isi_tag_mentah);
-                t.tag_nama = strdup(isi_tag_mentah);
+                t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
             } else {
                 t.jenis = TOKEN_OTIM_TAG_BUKA;
-                char* koma = strchr(isi_tag_mentah, ',');
-                char* titik_dua = strchr(isi_tag_mentah, ':');
                 
-                if (titik_dua && koma && titik_dua > koma) { titik_dua = NULL; }
-
-                if (titik_dua) *titik_dua = '\0';
-                if (koma) *koma = '\0';
-
-                char* tag_nama = isi_tag_mentah;
-                char* tag_id = titik_dua ? titik_dua + 1 : NULL;
-                char* tag_atr = koma ? koma + 1 : NULL;
-
-                trim_string(tag_nama);
-                if (tag_id) trim_string(tag_id);
-                if (tag_atr) trim_string(tag_atr);
-
-                t.tag_nama = strdup(tag_nama);
-                if (tag_id && strlen(tag_id) > 0) t.tag_id = strdup(tag_id);
-                if (tag_atr && strlen(tag_atr) > 0) t.atribut = strdup(tag_atr);
+                // Pisahkan Nama Tag dari Atributnya
+                char* spasi_pertama = strchr(isi_tag_mentah, ' ');
+                if (spasi_pertama) {
+                    *spasi_pertama = '\0';
+                    t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
+                    
+                    char* sisa_atribut = spasi_pertama + 1;
+                    trim_string(sisa_atribut);
+                    
+                    char* temukan_id = strstr(sisa_atribut, "id=\"");
+                    if (!temukan_id) temukan_id = strstr(sisa_atribut, "id='"); 
+                    
+                    if (temukan_id) {
+                        char kutip = temukan_id[3];
+                        char* awal_id = temukan_id + 4;
+                        char* akhir_id = strchr(awal_id, kutip);
+                        if (akhir_id) {
+                            *akhir_id = '\0';
+                            t.tag_id = enki_salin_teks(awal_id, 1); 
+                            *akhir_id = kutip; 
+                        }
+                    }
+                    
+                    if (strlen(sisa_atribut) > 0) {
+                        t.atribut = enki_salin_teks(sisa_atribut, 1);
+                    }
+                } else {
+                    t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
+                }
             }
-            free(isi_tag_mentah);
+            // 🟢 BERSIH: enki_bebas
+            enki_bebas(isi_tag_mentah, 1);
+            
             tambah_otim_token(&tokens, t);
             if (kode_sumber[i] == '>') { i++; kolom++; }
             continue;
         }
 
-        // 🟢 TANGKAP TEKS BEBAS (HTML STYLE)
-        // Menghancurkan kebutuhan tanda kutip ("...") di OTIM!
+        // 🟢 TANGKAP TEKS BEBAS
         if (kode_sumber[i] != '<' && kode_sumber[i] != '#' && kode_sumber[i] != '^') {
             int awal = i;
             while (kode_sumber[i] != '<' && kode_sumber[i] != '\0') {
@@ -105,19 +121,24 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
             }
             
             int panjang = i - awal;
-            char* teks_mentah = strndup(&kode_sumber[awal], panjang);
             
-            // Hapus tanda kutip jika developer lama masih memakainya
+            // 🟢 BERSIH: enki_alokasi
+            char* teks_mentah = (char*)enki_alokasi(panjang + 1, 1);
+            strncpy(teks_mentah, &kode_sumber[awal], panjang);
+            teks_mentah[panjang] = '\0';
+            
             if (teks_mentah[0] == '"') teks_mentah[0] = ' ';
             if (teks_mentah[panjang-1] == '"') teks_mentah[panjang-1] = ' ';
             
             trim_string(teks_mentah);
             
             if (strlen(teks_mentah) > 0) {
-                OtimToken t = {TOKEN_OTIM_TEKS, NULL, NULL, NULL, strdup(teks_mentah), baris, kolom};
+                OtimToken t = {TOKEN_OTIM_TEKS, NULL, NULL, NULL, enki_salin_teks(teks_mentah, 1), baris, kolom};
                 tambah_otim_token(&tokens, t);
             }
-            free(teks_mentah);
+            
+            // 🟢 BERSIH: enki_bebas
+            enki_bebas(teks_mentah, 1);
             continue;
         }
         i++; kolom++;
@@ -130,12 +151,12 @@ OtimTokenArray otim_lexer(const char* kode_sumber) {
 
 void bebaskan_otim_token(OtimTokenArray* array) {
     for (int i = 0; i < array->jumlah; i++) {
-        if (array->data[i].tag_nama) free(array->data[i].tag_nama);
-        if (array->data[i].tag_id) free(array->data[i].tag_id);
-        if (array->data[i].atribut) free(array->data[i].atribut);
-        if (array->data[i].isi_teks) free(array->data[i].isi_teks);
+        if (array->data[i].tag_nama) enki_bebas(array->data[i].tag_nama, 1);
+        if (array->data[i].tag_id) enki_bebas(array->data[i].tag_id, 1);
+        if (array->data[i].atribut) enki_bebas(array->data[i].atribut, 1);
+        if (array->data[i].isi_teks) enki_bebas(array->data[i].isi_teks, 1);
     }
-    free(array->data);
+    enki_bebas(array->data, 1);
     array->data = NULL;
     array->jumlah = 0;
     array->kapasitas = 0;

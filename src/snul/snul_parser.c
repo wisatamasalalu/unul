@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "snul_parser.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 typedef struct {
     SnulTokenArray tokens;
@@ -18,39 +19,42 @@ static void t_maju(SnulParser* p) {
 }
 
 // =======================================================
-// 🟢 ASISTEN MEMORI (Sama seperti OTIM)
+// 🟢 ASISTEN MEMORI BERSIH
 // =======================================================
 static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
     if (!obj || obj->tipe != ENKI_OBJEK) return;
     obj->panjang++;
-    obj->nilai.objek_peta.kunci = realloc(obj->nilai.objek_peta.kunci, obj->panjang * sizeof(EnkiObject*));
-    obj->nilai.objek_peta.konten = realloc(obj->nilai.objek_peta.konten, obj->panjang * sizeof(EnkiObject*));
+    // 🟢 BERSIH
+    obj->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.kunci, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
+    obj->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.konten, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
     obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci, 1);
     obj->nilai.objek_peta.konten[obj->panjang - 1] = nilai;
 }
 
 EnkiObject* parse_snul(SnulTokenArray tokens) {
     SnulParser p = {tokens, 0};
-    EnkiObject* root_gaya = ciptakan_objek_peta(0, 1); // Kamus Besar Kosmetik
+    EnkiObject* root_gaya = ciptakan_objek_peta(0, 1); 
 
     while (t_sekarang(&p).jenis != TOKEN_SNUL_EOF) {
         
-        // 1. Tangkap Selektor (Contoh: @wadah.utama)
+        // 1. Tangkap Selektor
         if (t_sekarang(&p).jenis == TOKEN_SNUL_SELECTOR) {
-            char* nama_selektor = strdup(t_sekarang(&p).teks);
+            // 🟢 BERSIH
+            char* nama_selektor = enki_salin_teks(t_sekarang(&p).teks, 1);
             t_maju(&p);
 
             // 2. Wajib ada kurung kurawal buka '{'
             if (t_sekarang(&p).jenis == TOKEN_SNUL_LBRACE) {
                 t_maju(&p);
                 
-                EnkiObject* aturan_gaya = ciptakan_objek_peta(0, 1); // Kamus kecil untuk properti
+                EnkiObject* aturan_gaya = ciptakan_objek_peta(0, 1); 
 
                 // 3. Kumpulkan semua properti di dalam blok
                 while (t_sekarang(&p).jenis != TOKEN_SNUL_RBRACE && t_sekarang(&p).jenis != TOKEN_SNUL_EOF) {
                     
                     if (t_sekarang(&p).jenis == TOKEN_SNUL_PROPERTI) {
-                        char* nama_prop = strdup(t_sekarang(&p).teks);
+                        // 🟢 BERSIH
+                        char* nama_prop = enki_salin_teks(t_sekarang(&p).teks, 1);
                         t_maju(&p);
 
                         // Tangkap nilainya
@@ -60,11 +64,10 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
                         } else {
                             o_simpan_ke_objek(aturan_gaya, nama_prop, ciptakan_teks("", 1));
                         }
-                        free(nama_prop);
+                        enki_bebas(nama_prop, 1); // 🟢 BERSIH
                     } else {
-                        // ❌ TANGKAP ERROR DI DALAM BLOK (Lupa nulis properti dengan benar)
                         printf("🚨 KIAMAT VISUAL: Sintaks SNUL cacat di dalam blok '%s'!\n", nama_selektor);
-                        free(nama_selektor);
+                        enki_bebas(nama_selektor, 1); // 🟢 BERSIH
                         return NULL; 
                     }
                 }
@@ -77,12 +80,12 @@ EnkiObject* parse_snul(SnulTokenArray tokens) {
                 // Simpan aturan ke Kamus Besar!
                 o_simpan_ke_objek(root_gaya, nama_selektor, aturan_gaya);
             }
-            free(nama_selektor);
+            enki_bebas(nama_selektor, 1); // 🟢 BERSIH
 
         } else {
             // ❌ TANGKAP ERROR DI LUAR BLOK (Token siluman)
             printf("🚨 KIAMAT VISUAL: Sintaks SNUL tidak valid! Menemukan token liar di luar blok gaya!\n");
-            return NULL; // Bunuh proses dan lapor ke Interpreter!
+            return NULL; 
         }
     }
 

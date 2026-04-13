@@ -6,3 +6,4 @@ env
 .anu
 .ingatan-unul
 build/
+*.log

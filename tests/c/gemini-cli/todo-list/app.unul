@@ -63,21 +63,21 @@ ciptakan fungsi render_ui(teks_tugas) maka
     ^^ Format teks agar aman dari bug C renderer
     takdir.soft teks_aman = format_tampilan(teks_tugas)
     
-    ^^ Rakit sintaks OTIM secara dinamis menggunakan kutip tunggal untuk membungkus kutip ganda!
-    takdir.soft otim_str = '#!datang\n'
-    otim_str = otim_str + '<wadah:utama>\n'
-    otim_str = otim_str + '    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>\n'
-    otim_str = otim_str + '    <masukan:input_tugas, tipe="teks"> "" </masukan>\n'
-    otim_str = otim_str + '    <tombol:btn_tambah> "[+] TAMBAH TUGAS" </tombol>\n'
+    ^^ Rakit sintaks OTIM secara dinamis menggunakan spasi sebagai pemisah (FORMAT BARU)
+   takdir.soft otim_str = '#!datang\n'
+   otim_str = otim_str + '<wadah id="utama">\n'
+   otim_str = otim_str + '    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>\n'
     
-    ^^ Sisipkan state ke dalam tag areanulis!
-    otim_str = otim_str + '    <areanulis:daftar_tampilan> "' + teks_aman + '" </areanulis>\n'
+   ^^ 🟢 MENGGUNAKAN SPASI DAN id=...
+   otim_str = otim_str + '    <masukan id="input_tugas" tipe="teks"> "" </masukan>\n'
     
-    otim_str = otim_str + '    <tombol:btn_hapus> "[-] HAPUS SEMUA" </tombol>\n'
-    otim_str = otim_str + '    <tombol:btn_keluar> "[X] KELUAR" </tombol>\n'
-    otim_str = otim_str + '</wadah>\n'
-    otim_str = otim_str + 'pergi!#'
-    
+   otim_str = otim_str + '    <tombol id="btn_tambah"> "[+] TAMBAH TUGAS" </tombol>\n'
+   otim_str = otim_str + '    <areanulis id="daftar_tampilan"> "' + teks_aman + '" </areanulis>\n'
+   otim_str = otim_str + '    <tombol id="btn_hapus"> "[-] HAPUS SEMUA" </tombol>\n'
+   otim_str = otim_str + '    <tombol id="btn_keluar"> "[X] KELUAR" </tombol>\n'
+   otim_str = otim_str + '</wadah>\n'
+   otim_str = otim_str + 'pergi!#'
+
     ^^ Tulis ke file sementara dan muat ulang!
     tulis("beranda_dinamis.otim", otim_str)
     takdir.soft ui_baru = muat_otim("beranda_dinamis.otim")

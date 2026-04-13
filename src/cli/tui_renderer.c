@@ -6,10 +6,36 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 #include "tui_renderer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
 
 struct termios terminal_lama;
 // 🧠 Saraf Pusat Checkbox (Menyimpan status 1024 kotak centang di RAM)
 static int checkbox_states[1024] = {0}; 
+
+// Fungsi mengambil teks dari SNUL dengan pengaman Default
+char* tui_ambil_gaya_teks(EnkiObject* gaya, const char* properti, char* nilai_bawaan) {
+    if (!gaya || gaya->tipe != ENKI_OBJEK) return nilai_bawaan;
+    for(int i=0; i<gaya->panjang; i++) {
+        if(strcmp(gaya->nilai.objek_peta.kunci[i]->nilai.teks, properti) == 0) {
+            return gaya->nilai.objek_peta.konten[i]->nilai.teks; // Nilai dari SNUL
+        }
+    }
+    return nilai_bawaan; // Jika SNUL tidak punya, pakai bawaan C
+}
+
+// Fungsi mengambil angka dari SNUL dengan pengaman Default
+int tui_ambil_gaya_angka(EnkiObject* gaya, const char* properti, int nilai_bawaan) {
+    char* hasil_teks = tui_ambil_gaya_teks(gaya, properti, NULL);
+    if (hasil_teks != NULL) return atoi(hasil_teks);
+    return nilai_bawaan;
+}
+
+// Contoh di dalam fungsi render_elemen_rekursif:
+int lebar_elemen = tui_ambil_gaya_angka(gaya_elemen, "lebar", w_default);
+int tinggi_elemen = tui_ambil_gaya_angka(gaya_elemen, "tinggi", 3); // Default tinggi 3 baris
+char* warna_latar = tui_ambil_gaya_teks(gaya_elemen, "warna_latar", "hitam");
+char* gaya_batas = tui_ambil_gaya_teks(gaya_elemen, "batas", "ganda"); 
+// 'batas' bisa diatur via SNUL: "ganda" (╔═╗), "tunggal" (┌─┐), "polos" (tanpa garis)
 
 void tui_aktifkan_raw_mode() {
     tcgetattr(STDIN_FILENO, &terminal_lama);
@@ -33,7 +59,7 @@ void tui_bersihkan_layar() { printf("\033[H\033[J"); }
 void tui_pindah_kursor(int x, int y) { printf("\033[%d;%dH", y, x); }
 
 // ========================================================
-// 💅 FITUR LAMA DIKEMBALIKAN: WARNA LENGKAP & HEX!
+// 💅 FITUR WARNA LENGKAP & HEX!
 // ========================================================
 void tui_terapkan_warna(EnkiObject* gaya) {
     if(!gaya || gaya->tipe != ENKI_OBJEK) return;
@@ -86,9 +112,10 @@ void tui_suntik_teks(EnkiObject* elemen, char c) {
                     } else if (c >= 32 && c <= 126) { 
                         int len = strlen(buffer); if (len < 4094) { buffer[len] = c; buffer[len+1] = '\0'; }
                     }
-                    free(target->nilai.teks); 
-                    target->nilai.teks = strdup(buffer); 
-                    target->panjang = strlen(buffer); // <-- SINKRONISASI PANJANG UNTUK UNUL!
+                    // 🟢 MENGGUNAKAN DEWA MEMORI ENKI
+                    enki_bebas(target->nilai.teks, 1); 
+                    target->nilai.teks = enki_salin_teks(buffer, 1); 
+                    target->panjang = strlen(buffer);
                     return;
                 }
             }
@@ -138,9 +165,6 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
         else if(strcmp(k, "anak_anak") == 0) anak_anak = v;
     }
 
-    // ========================================================
-    // 💅 FITUR LAMA DIKEMBALIKAN: SELEKTOR SNUL AKTIF LAGI!
-    // ========================================================
     char selektor[256] = {0};
     if (strlen(tag_nama) > 0 && strlen(id_nama) > 0) snprintf(selektor, 256, "@%s.%s", tag_nama, id_nama);
     else if (strlen(tag_nama) > 0) snprintf(selektor, 256, "@%s", tag_nama);
@@ -155,7 +179,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
     int lebar_aktual = tui_ambil_lebar(gaya_elemen, w_default);
     int y_awal = y; int y_anak = y;        
 
-    int interaktif = (strcmp(tag_nama, "masukan") == 0 || strcmp(tag_nama, "areanulis") == 0 || strcmp(tag_nama, "tombol") == 0 || strcmp(tag_nama, "centang") == 0);
+    int interaktif = (strcmp(tag_nama, "masukan") == 0 || strcmp(tag_nama, "masukan_sandi") == 0 || strcmp(tag_nama, "areanulis") == 0 || strcmp(tag_nama, "tombol") == 0 || strcmp(tag_nama, "centang") == 0);
     int apakah_fokus = 0; int my_index = *counter_interaktif; 
 
     if (interaktif) {
@@ -163,7 +187,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
         (*counter_interaktif)++; y_anak = y + 1; 
     } else if (strcmp(tag_nama, "wadah") == 0 || strcmp(tag_nama, "daftar") == 0) { y_anak = y + 1; }
 
-    int next_is_pass = is_password || (strstr(tipe_atribut, "password") != NULL);
+    int next_is_pass = is_password || (strstr(tipe_atribut, "password") != NULL) || (strcmp(tag_nama, "masukan_sandi") == 0);
     int next_is_wrap = is_wrap || (strcmp(tag_nama, "areanulis") == 0);
     int next_level = level_daftar;
     if (strcmp(tag_nama, "daftar") == 0) next_level++; 
@@ -193,7 +217,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
     else if (strcmp(tag_nama, "areanulis") == 0) {
         int w_area = lebar_aktual - 4;
         tui_cetak_wrap(x+2, y_anak, w_area, isi_teks, lantai_terminal);
-        y_anak += (strlen(isi_teks) / w_area) + 1; // Tinggi bertambah sesuai baris!
+        y_anak += (strlen(isi_teks) / w_area) + 1; 
     }
     else if(strcmp(jenis, "teks") == 0) {
         if (y_anak >= 2 && y_anak <= lantai_terminal) { 
@@ -218,7 +242,6 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
 
     if(anak_anak && anak_anak->tipe == ENKI_ARRAY) {
         for(int i=0; i<anak_anak->panjang; i++) {
-            // TERUSKAN KE ANAK DENGAN LEBAR YANG TEPAT!
             y_anak = render_elemen_rekursif(anak_anak->nilai.array_elemen[i], x+2, y_anak, lebar_aktual-4, gaya_root, lantai_terminal, counter_interaktif, fokus_saat_ini, elemen_fokus_ptr, next_level, next_is_pass, next_is_wrap);
         }
     }
@@ -233,8 +256,6 @@ int render_elemen_rekursif(EnkiObject* elemen, int x, int y, int w_default, Enki
 
 char* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root) {
     tui_aktifkan_raw_mode();
-
-    // 👇 AKTIFKAN RADAR PENCEGAT SIGINT!
     signal(SIGINT, tangkap_kiamat_sigint);
 
     printf("\033[?1049h\033[?25l\033[?1000h\033[?1006h"); 
@@ -292,7 +313,7 @@ char* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root) {
                     for(int i=0; i<elemen_fokus_saat_ini->panjang; i++) {
                         if(strcmp(elemen_fokus_saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, "tag") == 0) {
                             char* tg = elemen_fokus_saat_ini->nilai.objek_peta.konten[i]->nilai.teks;
-                            if(strcmp(tg, "masukan") == 0 || strcmp(tg, "areanulis") == 0) adlh_input = 1;
+                            if(strcmp(tg, "masukan") == 0 || strcmp(tg, "masukan_sandi") == 0 || strcmp(tg, "areanulis") == 0) adlh_input = 1;
                             else if(strcmp(tg, "tombol") == 0) adlh_tombol = 1;
                             else if(strcmp(tg, "centang") == 0) adlh_centang = 1; 
                             break;
@@ -312,5 +333,7 @@ char* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root) {
         }
     }
     printf("\033[?1006l\033[?1000l\033[?1049l\033[?25h"); tui_matikan_raw_mode();
-    return id_yang_diklik ? strdup(id_yang_diklik) : strdup("TUTUP_PAKSA");
+    
+    // 🟢 MENGGUNAKAN DEWA MEMORI ENKI
+    return id_yang_diklik ? enki_salin_teks(id_yang_diklik, 1) : enki_salin_teks("TUTUP_PAKSA", 1);
 }

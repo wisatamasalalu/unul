@@ -1,12 +1,12 @@
 #!datang
-<wadah:layar_dashboard, @layar.utama>
-    <teks:t2, === CATATAN RAHASIA ===></teks>
-    <teks:id_nama_user> Pengguna Aktif: </teks>
-    <masukan:id_todo, Tugas Baru: ></masukan>
-    <tombol:btn_tambah, Tambah Tugas></tombol>
-    <teks:t3, Daftar Tugas Anda:></teks>
-    <teks:id_daftar_todo, - Belum ada tugas -></teks>
+<wadah id="layar_dashboard" @layar.utama>
+    <teks id="t2", === CATATAN RAHASIA ===></teks>
+    <teks id="id_nama_user"> Pengguna Aktif: </teks>
+    <masukan id="id_todo" Tugas Baru: ></masukan>
+    <tombol id="btn_tambah" Tambah Tugas></tombol>
+    <teks id="t3" Daftar Tugas Anda:></teks>
+    <teks id="id_daftar_todo" - Belum ada tugas -></teks>
     ^^ 🟢 TAMBAHAN TOMBOL KELUAR:
-    <tombol:btn_keluar, Keluar Akun></tombol>
+    <tombol id="btn_keluar" Keluar Akun></tombol>
 </wadah>
 pergi!#
