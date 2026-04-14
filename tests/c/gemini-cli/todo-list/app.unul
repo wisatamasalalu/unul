@@ -32,15 +32,18 @@ ciptakan fungsi format_tampilan(teks_mentah) maka
             takdir.soft len = panjang(baris_bersih)
             
             ^^ 🟢 ANGKA ABSOLUT DARI C BACKEND: 48!
-            takdir.soft sisa = 48 - len
-            jika sisa < 0 maka sisa = 0 putus
+           takdir.soft sisa = 48 - len
             
-            takdir.soft spasi = ""
-            effort sisa kali maka
-                spasi = spasi + " "
-            putus
+           takdir.soft spasi = ""
+           
+           ^^ 🟢 HANYA JALANKAN EFFORT JIKA SISA > 0
+           jika sisa > 0 maka
+               effort sisa kali maka
+                   spasi = spasi + " "
+               putus
+           putus
             
-            hasil = hasil + baris_bersih + spasi
+           hasil = hasil + baris_bersih + spasi
         putus
         i = i + 1
     putus
@@ -63,20 +66,23 @@ ciptakan fungsi render_ui(teks_tugas) maka
     ^^ Format teks agar aman dari bug C renderer
     takdir.soft teks_aman = format_tampilan(teks_tugas)
     
-    ^^ Rakit sintaks OTIM secara dinamis menggunakan spasi sebagai pemisah (FORMAT BARU)
-   takdir.soft otim_str = '#!datang\n'
-   otim_str = otim_str + '<wadah id="utama">\n'
-   otim_str = otim_str + '    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>\n'
-    
-   ^^ 🟢 MENGGUNAKAN SPASI DAN id=...
-   otim_str = otim_str + '    <masukan id="input_tugas" tipe="teks"> "" </masukan>\n'
-    
-   otim_str = otim_str + '    <tombol id="btn_tambah"> "[+] TAMBAH TUGAS" </tombol>\n'
-   otim_str = otim_str + '    <areanulis id="daftar_tampilan"> "' + teks_aman + '" </areanulis>\n'
-   otim_str = otim_str + '    <tombol id="btn_hapus"> "[-] HAPUS SEMUA" </tombol>\n'
-   otim_str = otim_str + '    <tombol id="btn_keluar"> "[X] KELUAR" </tombol>\n'
-   otim_str = otim_str + '</wadah>\n'
-   otim_str = otim_str + 'pergi!#'
+    ^^ 🟢 SUNTIKAN ANTI-XSS (Menambal Bug Highlight VSCode & Kiamat OTIM)
+    takdir.soft kutip = dari_ascii(34)
+    teks_aman = ganti_teks(teks_aman, kutip, "'")
+    teks_aman = ganti_teks(teks_aman, "<", "[")
+    teks_aman = ganti_teks(teks_aman, ">", "]")
+
+    ^^ Rakit sintaks OTIM secara dinamis menggunakan spasi sebagai pemisah
+    takdir.soft otim_str = '#!datang\n'
+    otim_str = otim_str + '<wadah id="utama">\n'
+    otim_str = otim_str + '    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>\n'
+    otim_str = otim_str + '    <masukan id="input_tugas" tipe="teks"> "" </masukan>\n'
+    otim_str = otim_str + '    <tombol id="btn_tambah"> "[+] TAMBAH TUGAS" </tombol>\n'
+    otim_str = otim_str + '    <areanulis id="daftar_tampilan"> "' + teks_aman + '" </areanulis>\n'
+    otim_str = otim_str + '    <tombol id="btn_hapus"> "[-] HAPUS SEMUA" </tombol>\n'
+    otim_str = otim_str + '    <tombol id="btn_keluar"> "[X] KELUAR" </tombol>\n'
+    otim_str = otim_str + '</wadah>\n'
+    otim_str = otim_str + 'pergi!#'
 
     ^^ Tulis ke file sementara dan muat ulang!
     tulis("beranda_dinamis.otim", otim_str)
@@ -132,25 +138,26 @@ siklus selama aplikasi_hidup == 1 maka
             ^^ RE-RENDER UI BERDASARKAN STATE BARU!
             ui_utama = render_ui(daftar_tugas)
             
+        ^^ 🟢 BENAR: GUNAKAN "lain jika" DI SINI
+        lain jika aksi == "GANDA_btn_tambah" maka
+            ketik("Wah! Anda mengklik tombol tambah dua kali dengan sangat cepat!")
+            
+        lain jika aksi == "btn_hapus" maka
+            jumlah_tugas = 0
+            daftar_tugas = ""
+            
+            takdir.soft simpan_db = { "tugas": daftar_tugas, "jumlah": jumlah_tugas }
+            ekspor(simpan_db, "tugas.imah")
+            
+            ^^ RE-RENDER UI BERDASARKAN STATE KOSONG!
+            ui_utama = render_ui(daftar_tugas)
+            
+        lain jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
+            aplikasi_hidup = 0
+            
         lain maka
-            jika aksi == "btn_hapus" maka
-                jumlah_tugas = 0
-                daftar_tugas = ""
-                
-                takdir.soft simpan_db = { "tugas": daftar_tugas, "jumlah": jumlah_tugas }
-                ekspor(simpan_db, "tugas.imah")
-                
-                ^^ RE-RENDER UI BERDASARKAN STATE KOSONG!
-                ui_utama = render_ui(daftar_tugas)
-                
-            lain maka
-                jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
-                    aplikasi_hidup = 0
-                lain maka
-                    ^^ Pertahankan input user jika hanya pindah elemen
-                    ui_utama = form.ui
-                putus
-            putus
+            ^^ Pertahankan input user jika hanya pindah elemen (Hover/TAB)
+            ui_utama = form.ui
         putus
 
     tabu melanggar dosa maka

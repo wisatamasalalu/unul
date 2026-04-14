@@ -188,26 +188,28 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
         
         // SAKU 1: Hancurkan dan ganti Atribut
         if (atribut_idx != -1) {
-            hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx], 1); // 👈 TAMBAH 1 DI SINI
+            hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx], 1); 
             elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru, 1);
         } else {
+            // 🟢 MENGGUNAKAN ENKI REALOKASI
+            elemen->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+            elemen->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+            elemen->nilai.objek_peta.kunci[elemen->panjang] = ciptakan_teks("atribut", 1);
+            elemen->nilai.objek_peta.konten[elemen->panjang] = ciptakan_teks(teks_baru, 1);
             elemen->panjang++;
-            elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
-            elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*)); // 👈 SIZEOF BERSIH
-            elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("atribut", 1);
-            elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(teks_baru, 1);
         }
         
         // SAKU 2: Hancurkan dan ganti Teks Input
         if (teks_input_idx != -1) {
-            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); // 👈 TAMBAH 1 DI SINI
+            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); 
             elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru, 1);
         } else {
+            // 🟢 MENGGUNAKAN ENKI REALOKASI
+            elemen->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+            elemen->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+            elemen->nilai.objek_peta.kunci[elemen->panjang] = ciptakan_teks("teks_input", 1);
+            elemen->nilai.objek_peta.konten[elemen->panjang] = ciptakan_teks(teks_baru, 1);
             elemen->panjang++;
-            elemen->nilai.objek_peta.kunci = realloc(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*));
-            elemen->nilai.objek_peta.konten = realloc(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*));
-            elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input", 1);
-            elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(teks_baru, 1);
         }
         return; 
     }
@@ -260,8 +262,18 @@ void sihir_semayamkan_imah(EnkiObject* obj, FILE* fp, int level) {
 
     if (obj->tipe == ENKI_ANGKA) {
         fprintf(fp, "%g", obj->nilai.angka);
-    } else if (obj->tipe == ENKI_TEKS) {
-        fprintf(fp, "\"%s\"", obj->nilai.teks);
+   } else if (obj->tipe == ENKI_TEKS) {
+    // 🟢 SUNTIKAN ANTI-INJEKSI: Mengamankan Tanda Kutip!
+    fprintf(fp, "\"");
+    for (int i = 0; obj->nilai.teks[i] != '\0'; i++) {
+        // Jika ada tanda kutip ganda atau backslash, amankan dengan '\' di depannya
+        if (obj->nilai.teks[i] == '"' || obj->nilai.teks[i] == '\\') {
+            fprintf(fp, "\\%c", obj->nilai.teks[i]); 
+        } else {
+            fprintf(fp, "%c", obj->nilai.teks[i]);
+        }
+    }
+    fprintf(fp, "\"");
     } else if (obj->tipe == ENKI_ARRAY) {
         fprintf(fp, "[\n");
         for (int i = 0; i < obj->panjang; i++) {
@@ -538,8 +550,15 @@ EnkiObject* baca_dari_ram(EnkiRAM* ram, const char* nama) {
 // ⏳ MESIN WAKTU: Menyimpan Salinan Dimensi Objek
 void simpan_jejak_mesin_waktu(KavlingMemori* kavling) {
     if (kavling->jumlah_riwayat >= kavling->kapasitas_riwayat) {
-        kavling->kapasitas_riwayat = (kavling->kapasitas_riwayat == 0) ? 4 : kavling->kapasitas_riwayat * 2;
-        kavling->riwayat = realloc(kavling->riwayat, kavling->kapasitas_riwayat * sizeof(JejakMasaLalu));
+        int kapasitas_lama = kavling->kapasitas_riwayat; // 🟢 Catat untuk enki_realokasi
+        kavling->kapasitas_riwayat = (kapasitas_lama == 0) ? 4 : kapasitas_lama * 2;
+        
+        kavling->riwayat = (JejakMasaLalu*)enki_realokasi(
+            kavling->riwayat, 
+            kapasitas_lama * sizeof(JejakMasaLalu), 
+            kavling->kapasitas_riwayat * sizeof(JejakMasaLalu), 
+            1
+        );
     }
     JejakMasaLalu* jejak = &kavling->riwayat[kavling->jumlah_riwayat++];
     jejak->tipe = kavling->tipe;
@@ -1458,19 +1477,42 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
 
         if (node->operator_math) {
             if (strcmp(node->operator_math, "+") == 0) {
-                // SUNTIKAN PENGGABUNGAN TEKS!
+                // 🟢 SUNTIKAN PENGGABUNGAN TEKS TANPA BATAS (ANTI-OVERFLOW)
                 if ((obj_kiri && obj_kiri->tipe == ENKI_TEKS) || (obj_kanan && obj_kanan->tipe == ENKI_TEKS)) {
-                    char buf_kiri[1024] = ""; char buf_kanan[1024] = "";
-                    if (obj_kiri && obj_kiri->tipe == ENKI_TEKS) strcpy(buf_kiri, obj_kiri->nilai.teks);
-                    else if (obj_kiri && obj_kiri->tipe == ENKI_ANGKA) snprintf(buf_kiri, 1024, "%g", obj_kiri->nilai.angka);
-                    if (obj_kanan && obj_kanan->tipe == ENKI_TEKS) strcpy(buf_kanan, obj_kanan->nilai.teks);
-                    else if (obj_kanan && obj_kanan->tipe == ENKI_ANGKA) snprintf(buf_kanan, 1024, "%g", obj_kanan->nilai.angka);
                     
-                    char gabungan[4096]; snprintf(gabungan, 4096, "%s%s", buf_kiri, buf_kanan);
+                    const char* str_kiri = "";
+                    const char* str_kanan = "";
+                    char buf_angka_kiri[256];
+                    char buf_angka_kanan[256];
+                    
+                    if (obj_kiri && obj_kiri->tipe == ENKI_TEKS) str_kiri = obj_kiri->nilai.teks;
+                    else if (obj_kiri && obj_kiri->tipe == ENKI_ANGKA) {
+                        cetak_angka_presisi(obj_kiri->nilai.angka, buf_angka_kiri, sizeof(buf_angka_kiri));
+                        str_kiri = buf_angka_kiri;
+                    }
+                    
+                    if (obj_kanan && obj_kanan->tipe == ENKI_TEKS) str_kanan = obj_kanan->nilai.teks;
+                    else if (obj_kanan && obj_kanan->tipe == ENKI_ANGKA) {
+                        cetak_angka_presisi(obj_kanan->nilai.angka, buf_angka_kanan, sizeof(buf_angka_kanan));
+                        str_kanan = buf_angka_kanan;
+                    }
+                    
+                    // 🟢 HITUNG PANJANG MUTLAK & CIPTAKAN WADAH DINAMIS!
+                    size_t len_kiri = strlen(str_kiri);
+                    size_t len_kanan = strlen(str_kanan);
+                    char* gabungan = (char*)enki_alokasi(len_kiri + len_kanan + 1, 1);
+                    
+                    strcpy(gabungan, str_kiri);
+                    strcat(gabungan, str_kanan);
+                    
+                    EnkiObject* hasil_gabungan = ciptakan_teks(gabungan, ram->status_array_dinamis);
+                    enki_bebas(gabungan, 1); // Bersihkan memori C mentah
+                    
                     if (obj_kiri) hancurkan_objek(obj_kiri, ram->status_array_dinamis);
                     if (obj_kanan) hancurkan_objek(obj_kanan, ram->status_array_dinamis);
-                    return ciptakan_teks(gabungan, ram->status_array_dinamis);
+                    return hasil_gabungan;
                 }
+                // Jika keduanya murni angka, lakukan penjumlahan biasa
                 hasil_akhir = angka_kiri + angka_kanan;
             }
             else if (strcmp(node->operator_math, "-") == 0) hasil_akhir = angka_kiri - angka_kanan;
@@ -3024,8 +3066,8 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                             }
                         }
                         if (!ketemu) { // Jika belum ada, buat baru!
-                            saat_ini->nilai.objek_peta.kunci = realloc(saat_ini->nilai.objek_peta.kunci, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
-                            saat_ini->nilai.objek_peta.konten = realloc(saat_ini->nilai.objek_peta.konten, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(saat_ini->nilai.objek_peta.kunci, saat_ini->panjang * sizeof(EnkiObject*), (saat_ini->panjang + 1) * sizeof(EnkiObject*), ram->status_array_dinamis);
+                            saat_ini->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(saat_ini->nilai.objek_peta.konten, saat_ini->panjang * sizeof(EnkiObject*), (saat_ini->panjang + 1) * sizeof(EnkiObject*), ram->status_array_dinamis);
                             saat_ini->nilai.objek_peta.kunci[saat_ini->panjang] = ciptakan_teks(token, ram->status_array_dinamis);
                             saat_ini->nilai.objek_peta.konten[saat_ini->panjang] = ciptakan_salinan_objek(obj_nilai, ram->status_array_dinamis);
                             saat_ini->panjang++;
@@ -3039,8 +3081,8 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                             }
                         }
                         if (!ketemu) { // Bangkitkan dimensi baru jika belum ada
-                            saat_ini->nilai.objek_peta.kunci = realloc(saat_ini->nilai.objek_peta.kunci, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
-                            saat_ini->nilai.objek_peta.konten = realloc(saat_ini->nilai.objek_peta.konten, (saat_ini->panjang + 1) * sizeof(EnkiObject*));
+                            saat_ini->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(saat_ini->nilai.objek_peta.kunci, saat_ini->panjang * sizeof(EnkiObject*), (saat_ini->panjang + 1) * sizeof(EnkiObject*), ram->status_array_dinamis);
+                            saat_ini->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(saat_ini->nilai.objek_peta.konten, saat_ini->panjang * sizeof(EnkiObject*), (saat_ini->panjang + 1) * sizeof(EnkiObject*), ram->status_array_dinamis);
                             saat_ini->nilai.objek_peta.kunci[saat_ini->panjang] = ciptakan_teks(token, ram->status_array_dinamis);
                             EnkiObject* cabang_baru = ciptakan_objek_peta(0, ram->status_array_dinamis);
                             saat_ini->nilai.objek_peta.konten[saat_ini->panjang] = cabang_baru;
@@ -3235,41 +3277,60 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         // =======================================================
-        // 🖥️ TAMPILKAN KE TERMINAL (TUI RENDERER)
+        // 🖥️ TAMPILKAN TUI (Menjalankan Aplikasi Terminal)
         // =======================================================
-        if (strcmp(node->nilai_teks, "tampilkan_tui") == 0) {
-            if (node->jumlah_anak < 1) return ciptakan_kosong(ram->status_array_dinamis);
+        else if (strcmp(node->nilai_teks, "tampilkan_tui") == 0) {
+            
+            if (node->jumlah_anak < 1) {
+                pemicu_kiamat_presisi(node, ram, "Fungsi tampilkan_tui() kekurangan argumen!", 
+                    "Anda harus memasukkan minimal 1 argumen yaitu variabel UI (Wadah).\n"
+                    "Contoh: tampilkan_tui(ui_utama, kosmetik, 100)");
+                return ciptakan_kosong(ram->status_array_dinamis);
+            }
             
             EnkiObject* arg_ui = evaluasi_ekspresi(node->anak_anak[0], ram);
             EnkiObject* arg_gaya = NULL;
+            int timeout_ms = 0; // 🟢 Default: 0 (Mode UI Normal / Blocking)
             
-            // Jika ada parameter kedua (Kosmetik/Gaya)
-            if (node->jumlah_anak >= 2) {
+            // Tangkap parameter kedua (Gaya/Kosmetik)
+            if (node->jumlah_anak > 1) {
                 arg_gaya = evaluasi_ekspresi(node->anak_anak[1], ram);
             }
             
-            // TANGKAP ID TOMBOL YANG DIKLIK!
-            // 1. Eksekusi TUI (TUI akan menyuntikkan sandi ke dalam salinan arg_ui)
-            char* id_hasil = tampilkan_tui(arg_ui, arg_gaya);
+            // 🟢 TANGKAP PARAMETER KETIGA: Game Loop Timeout (ms)
+            if (node->jumlah_anak > 2) {
+                EnkiObject* arg_waktu = evaluasi_ekspresi(node->anak_anak[2], ram);
+                if (arg_waktu && arg_waktu->tipe == ENKI_ANGKA) {
+                    timeout_ms = (int)arg_waktu->nilai.angka;
+                }
+                if (arg_waktu) hancurkan_objek(arg_waktu, ram->status_array_dinamis);
+            }
             
-            // 2. Bersihkan gaya karena kita tidak butuh lagi
+            // 🟢 1. EKSEKUSI TUI (Kirimkan 3 Parameter)
+            EnkiObject* obj_aksi = tampilkan_tui(arg_ui, arg_gaya, timeout_ms);
+            
             if (arg_gaya) hancurkan_objek(arg_gaya, ram->status_array_dinamis);
 
-            // 3. BENTUK OBJEK PAYLOAD (STATELESS UI)
+            // 2. BENTUK OBJEK PAYLOAD (STATELESS UI)
             EnkiObject* obj_kembalian = ciptakan_objek_peta(2, ram->status_array_dinamis);
             obj_kembalian->panjang = 2;
 
-            // KUNCI 1: "aksi" -> isi: ID tombol yang diklik
             obj_kembalian->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi", ram->status_array_dinamis);
-            obj_kembalian->nilai.objek_peta.konten[0] = ciptakan_teks(id_hasil, ram->status_array_dinamis);
+            obj_kembalian->nilai.objek_peta.konten[0] = obj_aksi; 
 
-            // KUNCI 2: "ui" -> isi: Pohon DOM yang sudah dimodifikasi oleh ketikan User!
             obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui", ram->status_array_dinamis);
-            obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; // <-- Jangan hancurkan arg_ui, ia diwariskan ke payload
-
-            enki_bebas(id_hasil, 1); // Bebaskan memori string C biasa
             
-            return obj_kembalian; // Kembalikan Payload ke skrip .unul!
+            // 🔥 PERISAI ANTI-MALWARE (OOM PREVENTION) 🔥
+            // Jika aksi HANYA "DETAK", jangan salin ulang UI untuk menghemat miliaran Byte per menit!
+            if (obj_aksi && obj_aksi->tipe == ENKI_TEKS && strcmp(obj_aksi->nilai.teks, "DETAK") == 0) {
+                obj_kembalian->nilai.objek_peta.konten[1] = ciptakan_kosong(ram->status_array_dinamis); // Hampa!
+                hancurkan_objek(arg_ui, ram->status_array_dinamis); // Bakar salinan UI!
+            } else {
+                // Jika input nyata/klik, wariskan UI hasil ketikan user
+                obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; 
+            }
+            
+            return obj_kembalian;
         }
 
         // =======================================================

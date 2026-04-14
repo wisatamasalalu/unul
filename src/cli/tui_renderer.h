@@ -6,7 +6,8 @@
 // Fungsi utama untuk menggambar Pohon OTIM ke Terminal
 // Sekarang Pelukis menerima 2 referensi: Tulang (UI) dan Kosmetik (Gaya)
 // Sebelumnya void, sekarang mengembalikan teks (ID tombol)
-char* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root);
+// 🟢 UBAH BARIS INI: Tambahkan int timeout_ms di paling kanan
+EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeout_ms);
 
 // Fungsi pembantu untuk membersihkan layar dan mengatur warna
 void tui_bersihkan_layar();

@@ -35,3 +35,31 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
 💡 Tips: UNUL menghitung urutan mulai dari angka 1.
 =================================
 
+=== [WAKTU KIAMAT: 1776151210] ===
+🚨 [app.unul: Baris 114:51] KIAMAT SINTAKSIS: Indeks 1 Keluar Batas!
+   Saran: Array hanya memiliki 0 elemen. Anda tidak bisa memanggil urutan ke-1.
+💡 Tips: UNUL menghitung urutan mulai dari angka 1.
+=================================
+
+=== [WAKTU KIAMAT: 1776151217] ===
+🚨 [app.unul: Baris 114:51] KIAMAT SINTAKSIS: Indeks 1 Keluar Batas!
+   Saran: Array hanya memiliki 0 elemen. Anda tidak bisa memanggil urutan ke-1.
+💡 Tips: UNUL menghitung urutan mulai dari angka 1.
+=================================
+
+=== [WAKTU KIAMAT: 1776155996] ===
+🚨 [app.unul: Baris 114:51] KIAMAT SINTAKSIS: Indeks 1 Keluar Batas!
+   Saran: Array hanya memiliki 0 elemen. Anda tidak bisa memanggil urutan ke-1.
+💡 Tips: UNUL menghitung urutan mulai dari angka 1.
+=================================
+
+=== [WAKTU KIAMAT: 1776166876] ===
+🚨 [app.unul: Baris 39:30] KIAMAT SINTAKSIS: Batas siklus tidak masuk akal!
+   Saran: Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0.
+=================================
+
+=== [WAKTU KIAMAT: 1776166930] ===
+🚨 [app.unul: Baris 39:30] KIAMAT SINTAKSIS: Batas siklus tidak masuk akal!
+   Saran: Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0.
+=================================
+
