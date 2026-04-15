@@ -1,0 +1,32 @@
+@wadah#utama {
+    lebar: 70;
+    susunan: tengah;
+}
+
+@wadah#kartu {
+    lebar: 60;
+    tinggi: 15;
+    batas: ganda;
+    warna_latar: #1E1E2E;
+    warna_teks: #E0E0E0;
+}
+
+@teks {
+    warna_teks: #CDD6F4;
+}
+
+@masukan {
+    lebar: 40;
+    warna_latar: #313244;
+    warna_teks: #FFFFFF;
+}
+
+@tombol {
+    lebar: 20;
+    warna_latar: #89B4FA;
+    warna_teks: #1E1E2E;
+}
+
+@tombol:hover {
+    warna_latar: #B4BEFE;
+}

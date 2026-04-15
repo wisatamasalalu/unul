@@ -1,0 +1,9 @@
+#!datang
+<wadah id="utama">
+    <judul> "--- UNULZILLA ---" </judul>
+    <areanulis id="layar_monster"> "MEMUAT..." </areanulis>
+    <tombol id="btn_makan"> "[PANAH KIRI] BERI MAKAN" </tombol>
+    <tombol id="btn_main"> "[PANAH KANAN] AJAK MAIN" </tombol>
+    <tombol id="btn_keluar"> "[ESC] KELUAR & SIMPAN" </tombol>
+</wadah>
+pergi!#

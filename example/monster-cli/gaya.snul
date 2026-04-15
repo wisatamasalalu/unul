@@ -1,0 +1,23 @@
+^^ File: gaya.snul
+
+@wadah.utama {
+    lebar: 50;
+    batas: ganda;
+    warna_teks: cyan;
+    perataan_teks: tengah;  ^^ 🟢 SIHIR C BARU: Semua isi wadah rata tengah!
+    game_loop: 100;         ^^ 🟢 SAKLAR GAME: Terminal berdetak tiap 100ms!
+}
+
+@judul {
+    warna_teks: kuning;
+}
+
+@areanulis.layar_monster {
+    lebar: 46;
+    warna_teks: putih;
+    perataan_teks: tengah;  ^^ 🟢 Memastikan ASCII Art monster di tengah 
+}
+
+@tombol.btn_makan { warna_teks: hijau; }
+@tombol.btn_main { warna_teks: kuning; }
+@tombol.btn_keluar { warna_teks: merah; }

@@ -161,15 +161,14 @@ void proses_escape_teks(char* teks) {
     *tulis = '\0';
 }
 
-// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (VERSI BERSIH/SILENT)
-// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (PEMBUNUH KUTUKAN GANDA)
-// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (PEMBUNUH KUTUKAN GANDA V3)
+// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (MUTASI CERDAS V7)
 void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* teks_baru) {
     if (!elemen || elemen->tipe != ENKI_OBJEK) return;
     
     char* id_elemen = NULL;
     int atribut_idx = -1;
     int teks_input_idx = -1;
+    int teks_dalam_idx = -1;
     EnkiObject* anak_anak = NULL;
     
     for (int i = 0; i < elemen->panjang; i++) {
@@ -179,37 +178,37 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
         }
         if (strcmp(k, "atribut") == 0) atribut_idx = i;
         if (strcmp(k, "teks_input") == 0) teks_input_idx = i;
+        if (strcmp(k, "teks_dalam") == 0) teks_dalam_idx = i;
         if (strcmp(k, "anak_anak") == 0) anak_anak = elemen->nilai.objek_peta.konten[i];
     }
     
-    // 🟢 JIKA ID COCOK, TEMBAK DAN BERTERIAKLAH!
+    // 🟢 JIKA ID COCOK, EKSEKUSI MUTASI TANPA RE-ALOKASI!
     if (id_elemen && strcmp(id_elemen, target_id) == 0) {
-        printf("💥 [PISAU BEDAH C] KENA SASARAN! Berhasil meretas ID: '%s'\n", id_elemen);
         
-        // SAKU 1: Hancurkan dan ganti Atribut
         if (atribut_idx != -1) {
             hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx], 1); 
             elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru, 1);
-        } else {
-            // 🟢 MENGGUNAKAN ENKI REALOKASI
-            elemen->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-            elemen->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-            elemen->nilai.objek_peta.kunci[elemen->panjang] = ciptakan_teks("atribut", 1);
-            elemen->nilai.objek_peta.konten[elemen->panjang] = ciptakan_teks(teks_baru, 1);
-            elemen->panjang++;
         }
-        
-        // SAKU 2: Hancurkan dan ganti Teks Input
         if (teks_input_idx != -1) {
             hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); 
             elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru, 1);
-        } else {
-            // 🟢 MENGGUNAKAN ENKI REALOKASI
-            elemen->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-            elemen->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-            elemen->nilai.objek_peta.kunci[elemen->panjang] = ciptakan_teks("teks_input", 1);
-            elemen->nilai.objek_peta.konten[elemen->panjang] = ciptakan_teks(teks_baru, 1);
-            elemen->panjang++;
+        }
+        if (teks_dalam_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_dalam_idx], 1); 
+            elemen->nilai.objek_peta.konten[teks_dalam_idx] = ciptakan_teks(teks_baru, 1);
+        }
+        // Mutasi Node Teks Anak (Untuk <areanulis> dan <tombol>)
+        if (anak_anak && anak_anak->tipe == ENKI_ARRAY && anak_anak->panjang > 0) {
+            EnkiObject* anak_pertama = anak_anak->nilai.array_elemen[0];
+            if (anak_pertama && anak_pertama->tipe == ENKI_OBJEK) {
+                for (int j = 0; j < anak_pertama->panjang; j++) {
+                    if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
+                        hancurkan_objek(anak_pertama->nilai.objek_peta.konten[j], 1);
+                        anak_pertama->nilai.objek_peta.konten[j] = ciptakan_teks(teks_baru, 1);
+                        break;
+                    }
+                }
+            }
         }
         return; 
     }
@@ -217,7 +216,7 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
     // Menyelam ke anak-anaknya
     if (anak_anak && anak_anak->tipe == ENKI_ARRAY) {
         for (int i = 0; i < anak_anak->panjang; i++) {
-            sihir_suntik_dom(anak_anak->nilai.array_elemen[i], target_id, teks_baru); // 👈 JANGAN TAMBAH 1 DI SINI
+            sihir_suntik_dom(anak_anak->nilai.array_elemen[i], target_id, teks_baru); 
         }
     }
 }
@@ -3319,16 +3318,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             obj_kembalian->nilai.objek_peta.konten[0] = obj_aksi; 
 
             obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui", ram->status_array_dinamis);
-            
-            // 🔥 PERISAI ANTI-MALWARE (OOM PREVENTION) 🔥
-            // Jika aksi HANYA "DETAK", jangan salin ulang UI untuk menghemat miliaran Byte per menit!
-            if (obj_aksi && obj_aksi->tipe == ENKI_TEKS && strcmp(obj_aksi->nilai.teks, "DETAK") == 0) {
-                obj_kembalian->nilai.objek_peta.konten[1] = ciptakan_kosong(ram->status_array_dinamis); // Hampa!
-                hancurkan_objek(arg_ui, ram->status_array_dinamis); // Bakar salinan UI!
-            } else {
-                // Jika input nyata/klik, wariskan UI hasil ketikan user
-                obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; 
-            }
+            obj_kembalian->nilai.objek_peta.konten[1] = arg_ui; 
             
             return obj_kembalian;
         }
@@ -3369,19 +3359,24 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         else if (strcmp(node->nilai_teks, "retas_memori_dom") == 0) {
             if (node->jumlah_anak < 3) return ciptakan_kosong(ram->status_array_dinamis);
             
-            // 🟢 BYPASS EVALUATOR! Tangkap nama variabel murni!
             if (node->anak_anak[0]->jenis != AST_IDENTITAS) return ciptakan_kosong(ram->status_array_dinamis);
             char* nama_var = node->anak_anak[0]->nilai_teks;
             
-            // 🟢 TEMBUS LANGSUNG KE RAM GLOBAL!
             EnkiObject** pointer_asli = temukan_pointer_asli(ram, nama_var);
-            
             EnkiObject* obj_id = evaluasi_ekspresi(node->anak_anak[1], ram);
             EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[2], ram);
             
             if (pointer_asli && *pointer_asli && obj_id->tipe == ENKI_TEKS && obj_teks->tipe == ENKI_TEKS) {
                 printf("🔥 [C RAM HACK] Meretas variabel '%s' langsung di memori...\n", nama_var);
                 sihir_suntik_dom(*pointer_asli, obj_id->nilai.teks, obj_teks->nilai.teks);
+                
+                // 🟢 SINKRONISASI ALAM GAIB: Update Mini RAM agar wujudnya tidak kembali ke masa lalu!
+                for (int i = 0; i < ram->jumlah; i++) {
+                    if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
+                        sihir_bangun_dimensi(&(ram->kavling[i]), *pointer_asli, ram);
+                        break;
+                    }
+                }
             }
             
             if (obj_id) hancurkan_objek(obj_id, ram->status_array_dinamis);

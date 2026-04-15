@@ -161,14 +161,42 @@ void tui_toggle_centang(EnkiObject* elemen) {
     }
 }
 
-void tui_cetak_wrap(int x, int y, int w, const char* teks, int lantai_terminal) {
-    if (!teks) return;
-    int len = strlen(teks);
+// 🟢 MESIN CETAK CANGGIH (V3): Mendukung Enter (\n), Rata Tengah Mutlak, & Pembersihan Spasi!
+void tui_cetak_wrap(int x, int y, int w, const char* teks, int lantai_terminal, const char* perataan) {
+    if (!teks || w <= 0) return;
+    
+    int mode_rata = 0; 
+    if (perataan) {
+        if (strcmp(perataan, "tengah") == 0) mode_rata = 1;
+        else if (strcmp(perataan, "kanan") == 0) mode_rata = 2;
+    }
+
     int baris = 0;
-    for (int i = 0; i < len; i += w) {
-        if (y + baris >= 2 && y + baris <= lantai_terminal) {
-            tui_pindah_kursor(x, y + baris); printf("%.*s", w, teks + i);
+    const char* ptr = teks;
+    
+    while (*ptr != '\0') {
+        // 🟢 Abaikan spasi awal untuk Rata Tengah (agar ASCII Art simetris!)
+        if (mode_rata == 1) {
+            while (*ptr == ' ') ptr++; 
         }
+
+        // Cari ujung baris (Enter atau habis memori)
+        int len_baris = 0;
+        while (ptr[len_baris] != '\0' && ptr[len_baris] != '\n' && len_baris < w) {
+            len_baris++;
+        }
+        
+        if (y + baris >= 2 && y + baris <= lantai_terminal) {
+            int offset_x = x;
+            if (mode_rata == 1) offset_x = x + (w - len_baris) / 2;
+            else if (mode_rata == 2) offset_x = x + (w - len_baris);
+            
+            tui_pindah_kursor(offset_x, y + baris); 
+            printf("%.*s", len_baris, ptr);
+        }
+        
+        ptr += len_baris;
+        if (*ptr == '\n') ptr++; 
         baris++;
     }
 }
@@ -208,7 +236,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
         else if(strcmp(k, "tag") == 0) tag_nama = v->nilai.teks;
         else if(strcmp(k, "id") == 0) id_nama = v->nilai.teks;
         else if(strcmp(k, "isi") == 0) isi_teks = v->nilai.teks;
-        else if(strcmp(k, "teks_dalam") == 0) teks_dalam = v->nilai.teks; // 🟢 Label asli elemen
+        else if(strcmp(k, "teks_dalam") == 0) teks_dalam = v->nilai.teks; 
         else if(strcmp(k, "atribut") == 0) tipe_atribut = v->nilai.teks;
         else if(strcmp(k, "anak_anak") == 0) anak_anak = v;
     }
@@ -224,12 +252,11 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
         }
     }
 
-    // 🟢 TATA LETAK DINAMIS
     int lebar_aktual = tui_ambil_gaya_angka(gaya_elemen, "lebar", lebar_parent);
     int tinggi_minimal = tui_ambil_gaya_angka(gaya_elemen, "tinggi", 3);
     char* susunan = tui_ambil_gaya_teks(gaya_elemen, "susunan", "kiri");
-    
-    // 🟢 TATA LETAK FLEXBOX
+    char* perataan = tui_ambil_gaya_teks(gaya_elemen, "perataan_teks", "kiri");
+
     int x_aktual = x_parent;
     if (strcmp(susunan, "tengah") == 0) x_aktual = x_parent + (lebar_parent / 2) - (lebar_aktual / 2);
     else if (strcmp(susunan, "kanan") == 0) x_aktual = x_parent + lebar_parent - lebar_aktual;
@@ -267,16 +294,13 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
         if (y_anak >= 2 && y_anak <= lantai_terminal) {
             tui_pindah_kursor(x_aktual+2, y_anak);
             if (apakah_fokus) printf("\033[7m");
-            // 🟢 Tampilkan status dari DOM (isi_teks), Label dari teks_dalam
             char tanda = (isi_teks && strcmp(isi_teks, "X") == 0) ? 'X' : ' ';
             printf("[%c] %s", tanda, teks_dalam); 
         }
         y_anak++;
     }
     else if (strcmp(tag_nama, "areanulis") == 0) {
-        int w_area = lebar_aktual - 4;
-        tui_cetak_wrap(x_aktual+2, y_anak, w_area, isi_teks, lantai_terminal);
-        y_anak += (strlen(isi_teks) / w_area) + 1; 
+        // 🟢 KOSONGKAN! Biarkan anak-anaknya yang berjenis 'teks' yang mencetak ke layar!
     }
     else if(strcmp(jenis, "teks") == 0) {
         if (y_anak >= 2 && y_anak <= lantai_terminal) { 
@@ -288,7 +312,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
             } else if (next_is_wrap) {
                 int w_area = lebar_aktual - 4;
                 if (w_area > 0) {
-                    tui_cetak_wrap(x_aktual+2, y_anak, w_area, isi_teks, lantai_terminal);
+                    tui_cetak_wrap(x_aktual+2, y_anak, w_area, isi_teks, lantai_terminal, perataan);
                     y_anak += (strlen(isi_teks) / w_area);
                 }
             } else {
@@ -299,23 +323,22 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
     }
     printf("\033[0m"); 
 
+    // 🟢 RENDER SEMUA ANAK SECARA ALAMI (Tanpa Perisai Blokir!)
     if(anak_anak && anak_anak->tipe == ENKI_ARRAY) {
         for(int i=0; i<anak_anak->panjang; i++) {
             y_anak = render_elemen_rekursif(anak_anak->nilai.array_elemen[i], x_aktual+2, y_anak, lebar_aktual-4, lebar_terminal, gaya_root, lantai_terminal, counter_interaktif, fokus_saat_ini, elemen_fokus_ptr, next_level, next_is_pass, next_is_wrap);
         }
     }
-
+    
     if (interaktif || strcmp(tag_nama, "wadah") == 0) {
         int tinggi = (y_anak - y_awal) + 1; if (tinggi < tinggi_minimal) tinggi = tinggi_minimal; 
         
-        // 🟢 EFEK HOVER: Cek apakah kordinat mouse berada di area kotak ini
         if (interaktif && mouse_x >= x_aktual && mouse_x <= x_aktual + lebar_aktual && mouse_y >= y_awal && mouse_y <= y_awal + tinggi) {
             apakah_fokus = 1; 
         }
 
         tui_gambar_kotak(x_aktual, y_awal, lebar_aktual, tinggi, NULL, gaya_elemen, lantai_terminal, apakah_fokus);
         
-        // 🟢 SIMPAN KOORDINAT & OBJEK ASLI KE SARAF PUSAT!
         if (interaktif && jumlah_kotak < 1024 && strlen(id_nama) > 0) {
             strncpy(daftar_kotak[jumlah_kotak].id, id_nama, 127);
             daftar_kotak[jumlah_kotak].x = x_aktual;
@@ -323,7 +346,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
             daftar_kotak[jumlah_kotak].w = lebar_aktual;
             daftar_kotak[jumlah_kotak].h = tinggi;
             daftar_kotak[jumlah_kotak].indeks_logika = my_index;
-            daftar_kotak[jumlah_kotak].node_asli = elemen; // Jembatan langsung ke RAM UNUL!
+            daftar_kotak[jumlah_kotak].node_asli = elemen; 
             jumlah_kotak++;
         }
 
@@ -336,6 +359,32 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
 // 🎮 EVENT LOOP TUI UTAMA
 // ========================================================
 EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeout_ms) {
+    
+    // 🛡️ PERISAI ANTI CORE-DUMP: Pastikan ui_root benar-benar Objek DOM, bukan String Error!
+    if (!ui_root || ui_root->tipe != ENKI_OBJEK) {
+        printf("\033[H\033[J\n\n🚨 [FATAL ERROR TUI] 🚨\nUI yang diberikan bukan Objek DOM OTIM yang valid!\n");
+        if (ui_root && ui_root->tipe == ENKI_TEKS) printf("Pesan Error: %s\n", ui_root->nilai.teks);
+        printf("\nSistem dihentikan otomatis dalam 3 detik...\n");
+        sleep(3);
+        return ciptakan_teks("TUTUP_PAKSA", 1);
+    }
+
+    // 🟢 SUNTIKAN KECERDASAN: Baca Saklar "game_loop" dari Kosmetik SNUL!
+    if (timeout_ms == 0 && ui_root->panjang > 0) {
+        char* t_tag = tui_ambil_gaya_teks(ui_root, "tag", "wadah");
+        char* t_id = tui_ambil_gaya_teks(ui_root, "id", "utama");
+        char selektor_root[256]; snprintf(selektor_root, 256, "@%s.%s", t_tag, t_id);
+        
+        if (gaya_root && gaya_root->tipe == ENKI_OBJEK) {
+            for(int i=0; i<gaya_root->panjang; i++) {
+                if(strcmp(gaya_root->nilai.objek_peta.kunci[i]->nilai.teks, selektor_root) == 0) {
+                    timeout_ms = tui_ambil_gaya_angka(gaya_root->nilai.objek_peta.konten[i], "game_loop", 0);
+                    break;
+                }
+            }
+        }
+    }
+
     tui_aktifkan_raw_mode(timeout_ms);
     signal(SIGINT, tangkap_kiamat_sigint);
 
@@ -478,7 +527,7 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
                             }
                         }
                     }
-                } else { berjalan = 0; }
+                } else { berjalan = 0; } // 🟢 Keluar jika Timeout!
             }
             else {
                 int adlh_input = 0; int adlh_tombol = 0; int adlh_centang = 0;

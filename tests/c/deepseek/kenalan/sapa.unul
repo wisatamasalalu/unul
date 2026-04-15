@@ -1,0 +1,34 @@
+datang
+
+takdir.soft ui = muat_otim("sapa.otim")
+takdir.soft tema = muat_snul("gaya.snul")
+
+takdir.soft sedang_berjalan = 1
+
+siklus selama sedang_berjalan == 1 maka
+    takdir.soft hasil = tampilkan_tui(ui, tema, 0)
+
+    cocokkan hasil["aksi"] maka
+        kasus "tombol_sapa" maka
+            ^^ Telusuri hierarki: wadah utama -> wadah kartu -> masukan input_nama
+            takdir.soft wadah_kartu = ui["anak_anak"][1]          ^^ indeks 1 = wadah id="kartu"
+            takdir.soft elemen_masukan = wadah_kartu["anak_anak"][1]  ^^ indeks 1 = <masukan>
+            takdir.soft nama = elemen_masukan["teks_input"]
+
+            ^^ Jika kosong, beri nilai default
+            jika panjang(nama) == 0 maka
+                nama = "Tanpa Nama"
+            putus
+
+            takdir.soft sapaan = "Halo, " + nama + "! Selamat datang di UNUL."
+
+            ^^ Suntik teks ke elemen output
+            retas_memori_dom(ui, "teks_output", sapaan)
+        putus
+        kasus "TUTUP_PAKSA" maka
+            sedang_berjalan = 0
+        putus
+    putus
+putus
+
+ketik("Sampai jumpa!")
