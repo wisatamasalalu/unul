@@ -1,6 +1,82 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glob.h>
+#include "enki_file_system.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+char* sihir_cari(const char* pola) {
+    glob_t hasil_glob;
+    int status = glob(pola, 0, NULL, &hasil_glob);
+    
+    if (status != 0) {
+        globfree(&hasil_glob);
+        return enki_salin_teks("", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS (Mode 1)
+    }
+
+    // Hitung total panjang string yang dibutuhkan
+    size_t total_panjang = 0;
+    for (size_t i = 0; i < hasil_glob.gl_pathc; i++) {
+        total_panjang += strlen(hasil_glob.gl_pathv[i]) + 1; // +1 untuk pemisah (koma atau spasi)
+    }
+
+    // 🟢 MENGGUNAKAN ENKI_ALOKASI (Mode 1)
+    char* hasil_akhir = (char*)enki_alokasi(total_panjang + 1, 1);
+    hasil_akhir[0] = '\0';
+
+    for (size_t i = 0; i < hasil_glob.gl_pathc; i++) {
+        strcat(hasil_akhir, hasil_glob.gl_pathv[i]);
+        if (i < hasil_glob.gl_pathc - 1) {
+            strcat(hasil_akhir, ","); // Gunakan koma sebagai pemisah antar file
+        }
+    }
+
+    globfree(&hasil_glob);
+    return hasil_akhir;
+}
+
+char* sihir_baca_file(const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (!f) return enki_salin_teks("🚨 ERROR: File tidak bisa dibuka.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+    
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    // 🟢 MENGGUNAKAN ENKI_ALOKASI (Mode 1)
+    char* string = (char*)enki_alokasi(fsize + 1, 1);
+    fread(string, fsize, 1, f);
+    fclose(f);
+
+    string[fsize] = 0;
+    return string;
+}
+
+void sihir_tulis_file(const char* path, const char* konten) {
+    // Mode "w" akan membuat file baru, atau menimpa jika sudah ada
+    FILE* f = fopen(path, "w");
+    if (f) {
+        fprintf(f, "%s", konten);
+        fclose(f);
+    } else {
+        printf("🚨 SISTEM FILE: Gagal menciptakan takdir pada '%s'\n", path);
+    }
+}#ifndef ENKI_FILE_SYSTEM_H
+#define ENKI_FILE_SYSTEM_H
+
+// Sihir untuk mencari file berdasarkan pola (misal: *.unul)
+// Menghasilkan teks panjang yang dipisahkan oleh koma
+char* sihir_cari(const char* pola);
+
+// Sihir untuk membaca isi file biner/teks
+char* sihir_baca_file(const char* path);
+
+// Sihir untuk menulis data ke dalam file (seperti > di Bash)
+void sihir_tulis_file(const char* path, const char* konten);
+
+#endif // ENKI_FILE_SYSTEM_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
@@ -161,14 +237,21 @@ void proses_escape_teks(char* teks) {
     *tulis = '\0';
 }
 
-// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (MUTASI CERDAS V8 - FINAL)
+// 🌐 FUNGSI NATIVE: MEMBEDAH DOM IN-PLACE (MUTASI CERDAS V7)
 void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* teks_baru) {
     if (!elemen || elemen->tipe != ENKI_OBJEK) return;
     
-    char* id_elemen = NULL; int atribut_idx = -1; int teks_input_idx = -1; int teks_dalam_idx = -1; EnkiObject* anak_anak = NULL;
+    char* id_elemen = NULL;
+    int atribut_idx = -1;
+    int teks_input_idx = -1;
+    int teks_dalam_idx = -1;
+    EnkiObject* anak_anak = NULL;
+    
     for (int i = 0; i < elemen->panjang; i++) {
         char* k = elemen->nilai.objek_peta.kunci[i]->nilai.teks;
-        if (strcmp(k, "id") == 0 && elemen->nilai.objek_peta.konten[i]->tipe == ENKI_TEKS) id_elemen = elemen->nilai.objek_peta.konten[i]->nilai.teks;
+        if (strcmp(k, "id") == 0 && elemen->nilai.objek_peta.konten[i]->tipe == ENKI_TEKS) {
+            id_elemen = elemen->nilai.objek_peta.konten[i]->nilai.teks;
+        }
         if (strcmp(k, "atribut") == 0) atribut_idx = i;
         if (strcmp(k, "teks_input") == 0) teks_input_idx = i;
         if (strcmp(k, "teks_dalam") == 0) teks_dalam_idx = i;
@@ -177,11 +260,20 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
     
     // 🟢 JIKA ID COCOK, EKSEKUSI MUTASI TANPA RE-ALOKASI!
     if (id_elemen && strcmp(id_elemen, target_id) == 0) {
-        if (atribut_idx != -1) { hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx], 1); elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru, 1); }
-        if (teks_input_idx != -1) { hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru, 1); }
-        if (teks_dalam_idx != -1) { hancurkan_objek(elemen->nilai.objek_peta.konten[teks_dalam_idx], 1); elemen->nilai.objek_peta.konten[teks_dalam_idx] = ciptakan_teks(teks_baru, 1); }
         
-        // 🟢 SUNTIK TEKS NODE ANAK SECARA MUTLAK (Hancurkan Hantu 'teks_dalam' dan 'isi' di Anak!)
+        if (atribut_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[atribut_idx], 1); 
+            elemen->nilai.objek_peta.konten[atribut_idx] = ciptakan_teks(teks_baru, 1);
+        }
+        if (teks_input_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); 
+            elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru, 1);
+        }
+        if (teks_dalam_idx != -1) {
+            hancurkan_objek(elemen->nilai.objek_peta.konten[teks_dalam_idx], 1); 
+            elemen->nilai.objek_peta.konten[teks_dalam_idx] = ciptakan_teks(teks_baru, 1);
+        }
+        // Mutasi Node Teks Anak (Untuk <areanulis> dan <tombol>)
         if (anak_anak && anak_anak->tipe == ENKI_ARRAY && anak_anak->panjang > 0) {
             EnkiObject* anak_pertama = anak_anak->nilai.array_elemen[0];
             if (anak_pertama && anak_pertama->tipe == ENKI_OBJEK) {
@@ -189,10 +281,7 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
                     if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
                         hancurkan_objek(anak_pertama->nilai.objek_peta.konten[j], 1);
                         anak_pertama->nilai.objek_peta.konten[j] = ciptakan_teks(teks_baru, 1);
-                    }
-                    if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "teks_dalam") == 0) {
-                        hancurkan_objek(anak_pertama->nilai.objek_peta.konten[j], 1);
-                        anak_pertama->nilai.objek_peta.konten[j] = ciptakan_teks(teks_baru, 1);
+                        break;
                     }
                 }
             }
@@ -202,7 +291,9 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
     
     // Menyelam ke anak-anaknya
     if (anak_anak && anak_anak->tipe == ENKI_ARRAY) {
-        for (int i = 0; i < anak_anak->panjang; i++) sihir_suntik_dom(anak_anak->nilai.array_elemen[i], target_id, teks_baru); 
+        for (int i = 0; i < anak_anak->panjang; i++) {
+            sihir_suntik_dom(anak_anak->nilai.array_elemen[i], target_id, teks_baru); 
+        }
     }
 }
 
@@ -421,10 +512,6 @@ EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk) {
     ram_baru->status_terus = 0;
     ram_baru->status_henti = 0;
     
-    // 🟢 SUNTIKAN MUTLAK ANTI-KIAMAT MEMORI & SEGFAULT: WARISKAN SAKLAR!
-    ram_baru->status_array_dinamis = induk ? induk->status_array_dinamis : 0;
-    ram_baru->status_array_statis = induk ? induk->status_array_statis : 0;
-
     ram_baru->induk = induk; 
     ram_baru->nilai_kembalian = NULL;
     ram_baru->pesan_error_tabu = NULL;
@@ -3357,10 +3444,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[2], ram);
             
             if (pointer_asli && *pointer_asli && obj_id->tipe == ENKI_TEKS && obj_teks->tipe == ENKI_TEKS) {
-                // Jangan pakai printf agar layar tidak berkedip (flicker)
+                printf("🔥 [C RAM HACK] Meretas variabel '%s' langsung di memori...\n", nama_var);
                 sihir_suntik_dom(*pointer_asli, obj_id->nilai.teks, obj_teks->nilai.teks);
                 
-                // 🟢 SINKRONISASI ALAM GAIB: Update Mini RAM agar wujud TUI tidak kembali ke masa lalu!
+                // 🟢 SINKRONISASI ALAM GAIB: Update Mini RAM agar wujudnya tidak kembali ke masa lalu!
                 for (int i = 0; i < ram->jumlah; i++) {
                     if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
                         sihir_bangun_dimensi(&(ram->kavling[i]), *pointer_asli, ram);
@@ -4004,4 +4091,2246 @@ void eksekusi_program(ASTNode* program, EnkiRAM* ram) {
         if (ram->status_terus == 1) break; 
         if (ram->status_henti == 1) break;
     } // <--- 🟢 KURUNG PENUTUP UNTUK LOOP 'for'
-} // <--- 🟢 KURUNG PENUTUP UNTUK FUNGSI 'eksekusi_program' (DAN AKHIR FILE)
+} // <--- 🟢 KURUNG PENUTUP UNTUK FUNGSI 'eksekusi_program' (DAN AKHIR FILE)#ifndef ENKI_INTERPRETER_H
+#define ENKI_INTERPRETER_H
+
+#include "enki_parser.h"
+#include <setjmp.h>
+#include "../core/enki_object.h" // 🟢 SUNTIKAN JANTUNG BARU!
+
+// --- FORWARD DECLARATION ---
+typedef struct EnkiRAM EnkiRAM;
+typedef struct KavlingMemori KavlingMemori;
+typedef struct JejakMasaLalu JejakMasaLalu;
+
+// --- TIPE DOMAIN MEMORI ---
+// Karena tipe data (Teks, Angka, Array) sekarang diurus oleh EnkiObject,
+// TipeKavling kini fokus pada SIFAT Variabel (Soft vs Hard/Konstanta).
+typedef enum {
+    TIPE_VARIABEL_SOFT = 0,   
+    TIPE_VARIABEL_HARD = 1  
+} TipeKavling;
+
+// 🔥 MESIN WAKTU: Kapsul penyimpan kenangan
+struct JejakMasaLalu {
+    TipeKavling tipe;
+    EnkiObject* objek; // 🟢 GANTI: char* nilai_teks -> EnkiObject* objek
+    EnkiRAM* anak_anak;
+};
+
+// 1. WUJUD KAVLING MEMORI (DIROMBAK)
+struct KavlingMemori {
+    char* nama;
+    TipeKavling tipe;          
+    EnkiObject* objek; // 🟢 GANTI: char* nilai_teks -> EnkiObject* objek          
+    EnkiRAM* anak_anak;        
+    ASTNode* simpul_fungsi;
+    int apakah_konstanta;
+    
+    // 🔥 SARAF MESIN WAKTU (RIWAYAT) 🔥
+    JejakMasaLalu* riwayat;
+    int jumlah_riwayat;
+    int kapasitas_riwayat;
+};
+
+// 2. RAM UTAMA SISTEM OPERASI
+struct EnkiRAM {
+    KavlingMemori* kavling;      // Pointer dinamis untuk variabel
+    int kapasitas;               // Batas ruang saat ini
+    int jumlah;                  // Jumlah variabel terisi
+    int butuh_anu_aktif;         // Bendera file .anu
+    
+    struct EnkiRAM* induk;       // 🟢 DITAMBAHKAN: Untuk melacak Scope (Global/Lokal)
+    
+    // --- SARAF HUKUM TABU ---
+    int dalam_mode_coba;         
+    jmp_buf titik_kembali;       
+    char* pesan_error_tabu;      
+
+    // --- SARAF KONTROL & SIKLUS ---
+    int status_pulang;           
+    EnkiObject* nilai_kembalian; // 🟢 GANTI: Agar fungsi bisa me-return Array/Objek JSON!
+    int status_terus;            // lompat ke putaran berikutnya
+    int status_henti;            // hancurkan loop sepenuhnya  
+
+    // 🟢 SAKLAR MODUL ARRAY (DITAMBAHKAN DI SINI)
+    int status_array_dinamis;    // Saklar untuk fitur .ko
+    int status_array_statis;     // Saklar untuk fitur .ku
+
+};
+
+// 3. DEKLARASI FUNGSI UTAMA
+EnkiRAM inisialisasi_ram();
+EnkiRAM* ciptakan_ram_mini(EnkiRAM* induk); // 🟢 Ditambah parameter induk
+
+// Fungsi bantuan Utas & Jadwal
+EnkiRAM* salin_ram_untuk_utas(EnkiRAM* sumber);
+
+// Manajemen Memori
+void bebaskan_ram(EnkiRAM* ram);
+void simpan_ke_ram(EnkiRAM* ram, const char* nama, EnkiObject* nilai_objek); // 🟢 UBAH PARAMETER
+EnkiObject* baca_dari_ram(EnkiRAM* ram, const char* nama);                   // 🟢 UBAH RETURN TYPE
+
+// Mesin Eksekusi
+EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram);                  // 🟢 UBAH RETURN TYPE
+void eksekusi_node(ASTNode* node, EnkiRAM* ram);
+void eksekusi_program(ASTNode* program, EnkiRAM* ram);
+
+// --- SISTEM KEAMANAN & RAHASIA ---
+void pemicu_kernel_panic(EnkiRAM* ram, const char* pesan);
+void pemicu_kiamat_presisi(ASTNode* node, EnkiRAM* ram, const char* judul, const char* pesan);
+void muat_anu(EnkiRAM* ram);
+
+#endif // ENKI_INTERPRETER_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include "enki_lexer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+// =================================================================
+// DAPUR MESIN LEXER (CHARACTER STEPPER)
+// Mengiris teks huruf demi huruf tanpa Regex. Selamat datang di C!
+// =================================================================
+
+// Fungsi internal untuk memesan RAM awal
+void inisialisasi_array(TokenArray* array) {
+    array->kapasitas = 64; 
+    array->jumlah = 0;
+    array->data = (Token*)enki_alokasi(array->kapasitas * sizeof(Token), 1); // 🟢 ENKI_ALOKASI
+}
+
+// 🟢 SUNTIKAN: Tambahkan parameter nama_file
+void tambah_token(TokenArray* array, TokenJenis jenis, const char* teks_isi, int baris, int kolom, const char* nama_file) {
+    if (array->jumlah >= array->kapasitas) {
+        array->kapasitas *= 2; 
+        array->data = (Token*)enki_realokasi(array->data, (array->kapasitas/2) * sizeof(Token), array->kapasitas * sizeof(Token), 1); // 🟢 ENKI_REALOKASI
+    }
+    Token* t = &array->data[array->jumlah++];
+    t->jenis = jenis;
+    t->isi = teks_isi ? enki_salin_teks(teks_isi, 1) : NULL; // 🟢 ENKI_SALIN_TEKS
+    t->baris = baris;
+    t->kolom = kolom;
+    t->nama_file = nama_file ? enki_salin_teks(nama_file, 1) : enki_salin_teks("TakDiketahui", 1); // 🟢 ENKI_SALIN_TEKS
+}
+
+// Fungsi wajib untuk membuang sampah memori agar tidak bocor
+void bebaskan_token_array(TokenArray* array) {
+    for (int i = 0; i < array->jumlah; i++) {
+        if (array->data[i].isi != NULL) enki_bebas(array->data[i].isi, 1); // 🟢 ENKI_BEBAS
+        if (array->data[i].nama_file != NULL) enki_bebas(array->data[i].nama_file, 1); // 🟢 ENKI_BEBAS
+    }
+    enki_bebas(array->data, 1); // 🟢 ENKI_BEBAS
+    array->data = NULL;
+    array->jumlah = array->kapasitas = 0;
+}
+
+// Cek apakah karakter adalah bagian dari nama variabel/fungsi
+bool is_identitas(char c) {
+    return isalnum(c) || c == '_'; 
+}
+
+// ==========================================
+// MESIN UTAMA: PEMINDAI KARAKTER
+// ==========================================
+TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber) {
+    TokenArray token_list;
+    inisialisasi_array(&token_list);
+
+    int baris = 1;
+    int kolom = 1;
+    int i = 0; // Indeks/Kursor pembaca
+    
+    while (kode_sumber[i] != '\0') {
+        char c = kode_sumber[i];
+
+        // 1. Abaikan Spasi dan Baris Baru
+        if (c == ' ' || c == '\t' || c == '\r') {
+            i++; kolom++; continue;
+        }
+        if (c == '\n') {
+            baris++; kolom = 1; i++; continue; // 🟢 Ruang dan waktu tereset
+        }
+
+        // 2. Abaikan Komentar (^^)
+        if (c == '^' && kode_sumber[i+1] == '^') {
+            while (kode_sumber[i] != '\n' && kode_sumber[i] != '\0') i++;
+            continue; 
+        }
+
+        // 3. Tangkap Tanda Baca Dasar 
+        if (c == '(') { tambah_token(&token_list, TOKEN_KURUNG_B, "(", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == ')') { tambah_token(&token_list, TOKEN_KURUNG_T, ")", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == '{') { tambah_token(&token_list, TOKEN_KURUNG_K_B, "{", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == '}') { tambah_token(&token_list, TOKEN_KURUNG_K_T, "}", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == '[') { tambah_token(&token_list, TOKEN_KURUNG_S_B, "[", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == ']') { tambah_token(&token_list, TOKEN_KURUNG_S_T, "]", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == ',') { tambah_token(&token_list, TOKEN_KOMA, ",", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == ':') { tambah_token(&token_list, TOKEN_TITIK_DUA, ":", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+        if (c == '.') { tambah_token(&token_list, TOKEN_TITIK, ".", baris, kolom, nama_file_sumber); i++; kolom++; continue; }
+
+        // 4. Tangkap Teks ("..." atau '...') dengan Dukungan Escape Character (\)
+        if (c == '"' || c == '\'') {
+            char kutip = c;
+            int awal_kolom = kolom;
+            i++; kolom++; // Lewati kutip pembuka
+            
+            // Siapkan buffer penampung teks yang besar (untuk JSON)
+            char buffer_teks[4096];
+            int indeks_buffer = 0;
+            
+            // Simpan kutip pembuka agar saat dicetak ulang di interpreter strukturnya sama
+            buffer_teks[indeks_buffer++] = kutip; 
+
+            while (kode_sumber[i] != '\0') {
+                char huruf = kode_sumber[i];
+                
+                // Jika bertemu Backslash (\), aktifkan mode Escape
+                if (huruf == '\\') {
+                    i++; kolom++; // Lewati backslash
+                    char huruf_berikutnya = kode_sumber[i];
+                    
+                    if (huruf_berikutnya == 'n') buffer_teks[indeks_buffer++] = '\n';
+                    else if (huruf_berikutnya == 't') buffer_teks[indeks_buffer++] = '\t';
+                    else if (huruf_berikutnya == 'r') buffer_teks[indeks_buffer++] = '\r';
+                    else if (huruf_berikutnya == '"') buffer_teks[indeks_buffer++] = '"';
+                    else if (huruf_berikutnya == '\'') buffer_teks[indeks_buffer++] = '\'';
+                    else if (huruf_berikutnya == '\\') buffer_teks[indeks_buffer++] = '\\';
+                    else {
+                        // Jika tidak dikenal, simpan apa adanya
+                        buffer_teks[indeks_buffer++] = '\\';
+                        buffer_teks[indeks_buffer++] = huruf_berikutnya;
+                    }
+                    i++; kolom++;
+                    continue;
+                }
+                
+                // Jika bertemu tanda kutip penutup, BERHENTI
+                if (huruf == kutip) {
+                    buffer_teks[indeks_buffer++] = kutip; // Simpan kutip penutup
+                    i++; kolom++;
+                    break;
+                }
+                
+                // Jika huruf normal (termasuk baris baru aktual)
+                if (huruf == '\n') { baris++; kolom = 0; }
+                
+                buffer_teks[indeks_buffer++] = huruf;
+                i++; kolom++;
+            }
+            
+            buffer_teks[indeks_buffer] = '\0'; // Tutup string C
+            
+            tambah_token(&token_list, TOKEN_TEKS, buffer_teks, baris, awal_kolom, nama_file_sumber);
+            continue;
+        }
+
+        // 5. Tangkap Angka (Mendukung Desimal sederhana)
+        if (isdigit(c)) {
+            int awal = i;
+            int awal_kolom = kolom;
+            while (isdigit(kode_sumber[i]) || kode_sumber[i] == '.') { i++; kolom++; }
+            
+            int panjang = i - awal;
+            char* angka = (char*)enki_alokasi(panjang + 1, 1); // 🟢 ENKI_ALOKASI
+            strncpy(angka, &kode_sumber[awal], panjang);
+            angka[panjang] = '\0';
+            
+            tambah_token(&token_list, TOKEN_ANGKA, angka, baris, awal_kolom, nama_file_sumber);
+            enki_bebas(angka, 1); // 🟢 ENKI_BEBAS
+            continue;
+        }
+
+        // 6. Tangkap Operator Matematika, Logika & Assignment
+        // 🔥 BUG FIX: Menambahkan c == '^' agar pangkat tidak dianggap Mismatch!
+        if (c == '=' || c == '!' || c == '>' || c == '<' || c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '^' || c == '|') {
+            int awal_kolom = kolom;
+            char op_str[3] = {c, '\0', '\0'};
+            
+            // Cek Fungsi Panah (=>)
+            if (c == '=' && kode_sumber[i+1] == '>') {
+                tambah_token(&token_list, TOKEN_PANAH, "=>", baris, awal_kolom, nama_file_sumber);
+                i += 2; kolom += 2;
+                continue;
+            }
+
+            // Cek Pipa Aliran (|>)
+            if (c == '|' && kode_sumber[i+1] == '>') {
+                tambah_token(&token_list, TOKEN_PIPA, "|>", baris, awal_kolom, nama_file_sumber);
+                i += 2; kolom += 2;
+                continue;
+            }
+
+            // Cek Double Operator (==, !=, >=, <=)
+            if ((c == '=' || c == '!' || c == '>' || c == '<') && kode_sumber[i+1] == '=') {
+                op_str[1] = '=';
+                tambah_token(&token_list, TOKEN_PEMBANDING, op_str, baris, awal_kolom, nama_file_sumber);
+                i += 2; kolom += 2;
+                continue;
+            }
+            
+            TokenJenis tj;
+            if (c == '=') tj = TOKEN_ASSIGN;
+            else if (c == '>' || c == '<') tj = TOKEN_PEMBANDING;
+            else tj = TOKEN_OPERATOR;
+
+            tambah_token(&token_list, tj, op_str, baris, awal_kolom, nama_file_sumber);
+            i++; kolom++;
+            continue;
+        }
+
+        // 7. Tangkap Kata (Identitas, Keyword, Fungsi)
+        if (isalpha(c) || c == '_') {
+            int awal_kolom = kolom;
+            
+            // Sihir Lookahead untuk Takdir & Pragma
+            if (strncmp(&kode_sumber[i], "takdir.soft", 11) == 0 && !is_identitas(kode_sumber[i+11])) {
+                tambah_token(&token_list, TOKEN_TAKDIR, "takdir.soft", baris, awal_kolom, nama_file_sumber);
+                i += 11; kolom += 11; continue;
+            }
+            if (strncmp(&kode_sumber[i], "takdir.hard", 11) == 0 && !is_identitas(kode_sumber[i+11])) {
+                tambah_token(&token_list, TOKEN_TAKDIR, "takdir.hard", baris, awal_kolom, nama_file_sumber);
+                i += 11; kolom += 11; continue;
+            }
+
+            int awal = i;
+            while (is_identitas(kode_sumber[i])) { i++; kolom++; }
+            
+            int panjang = i - awal;
+            char* kata = (char*)enki_alokasi(panjang + 1, 1); // 🟢 ENKI_ALOKASI
+            strncpy(kata, &kode_sumber[awal], panjang);
+            kata[panjang] = '\0';
+
+            // Pragma Lanjutan
+            if (strcmp(kata, "butuh") == 0 && strncmp(&kode_sumber[i], " .anu", 5) == 0) {
+                tambah_token(&token_list, TOKEN_PRAGMA, "butuh .anu", baris, awal_kolom, nama_file_sumber);
+                i += 5; kolom += 5; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
+            }
+            if (strcmp(kata, "untuk") == 0) {
+                if (strncmp(&kode_sumber[i], " array.dinamis", 14) == 0) {
+                    tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.dinamis", baris, awal_kolom, nama_file_sumber);
+                    i += 14; kolom += 14; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
+                }
+                if (strncmp(&kode_sumber[i], " array.statis", 13) == 0) {
+                    tambah_token(&token_list, TOKEN_PRAGMA, "untuk array.statis", baris, awal_kolom, nama_file_sumber);
+                    i += 13; kolom += 13; enki_bebas(kata, 1); continue; // 🟢 ENKI_BEBAS
+                }
+            }
+
+            // Keyword Cek Mutlak
+            if (strcmp(kata, "datang") == 0) tambah_token(&token_list, TOKEN_HEADER, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "cocokkan") == 0) tambah_token(&token_list, TOKEN_COCOKKAN, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "kasus") == 0) tambah_token(&token_list, TOKEN_KASUS, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "jika") == 0 || strcmp(kata, "kecuali") == 0 || strcmp(kata, "maka") == 0 || strcmp(kata, "lain") == 0 || strcmp(kata, "putus") == 0) tambah_token(&token_list, TOKEN_KARMA, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "effort") == 0 || strcmp(kata, "kali") == 0) tambah_token(&token_list, TOKEN_SIKLUS, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "dan") == 0 || strcmp(kata, "atau") == 0 || strcmp(kata, "bukan") == 0) tambah_token(&token_list, TOKEN_LOGIKA, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "coba") == 0) tambah_token(&token_list, TOKEN_COBA, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "tabu") == 0) tambah_token(&token_list, TOKEN_TABU, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "melanggar") == 0) tambah_token(&token_list, TOKEN_MELANGGAR, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "tebus") == 0) tambah_token(&token_list, TOKEN_TEBUS, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "pasrah") == 0) tambah_token(&token_list, TOKEN_PASRAH, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "ciptakan") == 0) tambah_token(&token_list, TOKEN_CIPTAKAN, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "fungsi") == 0) tambah_token(&token_list, TOKEN_FUNGSI, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "pulang") == 0) tambah_token(&token_list, TOKEN_PULANG, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "sowan") == 0) tambah_token(&token_list, TOKEN_SOWAN, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "utas") == 0 || strcmp(kata, "gaib") == 0) tambah_token(&token_list, TOKEN_UTAS, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "pergi") == 0 || strcmp(kata, "henti") == 0 || strcmp(kata, "balikan") == 0 || strcmp(kata, "terus") == 0) tambah_token(&token_list, TOKEN_KONTROL, kata, baris, awal_kolom, nama_file_sumber);
+            else if (strcmp(kata, "jadwal") == 0) tambah_token(&token_list, TOKEN_JADWAL, kata, baris, awal_kolom, nama_file_sumber);
+            
+            // 🟢 DETEKSI KEKOSONGAN MUTLAK (NILAI NULL)
+            else if (strcmp(kata, "hampa") == 0 || strcmp(kata, "kosong") == 0 || strcmp(kata, "NULL") == 0) {
+                tambah_token(&token_list, TOKEN_KOSONG, kata, baris, awal_kolom, nama_file_sumber);
+            }
+            // JIKA BUKAN KATA KUNCI ATAU LITERAL, BERARTI INI ADALAH IDENTITAS (VARIABEL)
+            else {
+                tambah_token(&token_list, TOKEN_IDENTITAS, kata, baris, awal_kolom, nama_file_sumber);
+            }
+
+            enki_bebas(kata, 1); // 🟢 ENKI_BEBAS
+            continue;
+        }
+
+        // 8. Tangkap Karakter Asing
+        char op_str[2] = {c, '\0'};
+        tambah_token(&token_list, TOKEN_MISMATCH, op_str, baris, kolom, nama_file_sumber);
+        i++; kolom++;
+    }
+
+    tambah_token(&token_list, TOKEN_EOF, "EOF", baris, kolom, nama_file_sumber);
+    return token_list;
+}#ifndef ENKI_LEXER_H
+#define ENKI_LEXER_H
+
+// =================================================================
+// KITAB HUKUM ENLIL: DEFINISI TOKEN (LEXER)
+// Diadaptasi dari Blueprint: src/legacy/enki_lexer.py
+// =================================================================
+
+// 1. DAFTAR TAKDIR (Enum Jenis Token)
+typedef enum {
+    TOKEN_HEADER,        // datang
+    TOKEN_PRAGMA,        // untuk array.dinamis, untuk array.statis, butuh .anu
+    TOKEN_TAKDIR,        // takdir.soft, takdir.hard
+    TOKEN_FUNGSI,        // ketik, dengar, tunggu, jeda, (dan juga kata 'fungsi')
+    TOKEN_KARMA,         // jika, maka, lain, putus
+    TOKEN_COCOKKAN,      // cocokkan
+    TOKEN_KASUS,         // kasus
+    TOKEN_SIKLUS,        // effort, kali
+    TOKEN_JADWAL,        // jadwal
+    
+    TOKEN_PENCIPTAAN,    // (Cadangan)
+    TOKEN_CIPTAKAN,      // ciptakan
+    
+    TOKEN_KONTROL,       // henti, pergi, balikan, terus
+    TOKEN_PULANG,        // pulang
+    
+    TOKEN_SOWAN,         // sowan
+    TOKEN_UTAS,          // utas, gaib
+    
+    // Hukum Tabu (Error Handling)
+    TOKEN_COBA,          // coba
+    TOKEN_TABU,          // tabu
+    TOKEN_MELANGGAR,     // melanggar
+    TOKEN_TEBUS,         // tebus
+    TOKEN_BUKAN,         // Untuk sihir negasi logika
+    TOKEN_PASRAH,        // Untuk pelepasan memori manual
+
+    // Operator, Logika, & Pembanding
+    TOKEN_PEMBANDING,    // ==, !=, >, <, >=, <=, berisi
+    TOKEN_LOGIKA,        // dan, atau, bukan, &&, ||, !
+    TOKEN_OPERATOR,      // +, -, *, /, %, ^
+    TOKEN_ASSIGN,        // =
+    TOKEN_PANAH,         // =>
+    TOKEN_PIPA,          // |>
+
+    // Tipe Data Dasar & Identitas
+    TOKEN_TEKS,          // "String teks" atau 'String'
+    TOKEN_ANGKA,         // 123, 3.14, 0xFF, 0b10, 0o10
+    TOKEN_IDENTITAS,     // nama_variabel, fungsi_kustom
+    
+    // Tanda Baca (Kavling & Domain)
+    TOKEN_TITIK,         // .
+    TOKEN_TITIK_DUA,     // :
+    TOKEN_KOMA,          // ,
+    TOKEN_KURUNG_B,      // (
+    TOKEN_KURUNG_T,      // )
+    TOKEN_KURUNG_S_B,    // [
+    TOKEN_KURUNG_S_T,    // ]
+    TOKEN_KURUNG_K_B,    // {
+    TOKEN_KURUNG_K_T,    // }
+    TOKEN_KOSONG,        // LITERAL NULL (penanda kosong/kekosongan atau kehampaan)
+
+    TOKEN_EOF,           // End of File (Penanda akhir kitab)
+    TOKEN_MISMATCH       // Karakter asing (Trigger Kernel Panic)
+} TokenJenis;
+
+// 2. WUJUD TOKEN (Struct)
+typedef struct {
+    TokenJenis jenis;    // Tipe token
+    char* isi;           // Teks asli dari token
+    int baris;           // 🟢 Dimensi Waktu (Baris)
+    int kolom;           // 🟢 Dimensi Ruang (Kolom)
+    char* nama_file;     // 🟢 Identitas Alam (Nama File)
+} Token;
+
+// 3. DAFTAR TOKEN (Array Dinamis di C)
+typedef struct {
+    Token* data;         
+    int jumlah;          
+    int kapasitas;       
+} TokenArray;
+
+// 4. DEKLARASI FUNGSI PEMINDAI (Lexer)
+// 🟢 UBAH: Sekarang meminta nama_file_sumber untuk pelacakan error presisi!
+TokenArray enki_lexer(const char* kode_sumber, const char* nama_file_sumber);
+
+// Fungsi Wajib di C: Mengembalikan memori ke sistem operasi agar tidak bocor
+void bebaskan_token_array(TokenArray* array);
+
+#endif // ENKI_LEXER_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <curl/curl.h>
+#include "enki_network.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+struct MemoriJaringan {
+    char *respon;
+    size_t ukuran;
+};
+
+static size_t tulis_memori_callback(void *konten, size_t ukuran, size_t nmemb, void *userp) {
+    size_t ukuran_asli = ukuran * nmemb;
+    struct MemoriJaringan *mem = (struct MemoriJaringan *)userp;
+
+    // 🟢 MENGGUNAKAN ENKI_REALOKASI (Mode Dinamis = 1)
+    char *ptr = (char*)enki_realokasi(mem->respon, mem->ukuran, mem->ukuran + ukuran_asli + 1, 1);
+    if(!ptr) return 0; 
+
+    mem->respon = ptr;
+    memcpy(&(mem->respon[mem->ukuran]), konten, ukuran_asli);
+    mem->ukuran += ukuran_asli;
+    mem->respon[mem->ukuran] = 0;
+
+    return ukuran_asli;
+}
+
+char* sihir_ambil(const char* url) {
+    CURL *curl;
+    CURLcode res;
+    struct MemoriJaringan chunk;
+    chunk.respon = (char*)enki_alokasi(1, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    chunk.ukuran = 0;
+
+    curl = curl_easy_init();
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tulis_memori_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
+        
+        res = curl_easy_perform(curl);
+        if(res != CURLE_OK) {
+            enki_bebas(chunk.respon, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+            curl_easy_cleanup(curl);
+            return enki_salin_teks("🚨 ERROR: Gagal mengambil data.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        }
+        curl_easy_cleanup(curl);
+    }
+    return chunk.respon;
+}
+
+char* sihir_setor(const char* url, const char* muatan_json) {
+    CURL *curl;
+    CURLcode res;
+    struct MemoriJaringan chunk;
+    chunk.respon = (char*)enki_alokasi(1, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    chunk.ukuran = 0;
+
+    curl = curl_easy_init();
+    if(curl) {
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, muatan_json);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tulis_memori_callback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+        
+        res = curl_easy_perform(curl);
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+        
+        if(res != CURLE_OK) {
+            enki_bebas(chunk.respon, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+            return enki_salin_teks("🚨 ERROR: Gagal menyetor data.", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        }
+    }
+    return chunk.respon;
+}#ifndef ENKI_NETWORK_H
+#define ENKI_NETWORK_H
+
+char* sihir_ambil(const char* url);
+char* sihir_setor(const char* url, const char* muatan_json);
+
+#endif // ENKI_NETWORK_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "enki_os.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+// ====================================================================
+// 🌍 MENCARI TITIK PUSAT USER (MARKAS/HOME)
+// ====================================================================
+char* dapatkan_jalur_markas_user() {
+    char* jalur = NULL;
+
+#if defined(_WIN32) || defined(_WIN64)
+    jalur = getenv("USERPROFILE"); 
+    if (jalur == NULL) {
+        char* drive = getenv("HOMEDRIVE");
+        char* path = getenv("HOMEPATH");
+        if (drive && path) {
+            jalur = drive; 
+        }
+    }
+#else
+    jalur = getenv("HOME"); 
+#endif
+
+    if (jalur == NULL) {
+        return "."; 
+    }
+
+    return jalur;
+}
+
+// ====================================================================
+// 🦅 MENCETAK LAPORAN RADAR DIMENSI
+// ====================================================================
+void cetak_info_dimensi() {
+    printf("\n");
+    printf("==================================================\n");
+    printf(" 🌍 RADAR LINTAS DIMENSI UNUL AKTIF \n");
+    printf("==================================================\n");
+    printf(" [*] Sistem Operasi Terdeteksi : %s\n", OS_DIMENSI);
+    printf(" [*] Karakter Pemisah Jalur    : '%c'\n", PEMISAH_JALUR);
+    printf(" [*] Markas Utama User (Home)  : %s\n", dapatkan_jalur_markas_user());
+    printf("==================================================\n\n");
+}
+
+// ====================================================================
+// 🦅 SIHIR EKSPANSI JALUR (Menerjemahkan '~')
+// ====================================================================
+char* ekspansi_jalur(const char* jalur_mentah) {
+    if (jalur_mentah == NULL) return NULL;
+
+    // Jika jalur dimulai dengan '~'
+    if (jalur_mentah[0] == '~') {
+        char* markas = dapatkan_jalur_markas_user();
+        
+        size_t panjang_baru = strlen(markas) + strlen(jalur_mentah + 1) + 1;
+        char* jalur_final = (char*)enki_alokasi(panjang_baru, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+        
+        strcpy(jalur_final, markas);
+        strcat(jalur_final, jalur_mentah + 1); 
+        
+        #if defined(_WIN32) || defined(_WIN64)
+            for (int i = 0; jalur_final[i] != '\0'; i++) {
+                if (jalur_final[i] == '/') jalur_final[i] = '\\';
+            }
+        #endif
+        
+        return jalur_final;
+    }
+
+    // Jika tidak ada '~', kembalikan duplikat jalur aslinya
+    return enki_salin_teks(jalur_mentah, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+}
+
+char* os_eksekusi_perintah(const char* perintah) {
+    char buffer[256];
+    char* hasil = (char*)enki_alokasi(1, 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    if (hasil) hasil[0] = '\0';
+    int ukuran = 1;
+
+#ifdef _WIN32
+    FILE* pipe = _popen(perintah, "r");
+#else
+    FILE* pipe = popen(perintah, "r");
+#endif
+
+    if (!pipe) return NULL;
+
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
+        ukuran += strlen(buffer);
+        // 🟢 MENGGUNAKAN ENKI_REALOKASI (Asumsikan ukuran lama adalah strlen(hasil) + 1, ini aman untuk realokasi LLVM)
+        int ukuran_lama = strlen(hasil) + 1;
+        hasil = (char*)enki_realokasi(hasil, ukuran_lama, ukuran, 1); 
+        strcat(hasil, buffer);
+    }
+
+#ifdef _WIN32
+    _pclose(pipe);
+#else
+    pclose(pipe);
+#endif
+
+    return hasil;
+}#ifndef ENKI_OS_H
+#define ENKI_OS_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// ====================================================================
+// 🌍 RADAR DIMENSI MUTLAK (CROSS-PLATFORM OS DETECTOR)
+// ====================================================================
+
+// 1. KELUARGA WINDOWS
+#if defined(_WIN32) || defined(_WIN64)
+    #define OS_DIMENSI "Windows"
+    #define PEMISAH_JALUR '\\'
+
+// 2. KELUARGA APPLE (Membutuhkan TargetConditionals.h untuk detail)
+#elif defined(__APPLE__) || defined(__MACH__)
+    #include <TargetConditionals.h>
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        #define OS_DIMENSI "iOS (iPhone/iPad)"
+    #elif TARGET_OS_MAC
+        #define OS_DIMENSI "MacOS"
+    #else
+        #define OS_DIMENSI "Apple_Lainnya"
+    #endif
+    #define PEMISAH_JALUR '/'
+
+// 3. KELUARGA ANDROID & TERMUX
+#elif defined(__ANDROID__)
+    #define OS_DIMENSI "Android (Termux/Native)"
+    #define PEMISAH_JALUR '/'
+
+// 4. KELUARGA LINUX & RASPBERRY PI
+#elif defined(__linux__)
+    #define OS_DIMENSI "Linux"
+    #define PEMISAH_JALUR '/'
+
+// 5. KELUARGA BSD (FreeBSD, OpenBSD, MacOS Core)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__bsdi__)
+    #define OS_DIMENSI "BSD_Sistem"
+    #define PEMISAH_JALUR '/'
+
+// 6. KELUARGA UNIX ENTERPRISE (Server Tua nan Tangguh)
+#elif defined(__sun) && defined(__SVR4)
+    #define OS_DIMENSI "Solaris"
+    #define PEMISAH_JALUR '/'
+#elif defined(_AIX)
+    #define OS_DIMENSI "IBM_AIX"
+    #define PEMISAH_JALUR '/'
+#elif defined(__hpux)
+    #define OS_DIMENSI "HP-UX"
+    #define PEMISAH_JALUR '/'
+
+// 7. KELUARGA WEB (WebAssembly / Emscripten)
+// Jika suatu saat UNUL dijalankan langsung di dalam Browser!
+#elif defined(__EMSCRIPTEN__) || defined(__wasm__)
+    #define OS_DIMENSI "WebAssembly (Browser)"
+    #define PEMISAH_JALUR '/'
+
+// 8. ALAM TAK DIKENAL
+#else
+    #define OS_DIMENSI "Alam_Gaib_Tak_Dikenal"
+    #define PEMISAH_JALUR '/'
+#endif
+
+// ====================================================================
+// 🦅 PROTOTIPE FUNGSI INTELIJEN OS
+// ====================================================================
+
+// Mengambil koordinat markas utama user (C:\Users\X atau /home/X)
+char* dapatkan_jalur_markas_user(); 
+
+// Mencetak laporan dimensi saat ini
+void cetak_info_dimensi();  
+
+// Mengekspansi simbol '~' menjadi jalur markas mutlak
+char* ekspansi_jalur(const char* jalur_mentah);
+
+// Fungsi Eksekusi Perintah Lintas OS
+char* os_eksekusi_perintah(const char* perintah);
+
+#endif // ENKI_OS_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "enki_parser.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+// --- 1. MANAJEMEN MEMORI POHON ---
+Parser inisialisasi_parser(TokenArray tokens) {
+    Parser p;
+    p.tokens = tokens;
+    p.kursor = 0; 
+    return p;
+}
+
+// 🟢 2 FUNGSI INI KITA NAIKKAN KE ATAS (Sebelum buat_node)
+Token token_sekarang(Parser* p) {
+    if (p->kursor >= p->tokens.jumlah) return p->tokens.data[p->tokens.jumlah - 1];
+    return p->tokens.data[p->kursor];
+}
+
+void maju(Parser* p) {
+    if (p->kursor < p->tokens.jumlah) p->kursor++;
+}
+
+// 🟢 SIHIR KIAMAT SINTAKSIS (DENGAN PANDUAN CERDAS)
+void kiamat_sintaksis(Parser* p, const char* pesan, const char* panduan_cerdas) {
+    Token t = token_sekarang(p);
+    int baris = t.baris > 0 ? t.baris : 0;
+    int kolom = t.kolom > 0 ? t.kolom : 0;
+    
+    printf("\n🚨 [%s: Baris %d:%d] KIAMAT SINTAKSIS: %s\n", 
+           t.nama_file ? t.nama_file : "skrip.unul", baris, kolom, pesan);
+           
+    if (t.isi) {
+        printf("   |\n %d | ... %s ... \n   | ", baris, t.isi);
+        for(int i = 0; i < kolom; i++) printf(" ");
+        printf("^-- Bencana bermula di sini!\n\n");
+    }
+
+    if (panduan_cerdas) {
+        printf("💡 PANDUAN CERDAS:\n%s\n\n", panduan_cerdas);
+    }
+    
+    exit(1); 
+}
+
+// Fungsi Pemaksa Hukum Enlil
+void harapkan_token(Parser* p, TokenJenis jenis_harapan, const char* pesan_error) {
+    Token t = token_sekarang(p);
+    
+    if (t.jenis == jenis_harapan) {
+        // Jika token sesuai harapan (misal: kurung tutup), makan dan lanjut!
+        maju(p); 
+    } else {
+        // Jika tidak sesuai harapan, KIAMAT SINTAKSIS terjadi seketika!
+        char pesan_detail[512];
+        snprintf(pesan_detail, sizeof(pesan_detail), 
+            "%s\n(Mendapatkan '%s' alih-alih token yang sah)", pesan_error, t.isi);
+            
+        kiamat_sintaksis(p, "Hukum Tata Bahasa Dilanggar!", pesan_detail);
+    }
+}
+
+// --- 2. PENCIPTAAN NODE ---
+ASTNode* buat_node(ASTJenis jenis, Parser* p) {
+    ASTNode* node = (ASTNode*)enki_alokasi(sizeof(ASTNode), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    node->jenis = jenis;
+    node->anak_anak = NULL;
+    node->jumlah_anak = 0;
+    node->kapasitas_anak = 0;
+    node->nilai_teks = NULL;
+    node->kiri = NULL;
+    node->kanan = NULL;
+    node->operator_math = NULL;
+    node->syarat = NULL;
+    node->blok_maka = NULL;
+    node->blok_lain = NULL;
+    node->pembanding = NULL;
+    node->batas_loop = NULL;
+    node->blok_siklus = NULL;
+    node->blok_tebus = NULL;
+    node->indeks_array = NULL;
+
+    // 🟢 SUNTIKAN: Salin jejak Ruang & Waktu dari Token saat ini!
+    Token t = token_sekarang(p);
+    node->baris = t.baris;
+    node->kolom = t.kolom;
+    node->nama_file = t.nama_file ? enki_salin_teks(t.nama_file, 1) : NULL; // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+
+    return node;
+}
+
+// Menambahkan anak ke dalam blok PROGRAM (Mengurus alokasi dinamis pointer)
+void tambah_anak(ASTNode* induk, ASTNode* anak) {
+    if (induk->jumlah_anak >= induk->kapasitas_anak) {
+        induk->kapasitas_anak = induk->kapasitas_anak == 0 ? 4 : induk->kapasitas_anak * 2;
+        induk->anak_anak = (ASTNode**)enki_realokasi(induk->anak_anak, (induk->kapasitas_anak/2) * sizeof(ASTNode*), induk->kapasitas_anak * sizeof(ASTNode*), 1); // 🟢 MENGGUNAKAN ENKI_REALOKASI
+    }
+    induk->anak_anak[induk->jumlah_anak++] = anak;
+}
+
+// Fungsi gaib untuk menyisipkan argumen di urutan pertama (Khusus Pipa Aliran)
+void sisip_anak_pertama(ASTNode* induk, ASTNode* anak) {
+    if (induk->jumlah_anak >= induk->kapasitas_anak) {
+        induk->kapasitas_anak = induk->kapasitas_anak == 0 ? 4 : induk->kapasitas_anak * 2;
+        induk->anak_anak = (ASTNode**)enki_realokasi(induk->anak_anak, (induk->kapasitas_anak/2) * sizeof(ASTNode*), induk->kapasitas_anak * sizeof(ASTNode*), 1); // 🟢 MENGGUNAKAN ENKI_REALOKASI
+    }
+    // Geser semua anak yang sudah ada ke kanan 1 langkah
+    for (int i = induk->jumlah_anak; i > 0; i--) {
+        induk->anak_anak[i] = induk->anak_anak[i - 1];
+    }
+    // Letakkan yang baru di urutan paling awal (Index 0)
+    induk->anak_anak[0] = anak;
+    induk->jumlah_anak++;
+}
+
+// Wajib: Mengembalikan seluruh ranting pohon ke OS agar RAM tidak bocor!
+void bebaskan_ast(ASTNode* node) {
+    if (!node) return;
+    if (node->nilai_teks) enki_bebas(node->nilai_teks, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+    if (node->kiri) bebaskan_ast(node->kiri);
+    if (node->kanan) bebaskan_ast(node->kanan);
+    if (node->pembanding) enki_bebas(node->pembanding, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+    if (node->syarat) bebaskan_ast(node->syarat);
+    if (node->blok_maka) bebaskan_ast(node->blok_maka);
+    if (node->blok_lain) bebaskan_ast(node->blok_lain);
+    
+    for (int i = 0; i < node->jumlah_anak; i++) {
+        bebaskan_ast(node->anak_anak[i]);
+    }
+    if (node->anak_anak) enki_bebas(node->anak_anak, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+    if (node->batas_loop) bebaskan_ast(node->batas_loop);
+    if (node->blok_siklus) bebaskan_ast(node->blok_siklus);
+    if (node->blok_tebus) bebaskan_ast(node->blok_tebus);
+    
+    enki_bebas(node, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+}
+
+// --- 3. LOGIKA PEMBEDAHAN (PARSING) ---
+// Deklarasi Hierarki Matematika Mutlak
+ASTNode* parse_struktur_objek(Parser* p);
+ASTNode* parse_ekspresi(Parser* p);
+ASTNode* parse_pipa(Parser* p);
+ASTNode* parse_syarat_logika(Parser* p);
+ASTNode* parse_penjumlahan(Parser* p);
+ASTNode* parse_faktor(Parser* p);
+ASTNode* parse_pangkat(Parser* p);
+ASTNode* parse_nilai_dasar(Parser* p);
+
+ASTNode* parse_struktur_objek(Parser* p) {
+    ASTNode* node = buat_node(AST_STRUKTUR_OBJEK, p);
+    maju(p); // Lewati '{'
+    
+    while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
+        // 1. Tangkap Kunci
+        ASTNode* kunci = parse_ekspresi(p); 
+        
+        // 🟢 SUNTIKAN ANTI BLACK HOLE (KUNCI OBJEK)
+        if (kunci) {
+            tambah_anak(node, kunci);
+        } else {
+            kiamat_sintaksis(p, "Kunci Objek Cacat!", 
+                "Mesin tidak bisa membaca kunci di dalam kamus objek.\n"
+                "💡 PENYEBAB: Kunci objek harus berupa teks, bukan perintah sistem.");
+        }
+        
+        // 2. KIAMAT: Lupa Titik Dua (:)
+        if (token_sekarang(p).jenis == TOKEN_TITIK_DUA) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Wujud objek kehilangan titik dua ':' !", 
+                "Dalam struktur objek {}, Anda harus memisahkan Kunci dan Nilai menggunakan titik dua.\n"
+                "Contoh yang benar: takdir.soft dewa = {\"nama\": \"Enki\"}");
+        }
+        
+        // 3. Tangkap Nilai
+        ASTNode* konten = parse_ekspresi(p);
+        
+        // 🟢 SUNTIKAN ANTI BLACK HOLE (NILAI OBJEK)
+        if (konten) {
+            tambah_anak(node, konten);
+        } else {
+            kiamat_sintaksis(p, "Nilai Objek Cacat!", 
+                "Mesin tidak bisa membaca nilai di dalam kamus objek.\n"
+                "💡 PENYEBAB: Anda mungkin memasukkan perintah sistem sebagai nilai.");
+        }
+        
+        // 🟢 PERISAI KOMA & PENUTUP
+        if (token_sekarang(p).jenis == TOKEN_KOMA) {
+            maju(p);
+        } else if (token_sekarang(p).jenis != TOKEN_KURUNG_K_T) {
+            kiamat_sintaksis(p, "Pemisah Properti Hilang!", "Gunakan koma ',' untuk memisahkan isi objek, atau tutup dengan '}'.");
+        }
+    }
+    
+    // 4. KIAMAT: Lupa Kurung Tutup (})
+    harapkan_token(p, TOKEN_KURUNG_K_T, 
+        "Kehilangan kurung kurawal penutup '}' pada pembuatan Objek/Domain.\n"
+        "💡 PANDUAN: Pastikan format Anda sesuai. Contoh: { \"nama\": \"Enki\" }");
+        
+    return node;
+}
+
+// ==========================================================
+// TINGKAT 1: Menangkap Nilai Murni & Kurung ()
+// ==========================================================
+ASTNode* parse_nilai_dasar(Parser* p) {
+    Token t = token_sekarang(p);
+    ASTNode* simpul_kiri = NULL;
+
+    // [MISI 1] PRIORITAS KURUNG MATEMATIKA & FUNGSI PANAH
+    if (t.jenis == TOKEN_KURUNG_B) {
+        
+    //  PENANGKAP OPERATOR TERNARI (Ekspresi)
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        maju(p); // Lewati 'jika'
+        ASTNode* node_ternari = buat_node(AST_TERNARI, p);
+        
+        // 1. Tangkap syarat kondisinya
+        node_ternari->syarat = parse_ekspresi(p);
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'maka' setelah kondisi pada operasi sebaris.");
+        
+        // 3. Tangkap nilai jika BENAR
+        node_ternari->kiri = parse_ekspresi(p);
+        
+        // 4. Wajib ada 'lain'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "lain") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'lain' pada operasi sebaris. Ternari harus memiliki jalan alternatif.");
+        
+        // 5. Tangkap nilai jika SALAH
+        node_ternari->kanan = parse_ekspresi(p);
+        
+        return node_ternari;
+    }
+
+        // Sihir Pengintaian (Lookahead)
+        // Kita intip ke depan, apakah setelah kurung tutup ')' ada panah '=>' ?
+        int is_panah = 0;
+        int kursor_intip = p->kursor + 1;
+        while (kursor_intip < p->tokens.jumlah && p->tokens.data[kursor_intip].jenis != TOKEN_KURUNG_T) kursor_intip++;
+        if (kursor_intip + 1 < p->tokens.jumlah && p->tokens.data[kursor_intip + 1].jenis == TOKEN_PANAH) is_panah = 1;
+
+        if (is_panah) {
+            ASTNode* node_panah = buat_node(AST_FUNGSI_PANAH, p);
+            maju(p); // Lewati '('
+            // Tangkap parameter (x, y)
+            while (token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+                    ASTNode* param = buat_node(AST_IDENTITAS, p);
+                    param->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+                    tambah_anak(node_panah, param);
+                    maju(p);
+                }
+                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p);
+            }
+            maju(p); // Lewati ')'
+            maju(p); // Lewati '=>'
+            
+            // Tangkap tubuh fungsinya (ekspresi)
+            node_panah->kanan = parse_ekspresi(p);
+            return node_panah;
+        }
+
+        // Jika bukan fungsi panah, berarti ini Kurung Matematika biasa!
+        maju(p); // Lewati '('
+        simpul_kiri = parse_ekspresi(p); 
+        
+        // 🟢 SUNTIKAN 4
+        harapkan_token(p, TOKEN_KURUNG_T, "Operasi dalam kurung kehilangan kurung tutup ')'.\n💡 SOLUSI: Pastikan jumlah kurung buka dan tutup seimbang.");
+        
+        return simpul_kiri;
+    }
+    
+    // 1. Tangkap Teks atau Angka Murni
+    else if (t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA) {
+        simpul_kiri = buat_node(AST_LITERAL_TEKS, p);
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        maju(p);
+        return simpul_kiri;
+    }
+
+    // 2. Tangkap Identitas (Variabel, Fungsi)
+    else if (t.jenis == TOKEN_IDENTITAS) {
+        simpul_kiri = buat_node(AST_IDENTITAS, p);
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        maju(p);
+
+        // Cek Panggilan Fungsi Tunggal
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
+            simpul_kiri->jenis = AST_PANGGILAN_FUNGSI;
+            maju(p); // Lewati '('
+            
+            while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                ASTNode* arg = parse_ekspresi(p); 
+                
+                // 🟢 SUNTIKAN ANTI BLACK HOLE (INFINITE LOOP)
+                if (arg) {
+                    tambah_anak(simpul_kiri, arg); 
+                } else {
+                    kiamat_sintaksis(p, "Sintaksis Argumen Cacat!", 
+                        "Mesin tidak bisa membaca argumen yang dimasukkan ke dalam fungsi.\n"
+                        "💡 PENYEBAB: Anda mungkin memasukkan Kata Kunci Sistem (seperti takdir.soft, effort, dll) ke dalam kurung fungsi.");
+                }
+                
+                if (token_sekarang(p).jenis == TOKEN_KOMA) {
+                    maju(p);
+                } else if (token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                    kiamat_sintaksis(p, "Pemisah Argumen Hilang!", "Gunakan koma ',' untuk memisahkan argumen, atau tutup dengan ')'.");
+                }
+            }
+            
+            // 🟢 MENGEMBALIKAN PESAN ERROR & SMART HINT LAMA ANDA
+            char pesan_fungsi[256];
+            snprintf(pesan_fungsi, sizeof(pesan_fungsi), 
+                "Pemanggilan fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
+                "💡 SOLUSI: Pastikan setiap fungsi ditutup dengan benar. Contoh: %s()", 
+                simpul_kiri->nilai_teks, simpul_kiri->nilai_teks);
+                
+            harapkan_token(p, TOKEN_KURUNG_T, pesan_fungsi);
+        }
+        else {
+            // 🔥 LOOP MULTIDIMENSI: Menggabungkan Titik (.) dan Kurung Siku ([]) 🔥
+            // Sekarang mesin bisa membaca dewa.anak[1].cucu[0].kekuatan tanpa henti!
+            while (token_sekarang(p).jenis == TOKEN_TITIK || token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+                
+                // Jika itu TITIK (.)
+                if (token_sekarang(p).jenis == TOKEN_TITIK) {
+                    maju(p); // Lewati titik '.'
+                    Token t_anak = token_sekarang(p);
+                    if (t_anak.jenis == TOKEN_IDENTITAS) {
+                        ASTNode* akses = buat_node(AST_AKSES_DOMAIN, p);
+                        akses->kiri = simpul_kiri;              
+                        akses->nilai_teks = enki_salin_teks(t_anak.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+                        simpul_kiri = akses;
+                        maju(p);
+                    } else {
+                        // 🟢 SMART HINT BARU UNTUK TITIK GAIB
+                        kiamat_sintaksis(p, "Sintaksis Cacat: Nama properti gaib setelah titik!", 
+                            "Anda menulis tanda titik (.), tetapi tidak ada nama variabel setelahnya.\n"
+                            "💡 CONTOH YANG BENAR: orvonton.nebadon");
+                    }
+                }
+                
+                // Jika itu KURUNG SIKU ([...])
+                else if (token_sekarang(p).jenis == TOKEN_KURUNG_S_B) {
+                    ASTNode* node_akses = buat_node(AST_AKSES_ARRAY, p);
+                    node_akses->kiri = simpul_kiri;
+                    maju(p); // Lewati '['
+                    node_akses->indeks_array = parse_ekspresi(p);
+                    
+                    // 🟢 MENGEMBALIKAN SMART HINT LAMA ANDA
+                    harapkan_token(p, TOKEN_KURUNG_S_T, "Akses elemen array kehilangan kurung siku penutup ']'.\n💡 CONTOH: nama_variabel[1]");
+                    
+                    simpul_kiri = node_akses;
+                }
+            }
+        }
+        
+        return simpul_kiri;
+    }
+
+    // 🟢 SUNTIKAN PORTAL KEKOSONGAN (hampa/kosong/NULL) 🟢
+    else if (t.jenis == TOKEN_KOSONG) {
+        simpul_kiri = buat_node(AST_IDENTITAS, p); // Kita gunakan bentuk identitas khusus
+        simpul_kiri->nilai_teks = enki_salin_teks(t.isi, 1);
+        maju(p);
+        return simpul_kiri;
+    }
+
+    // 3. Tangkap Pembuatan Array Baru
+    else if (t.jenis == TOKEN_KURUNG_S_B) {
+        simpul_kiri = buat_node(AST_STRUKTUR_ARRAY, p);
+        maju(p);
+        while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
+            ASTNode* elemen = parse_ekspresi(p); 
+            
+            // 🟢 SUNTIKAN ANTI BLACK HOLE (ARRAY)
+            if (elemen) {
+                tambah_anak(simpul_kiri, elemen); 
+            } else {
+                kiamat_sintaksis(p, "Sintaksis Elemen Array Cacat!", 
+                    "Mesin tidak bisa membaca elemen di dalam array.\n"
+                    "💡 PENYEBAB: Anda mungkin memasukkan Kata Kunci Sistem (seperti takdir, effort) ke dalam kurung siku [].");
+            }
+            
+            // 🟢 PERISAI KOMA & PENUTUP
+            if (token_sekarang(p).jenis == TOKEN_KOMA) {
+                maju(p);
+            } else if (token_sekarang(p).jenis != TOKEN_KURUNG_S_T) {
+                kiamat_sintaksis(p, "Pemisah Elemen Hilang!", "Gunakan koma ',' untuk memisahkan elemen array, atau tutup dengan ']'.");
+            }
+        }
+        
+        // 🟢 SUNTIKAN SIKU (ARRAY LITERAL) YANG BENAR!
+        harapkan_token(p, TOKEN_KURUNG_S_T, "Kehilangan kurung siku penutup ']' pada pembuatan Array.\n💡 SOLUSI: Pastikan daftar elemen Anda ditutup dengan benar."); 
+        return simpul_kiri;
+    }
+
+    // --- SUNTIKAN BARU: Tangkap Pembuatan Objek JSON {} ---
+    else if (t.jenis == TOKEN_KURUNG_K_B) {
+        // Hapus logika AST_PASANGAN_KUNCI_NILAI yang lama,
+        // Cukup panggil fungsi helper yang sudah Anda buat di atas:
+        return parse_struktur_objek(p); 
+    }
+
+    // PENANGKAP OPERATOR TERNARI (Di letakkan paling bawah agar tidak tertelan)
+    else if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        maju(p); // Lewati 'jika'
+        ASTNode* node_ternari = buat_node(AST_TERNARI, p);
+        
+        // 1. Tangkap syarat kondisinya (WAJIB PAKAI parse_syarat_logika!)
+        node_ternari->syarat = parse_syarat_logika(p);
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'maka' setelah kondisi pada operasi sebaris.");
+        
+        // 3. Tangkap nilai jika BENAR
+        node_ternari->kiri = parse_ekspresi(p);
+        
+        // 4. Wajib ada 'lain'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "lain") == 0) maju(p);
+        else kiamat_sintaksis(p, "Ternari cacat!", "Kehilangan 'lain' pada operasi sebaris. Ternari harus memiliki jalan alternatif.");
+        
+        // 5. Tangkap nilai jika SALAH
+        node_ternari->kanan = parse_ekspresi(p);
+        
+        return node_ternari;
+    }
+
+    return NULL;
+}
+
+// ==========================================================
+// TINGKAT 1.5: Kasta Pangkat (^) - Kasta Terkuat di Bawah Kurung
+// ==========================================================
+ASTNode* parse_pangkat(Parser* p) {
+    ASTNode* simpul_kiri = parse_nilai_dasar(p); // Ambil angka/kurung murni
+    
+    // Jika melihat simbol pangkat '^'
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+           strcmp(token_sekarang(p).isi, "^") == 0) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); // Lewati simbol '^'
+        
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        simpul_matematika->kiri = simpul_kiri;
+        
+        // Panggil dirinya sendiri (Rekursif) agar pangkat dihitung dari kanan-ke-kiri
+        // Contoh: 2 ^ 3 ^ 2 = 2 ^ (3 ^ 2) = 512
+        simpul_matematika->kanan = parse_pangkat(p); 
+        
+        simpul_kiri = simpul_matematika; 
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// TINGKAT 2: Kasta Kuat (*, /, :, //, %)
+// ==========================================================
+ASTNode* parse_faktor(Parser* p) {
+    ASTNode* simpul_kiri = parse_pangkat(p);
+    
+    // Hitung Kiri ke Kanan selama menemukan operator kuat
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+          (strcmp(token_sekarang(p).isi, "*") == 0 || 
+           strcmp(token_sekarang(p).isi, "/") == 0 ||
+           strcmp(token_sekarang(p).isi, ":") == 0 ||
+           strcmp(token_sekarang(p).isi, "//") == 0 ||
+           strcmp(token_sekarang(p).isi, "%") == 0)) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); 
+        
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        simpul_matematika->kiri = simpul_kiri;
+        simpul_matematika->kanan = parse_pangkat(p); 
+        
+        simpul_kiri = simpul_matematika; 
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// TINGKAT 3: Kasta Lemah (+, -) 
+// ==========================================================
+ASTNode* parse_penjumlahan(Parser* p) { 
+    ASTNode* simpul_kiri = parse_faktor(p); 
+    
+    while (token_sekarang(p).jenis == TOKEN_OPERATOR && 
+          (strcmp(token_sekarang(p).isi, "+") == 0 || 
+           strcmp(token_sekarang(p).isi, "-") == 0)) {
+        
+        Token t_op = token_sekarang(p);
+        maju(p); 
+        
+        ASTNode* simpul_matematika = buat_node(AST_OPERASI_MATEMATIKA, p);
+        simpul_matematika->operator_math = enki_salin_teks(t_op.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        simpul_matematika->kiri = simpul_kiri;
+        simpul_matematika->kanan = parse_faktor(p); 
+        simpul_kiri = simpul_matematika;
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// TINGKAT 3.5: Kasta Pipa Aliran (|>) -> "Sihir Gula Sintaksis"
+// ==========================================================
+ASTNode* parse_pipa(Parser* p) {
+    ASTNode* simpul_kiri = parse_penjumlahan(p); 
+    
+    while (token_sekarang(p).jenis == TOKEN_PIPA) {
+        maju(p); // Lewati '|>'
+        
+        // Tangkap fungsi tujuan di kanannya
+        ASTNode* simpul_kanan = parse_penjumlahan(p); 
+        
+        // Pipa wajib dialirkan ke dalam sebuah Fungsi!
+        if (simpul_kanan == NULL || simpul_kanan->jenis != AST_PANGGILAN_FUNGSI) { // <--- TAMBAH == NULL
+            kiamat_sintaksis(p, "Tujuan Pipa Aliran '|>' wajib berupa fungsi!", 
+                "Pipa aliran digunakan untuk memasukkan data ke dalam fungsi.\n"
+                "Contoh yang sah:\n"
+                "\"halo\" |> huruf_besar() |> ketik()");
+        }
+        
+        // Sihir terjadi di sini: Masukkan KIRI ke dalam fungsi KANAN secara diam-diam!
+        sisip_anak_pertama(simpul_kanan, simpul_kiri);
+        
+        simpul_kiri = simpul_kanan; // Jadikan hasil ini sebagai "kiri" untuk pipa selanjutnya
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// TINGKAT 4: Kasta Mutasi / Penugasan Ulang (=) -> FUNGSI UTAMA
+// ==========================================================
+ASTNode* parse_ekspresi(Parser* p) {
+    ASTNode* simpul_kiri = parse_pipa(p);
+    
+    // Jika menemukan tanda '=' setelah variabel / akses domain
+    if (token_sekarang(p).jenis == TOKEN_ASSIGN || 
+       (token_sekarang(p).jenis == TOKEN_OPERATOR && strcmp(token_sekarang(p).isi, "=") == 0)) {
+        
+        maju(p); // Lewati '=' (kita tidak butuh menyimpan token t_op lagi)
+        
+        ASTNode* simpul_mutasi = buat_node(AST_OPERASI_MATEMATIKA, p);
+        simpul_mutasi->operator_math = enki_salin_teks("=", 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        simpul_mutasi->kiri = simpul_kiri; // Target (misal: entitas.level1)
+        simpul_mutasi->kanan = parse_ekspresi(p); // Nilai yang baru (misal: {})
+        
+        return simpul_mutasi;
+    }
+    return simpul_kiri;
+}
+
+// ==========================================================
+// [FASE 1] PENANGKAP LOGIKA MAJEMUK (dan, atau, bukan)
+// ==========================================================
+ASTNode* parse_syarat_logika(Parser* p) {
+    ASTNode* simpul_kiri = NULL;
+    
+    // 1. PENANGKAP SIHIR 'bukan' DI AWAL SYARAT
+    if (token_sekarang(p).jenis == TOKEN_LOGIKA && strcmp(token_sekarang(p).isi, "bukan") == 0) {
+        simpul_kiri = buat_node(AST_OPERASI_BUKAN, p);
+        maju(p); // lewati kata 'bukan'
+        
+        // Tangkap kondisi setelah kata 'bukan' (misal: x == 2)
+        ASTNode* kondisi = buat_node(AST_KONDISI, p);
+        kondisi->kiri = parse_ekspresi(p);
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            kondisi->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+            maju(p);
+            kondisi->kanan = parse_ekspresi(p);
+        }
+        simpul_kiri->kiri = kondisi; // Masukkan kondisi ke dalam pelukan 'bukan'
+    } else {
+        // 2. KONDISI NORMAL TANPA BUKAN
+        simpul_kiri = buat_node(AST_KONDISI, p);
+        simpul_kiri->kiri = parse_ekspresi(p); 
+        
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            simpul_kiri->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+            maju(p); // lewati '==' atau '>'
+            simpul_kiri->kanan = parse_ekspresi(p);
+        }
+    }
+ 
+    // 3. Cek apakah ada kata 'dan' atau 'atau' setelahnya!
+    while (token_sekarang(p).jenis == TOKEN_LOGIKA && 
+          (strcmp(token_sekarang(p).isi, "dan") == 0 || strcmp(token_sekarang(p).isi, "atau") == 0)) {
+        
+        Token t_logika = token_sekarang(p);
+        maju(p); // Lewati kata 'dan' / 'atau'
+        
+        ASTNode* simpul_logika = buat_node(AST_OPERASI_LOGIKA, p);
+        simpul_logika->pembanding = enki_salin_teks(t_logika.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        simpul_logika->kiri = simpul_kiri; // Kiri adalah kondisi sebelumnya
+        
+        // Kanan adalah kondisi berikutnya (misal: uang > 100)
+        ASTNode* kondisi_kanan = buat_node(AST_KONDISI, p);
+        kondisi_kanan->kiri = parse_ekspresi(p);
+        if (token_sekarang(p).jenis == TOKEN_PEMBANDING) {
+            kondisi_kanan->pembanding = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+            maju(p);
+            kondisi_kanan->kanan = parse_ekspresi(p);
+        }
+        simpul_logika->kanan = kondisi_kanan;
+        
+        simpul_kiri = simpul_logika; // Timpa untuk mendukung rantai panjang (A dan B atau C)
+    }
+    
+    return simpul_kiri;
+}
+
+// Mengurai Satu Baris Perintah Penuh (Statement)
+ASTNode* parse_pernyataan(Parser* p) {
+    Token t = token_sekarang(p);
+
+    // --- PENANGKAP TATA KRAMA (HEADER & KONTROL) ---
+    if (t.jenis == TOKEN_HEADER) {
+        ASTNode* node = buat_node(AST_DEKLARASI_DATANG, p);
+        maju(p); // lewati 'datang'
+        return node;
+    }
+    
+    if (t.jenis == TOKEN_PRAGMA) {
+        ASTNode* node = buat_node(AST_PRAGMA_MEMORI, p);
+        node->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        maju(p); 
+        return node;
+    }
+    
+    // PENANGKAP SIHIR PERCOCOKAN POLA (SWITCH-CASE) ---
+    if (t.jenis == TOKEN_COCOKKAN) {
+        ASTNode* node = buat_node(AST_COCOKKAN, p);
+        maju(p); // lewati 'cocokkan'
+
+        // 1. Tangkap target yang mau dicocokkan (misal: status_server)
+        node->kiri = parse_ekspresi(p);
+
+        // 2. Pastikan ada 'maka' pembuka
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Kehilangan 'maka'!", "Gunakan 'maka' setelah target cocokkan.");
+
+        // 3. Baca isi seluruh percocokan
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            
+            // A. Jika menemukan KASUS
+            if (t_cek.jenis == TOKEN_KASUS) {
+                maju(p); // lewati 'kasus'
+                ASTNode* node_kasus = buat_node(AST_KASUS, p);
+                
+                node_kasus->kiri = parse_ekspresi(p); // Nilai kasus (misal: "Menyala")
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+                
+                // Tangkap perintah di dalam kasus
+                node_kasus->blok_maka = buat_node(AST_PROGRAM, p);
+                while (token_sekarang(p).jenis != TOKEN_EOF) {
+                    Token t_dalam = token_sekarang(p);
+                    if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                        maju(p); // lewati 'putus' untuk kasus ini
+                        break;
+                    }
+                    ASTNode* stmt = parse_pernyataan(p);
+                    if (stmt) tambah_anak(node_kasus->blok_maka, stmt);
+                }
+                tambah_anak(node, node_kasus); // Masukkan kasus ke wadah anak_anak
+            } 
+            // B. Jika menemukan LAIN (Default Case)
+            else if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "lain") == 0) {
+                maju(p); // lewati 'lain'
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+                
+                node->blok_lain = buat_node(AST_PROGRAM, p);
+                while (token_sekarang(p).jenis != TOKEN_EOF) {
+                    Token t_dalam = token_sekarang(p);
+                    if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                        maju(p); // lewati 'putus' untuk blok lain
+                        break;
+                    }
+                    ASTNode* stmt = parse_pernyataan(p);
+                    if (stmt) tambah_anak(node->blok_lain, stmt);
+                }
+            }
+            // C. Jika menemukan PUTUS (Penutup Mutlak)
+            else if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) {
+                maju(p); // lewati 'putus' utama
+                break;
+            } else {
+                kiamat_sintaksis(p, "Struktur cocokkan cacat!", "Harap gunakan 'kasus [nilai] maka', 'lain maka', dan akhiri setiap blok dengan 'putus'.");
+            }
+        }
+        return node;
+    }
+
+    // --- PENANGKAP KONTROL (pergi, henti, terus) ---
+    if (t.jenis == TOKEN_KONTROL) {
+        if (strcmp(t.isi, "pergi") == 0) {
+            ASTNode* node = buat_node(AST_PERINTAH_PERGI, p);
+            maju(p); return node;
+        }
+        else if (strcmp(t.isi, "henti") == 0) {
+            ASTNode* node = buat_node(AST_PERINTAH_HENTI, p); 
+            maju(p); return node;
+        }
+
+        else if (strcmp(t.isi, "terus") == 0) {
+            ASTNode* node = buat_node(AST_PERINTAH_TERUS, p);
+            maju(p); return node;
+        }
+    }
+
+    // 1. Apakah ini perintah KETIK? (ketik("Halo"))
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "ketik") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_KETIK, p);
+        maju(p); // lewati kata 'ketik'
+        // 🟢 SUNTIKAN 1 (Buka)
+        harapkan_token(p, TOKEN_KURUNG_B, "Fungsi 'ketik' membutuhkan tanda '(' untuk memulai argumen.");
+        
+        node->kanan = parse_ekspresi(p); // Tangkap apapun yang ada di dalam kurung
+        
+        // 🟢 SUNTIKAN 1 (Tutup)
+        harapkan_token(p, TOKEN_KURUNG_T, "Fungsi 'ketik' kehilangan tanda kurung tutup ')'.\n💡 SOLUSI: Pastikan Anda menutup fungsi dengan benar.");
+        return node;
+    }
+    
+    // 2. Apakah ini DEKLARASI? (takdir.soft nama = ...)
+    if (t.jenis == TOKEN_TAKDIR) {
+        ASTNode* node = buat_node(AST_DEKLARASI_TAKDIR, p);
+        node->nilai_teks = enki_salin_teks(t.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        maju(p); // lewati 'takdir.soft'
+        
+        // Simpan nama variabel di simpul Kiri
+        Token t_nama = token_sekarang(p);
+        node->kiri = buat_node(AST_IDENTITAS, p);
+        node->kiri->nilai_teks = enki_salin_teks(t_nama.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+        maju(p); // lewati nama variabel
+        
+        maju(p); // lewati tanda '='
+        
+        // Simpan nilai di simpul Kanan
+        node->kanan = parse_ekspresi(p);
+        return node;
+    }
+
+    // 3. Apakah ini HUKUM KARMA? (jika ... maka ... lain jika ... lain maka ... putus)
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "jika") == 0) {
+        ASTNode* node_utama = buat_node(AST_HUKUM_KARMA, p);
+        ASTNode* node_sekarang = node_utama;
+        
+        maju(p); // lewati kata 'jika' utama
+
+        while (1) { // 🟢 Rantai Tak Berujung untuk 'Lain Jika'
+            // A. Tangkap Syarat
+            node_sekarang->syarat = parse_syarat_logika(p);
+
+            // B. Lewati kata 'maka'
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                maju(p);
+            } else {
+                // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
+                kiamat_sintaksis(p, "Struktur percabangan kehilangan gerbang 'maka'!", 
+                                 "Sepertinya Anda melewatkan kata kunci 'maka'.\n"
+                                 "Silakan tambahkan setelah kondisi 'jika' atau 'lain jika'.\n"
+                                 "Contoh: jika x == 1 maka");
+            }
+
+            // C. Tangkap isi blok MAKA
+            node_sekarang->blok_maka = buat_node(AST_PROGRAM, p);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                if (t_cek.jenis == TOKEN_KARMA && (strcmp(t_cek.isi, "lain") == 0 || strcmp(t_cek.isi, "putus") == 0)) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node_sekarang->blok_maka, stmt);
+            }
+
+            // D. Cek apakah ada blok LAIN
+            Token t_lain = token_sekarang(p);
+            if (t_lain.jenis == TOKEN_KARMA && strcmp(t_lain.isi, "lain") == 0) {
+                maju(p); // lewati kata 'lain'
+                
+                // 🟢 SIHIR 'LAIN JIKA' (ELSE IF)
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "jika") == 0) {
+                    maju(p); // lewati 'jika'
+                    
+                    node_sekarang->blok_lain = buat_node(AST_PROGRAM, p);
+                    ASTNode* node_elif = buat_node(AST_HUKUM_KARMA, p);
+                    tambah_anak(node_sekarang->blok_lain, node_elif);
+                    
+                    node_sekarang = node_elif; // Geser fokus ke node elif ini!
+                    continue; // 🔄 Ulangi siklus C untuk menangkap syarat elif!
+                } 
+                // 🟢 LAIN MAKA MURNI (ELSE)
+                else if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                    maju(p); // lewati 'maka'
+                    node_sekarang->blok_lain = buat_node(AST_PROGRAM, p);
+                    while (token_sekarang(p).jenis != TOKEN_EOF) {
+                        Token t_cek = token_sekarang(p);
+                        if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+                        ASTNode* stmt = parse_pernyataan(p);
+                        if (stmt) tambah_anak(node_sekarang->blok_lain, stmt);
+                    }
+                    break; // Selesai! Tidak ada lagi rantai!
+                } else {
+                    // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
+                    kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", 
+                                     "Kata 'lain' WAJIB diikuti oleh kata 'maka' (untuk blok else) \n"
+                                     "Atau diikuti kata 'jika' (untuk blok else-if).");
+                }
+            } else {
+                break; // Tidak ada 'lain', langsung keluar untuk mencari 'putus'
+            }
+        }
+
+        // E. WAJIB ADA KATA 'PUTUS' UNTUK MENUTUP SELURUH RANTAI
+        Token t_putus = token_sekarang(p);
+        if (t_putus.jenis == TOKEN_KARMA && strcmp(t_putus.isi, "putus") == 0) {
+            maju(p); // lewati 'putus' utama dengan selamat
+        } else {
+            // 🟢 PESAN KIAMAT DETAIL DIKEMBALIKAN!
+            kiamat_sintaksis(p, "Hukum Karma kehilangan ujung ('putus')!", 
+                             "Sebuah rantai 'jika' wajib ditutup dengan satu kata kunci 'putus'.\n"
+                             "Jika tidak, mesin akan menganggap seluruh sisa file berada di dalam blok ini.");
+        }
+
+        return node_utama;
+    }
+
+    // --- PENANGKAP HUKUM KECUALI (UNLESS) ---
+    if (t.jenis == TOKEN_KARMA && strcmp(t.isi, "kecuali") == 0) {
+        ASTNode* node = buat_node(AST_KECUALI, p);
+        maju(p); // lewati 'kecuali'
+        
+        node->syarat = parse_syarat_logika(p);
+        
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Hukum Kecuali cacat!", "Kehilangan kata 'maka' setelah syarat.");
+        
+        node->blok_maka = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_dalam = token_sekarang(p);
+            if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "lain") == 0) {
+                maju(p); // lewati 'lain'
+                if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+                    maju(p);
+                } else {
+                    kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Kata 'lain' sebagai pembuka blok perintah WAJIB diikuti oleh kata 'maka'.");
+                }
+                node->blok_lain = buat_node(AST_PROGRAM, p);
+                continue;
+            }
+            if (t_dalam.jenis == TOKEN_KARMA && strcmp(t_dalam.isi, "putus") == 0) {
+                maju(p); // lewati 'putus'
+                break;
+            }
+            
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) {
+                if (node->blok_lain) tambah_anak(node->blok_lain, stmt);
+                else tambah_anak(node->blok_maka, stmt);
+            }
+        }
+        return node;
+    }
+
+    // --- PENANGKAP SIKLUS SELAMA (WHILE LOOP) ---
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "siklus") == 0) {
+        maju(p); // Lewati 'siklus'
+        
+        if (token_sekarang(p).jenis == TOKEN_IDENTITAS && strcmp(token_sekarang(p).isi, "selama") == 0) maju(p); // lewati 'selama'
+        else kiamat_sintaksis(p, "Siklus cacat!", "Gunakan 'siklus selama [kondisi] maka'.");
+
+        ASTNode* node = buat_node(AST_HUKUM_SIKLUS, p);
+        
+        // 1. Tangkap syarat kondisinya
+        node->syarat = parse_syarat_logika(p);
+        
+        // 2. Wajib ada 'maka' (Ini sama fungsinya seperti '{' di C)
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+        else kiamat_sintaksis(p, "Siklus cacat!", "Kehilangan 'maka' setelah syarat.");
+        
+        // 3. Tangkap isi ruangan siklus (Aman menelan anak-anak di dalamnya)
+        node->blok_siklus = buat_node(AST_PROGRAM, p);
+        int ketemu_putus = 0; // 🟢 ALARM PENANDA
+
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            
+            // 4. Inilah gerbang penutupnya, sama seperti '}' di C!
+            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) {
+                maju(p); // lewati 'putus' khusus milik SIKLUS
+                ketemu_putus = 1; // 🟢 ALARM DIMATIKAN KARENA AMAN
+                break;
+            }
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_siklus, stmt);
+        }
+
+        // 🟢 EKSEKUSI ALARM KIAMAT
+        if (!ketemu_putus) {
+            kiamat_sintaksis(p, "Hukum Siklus kehilangan ujung ('putus')!", 
+                             "Sebuah blok siklus wajib ditutup dengan kata kunci 'putus'.");
+        }
+        return node;
+    }
+
+    // 4. Apakah ini HUKUM SIKLUS? (effort X kali maka ... putus)
+    // --- PENANGKAP SIKLUS EFFORT (DENGAN KIAMAT PRESISI) ---
+    if (t.jenis == TOKEN_SIKLUS && strcmp(t.isi, "effort") == 0) {
+        maju(p); // lewati kata 'effort'
+        
+        // 1. Tangkap tolok ukurnya (bisa angka atau teks interval)
+        ASTNode* batas = parse_ekspresi(p); 
+        
+        // 🚨 KIAMAT SINTAKSIS JIKA KOSONG!
+        if (batas == NULL) {
+            kiamat_sintaksis(p, "Siklus 'effort' kehilangan tolok ukur!", 
+                "UNUL tidak bisa melakukan effort tanpa batas yang jelas.\n"
+                "Untuk siklus angka : effort 5 kali maka ...\n"
+                "Untuk siklus waktu : effort \"2s\" maka ... (gunakan tanda kutip untuk s/m/h)\n"
+                "Untuk milidetik    : effort 300 maka ... (tanpa satuan dan tanpa kutip)");
+            return NULL;
+        }
+
+        ASTNode* node = NULL;
+        
+        // 2. Cek apakah ini siklus angka (pakai 'kali') atau waktu (tanpa 'kali')
+        if (token_sekarang(p).jenis == TOKEN_SIKLUS && strcmp(token_sekarang(p).isi, "kali") == 0) {
+            maju(p); // lewati 'kali'
+            node = buat_node(AST_HUKUM_SIKLUS, p); // Catatan: pastikan namanya sesuai dengan enum Anda (AST_HUKUM_SIKLUS)
+        } else {
+            node = buat_node(AST_EFFORT_WAKTU, p);
+        }
+        
+        node->batas_loop = batas;
+        
+        // 3. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Siklus 'effort' WAJIB dibuka dengan kata 'maka'.");
+            return NULL;
+        }
+        
+        // 4. Tangkap isi ruangan
+        node->blok_siklus = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_siklus, stmt);
+        }
+        
+        // 5. Wajib ada 'putus'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Siklus tak berujung!", "Blok perintah WAJIB diakhiri dengan kata kunci 'putus'.");
+            return NULL;
+        }
+        
+        return node;
+    }
+
+    // --- PENANGKAP JADWAL (CRON-JOB) DENGAN KIAMAT PRESISI ---
+    if (t.jenis == TOKEN_JADWAL) {
+        maju(p); // lewati kata 'jadwal'
+        
+        // 1. Tangkap waktu target (misal: "15:30:00")
+        ASTNode* waktu_target = parse_ekspresi(p); 
+        
+        // 🚨 KIAMAT SINTAKSIS JIKA WAKTU KOSONG!
+        if (waktu_target == NULL) {
+            kiamat_sintaksis(p, "Perintah 'jadwal' kehilangan target waktu!", 
+                "Anda harus menentukan kapan jadwal ini dieksekusi.\n"
+                "Contoh penggunaan yang sah:\n"
+                "jadwal \"15:30:00\" maka\n"
+                "   ketik(\"Waktu tiba!\")\n"
+                "putus");
+            return NULL;
+        }
+
+        ASTNode* node = buat_node(AST_JADWAL, p);
+        node->kiri = waktu_target;
+        
+        // 2. Wajib ada 'maka'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Pelanggaran Tata Bahasa Blok!", "Perintah 'jadwal' WAJIB dibuka dengan kata 'maka'.");
+            return NULL;
+        }
+        
+        // 3. Tangkap isi ruangan
+        node->blok_maka = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_maka, stmt);
+        }
+        
+        // 4. Wajib ada 'putus'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Jadwal tak berujung!", "Blok perintah WAJIB diakhiri dengan kata kunci 'putus'.");
+            return NULL;
+        }
+        
+        return node;
+    }
+
+    // --- PENANGKAP PENCIPTAAN FUNGSI ---
+    // Sintaksis: ciptakan fungsi nama(x, y) atau nama(x = 10) maka ... putus
+    if (t.jenis == TOKEN_CIPTAKAN) {
+        maju(p); // lewati 'ciptakan'
+        if (token_sekarang(p).jenis == TOKEN_FUNGSI) maju(p); // lewati 'fungsi'
+
+        ASTNode* node = buat_node(AST_DEKLARASI_FUNGSI, p);
+        
+        // Tangkap nama fungsi
+        if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+            node->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+            maju(p);
+        }
+
+        // Tangkap Parameter
+        if (token_sekarang(p).jenis == TOKEN_KURUNG_B) {
+            maju(p); // lewati '('
+            while (token_sekarang(p).jenis != TOKEN_EOF && token_sekarang(p).jenis != TOKEN_KURUNG_T) {
+                ASTNode* param = parse_ekspresi(p); 
+                tambah_anak(node, param);
+                if (token_sekarang(p).jenis == TOKEN_KOMA) maju(p); // lewati ','
+            }
+            
+            char pesan_param[256];
+            snprintf(pesan_param, sizeof(pesan_param), 
+                "Deklarasi fungsi '%s' kehilangan tanda kurung tutup ')'.\n"
+                "💡 SOLUSI: Pastikan parameter fungsi ditutup sebelum kata 'maka'.", 
+                node->nilai_teks ? node->nilai_teks : "kustom");
+                
+            harapkan_token(p, TOKEN_KURUNG_T, pesan_param);
+        }
+
+        // 🟢 SUNTIKAN RANJAU 1: WAJIB ADA 'MAKA'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Deklarasi fungsi kehilangan gerbang 'maka'!", 
+                             "Untuk menciptakan fungsi, Anda wajib menggunakan kata 'maka' sebelum isinya.\n"
+                             "Contoh: ciptakan fungsi sapa(nama) maka");
+        }
+
+        // Tangkap isi blok fungsi (Tubuh Fungsi)
+        node->blok_maka = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            if (t_cek.jenis == TOKEN_KARMA && strcmp(t_cek.isi, "putus") == 0) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->blok_maka, stmt);
+        }
+
+        // 🟢 SUNTIKAN RANJAU 2: WAJIB ADA 'PUTUS'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "putus") == 0) {
+            maju(p);
+        } else {
+            kiamat_sintaksis(p, "Tubuh fungsi tidak memiliki ujung ('putus')!", 
+                             "Sebuah fungsi yang diciptakan wajib diakhiri dengan kata kunci 'putus'.\n"
+                             "Jika tidak, mesin akan menelan seluruh sisa program Anda ke dalam fungsi ini.");
+        }
+
+        return node;
+    }
+
+    // --- PENANGKAP PERINTAH PULANG (RETURN) ---
+    // Sintaksis: pulang "Sukses"
+    if (t.jenis == TOKEN_PULANG) {
+        ASTNode* node = buat_node(AST_PULANG, p);
+        maju(p); // lewati 'pulang'
+        
+        // Tangkap nilai yang dikembalikan dan simpan di ranting kiri
+        node->kiri = parse_ekspresi(p);
+        
+        return node;
+    }
+
+
+   // --- SIHIR BALIKAN ---
+    if (strcmp(t.isi, "balikan") == 0) { 
+        ASTNode* node = buat_node(AST_PERINTAH_BALIKAN, p);
+        maju(p); // lewati kata 'balikan'
+        node->kiri = parse_ekspresi(p); // Ambil target yang mau dibalikkan
+        return node;
+    }
+
+
+    // --- PENANGKAP SIHIR JEDA (WAKTU) ---
+    // (Catatan Penting: Untuk format bersatuan seperti 1s atau 1d, gunakan tanda kutip "1s" agar mesin memandangnya sebagai kesatuan parameter wujud waktu, bukan terpisah sebagai 1 dan s).
+    if (t.jenis == TOKEN_IDENTITAS && strcmp(t.isi, "jeda") == 0) {
+        ASTNode* node = buat_node(AST_PERINTAH_JEDA, p);
+        maju(p); // lewati kata 'jeda'
+        
+        // Tangkap ekspresi durasinya (Bisa angka 600, atau teks "1s")
+        node->kiri = parse_ekspresi(p); 
+        return node;
+    }
+
+    // --- PENANGKAP EKSPRESI BERDIRI SENDIRI (MUTASI & FUNGSI & PIPA) ---
+    // Mengizinkan: `entitas = {}`, `dewa.nama = "Enki"`, atau `sapa()`
+    if (t.jenis == TOKEN_IDENTITAS || t.jenis == TOKEN_TEKS || t.jenis == TOKEN_ANGKA || 
+        t.jenis == TOKEN_KURUNG_B || t.jenis == TOKEN_KURUNG_S_B || t.jenis == TOKEN_KURUNG_K_B) {
+        return parse_ekspresi(p);
+    }
+
+    // --- PENANGKAP PELEPASAN MEMORI BERDIRI SENDIRI (PASRAH VARIABEL) ---
+    if (t.jenis == TOKEN_PASRAH) {
+        ASTNode* node = buat_node(AST_PERINTAH_PASRAH, p);
+        maju(p); // lewati kata 'pasrah'
+        
+        node->kiri = parse_ekspresi(p); // Ambil target variabel
+        return node;
+    }
+
+    // ATM DARI BLUEPRINT: elif token[0] == 'SOWAN':
+    // --- PENANGKAP SIHIR SOWAN ---
+    if (t.jenis == TOKEN_SOWAN) { 
+        ASTNode* node = buat_node(AST_PERINTAH_SOWAN, p);
+        maju(p); // lewati kata 'sowan'
+        
+        Token t_target = token_sekarang(p);
+        if (t_target.jenis == TOKEN_IDENTITAS) {
+            // KEAJAIBAN KHUSUS SOWAN: Jika diketik tanpa kutip (misal: sowan matematika)
+            // Paksa mesin membacanya sebagai teks literal agar tidak memicu Kernel Panic
+            node->kiri = buat_node(AST_LITERAL_TEKS, p);
+            node->kiri->nilai_teks = enki_salin_teks(t_target.isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+            maju(p);
+        } else {
+            // Jika menggunakan kutip ("matematika") atau ekspresi lain
+            node->kiri = parse_ekspresi(p); 
+        }
+        
+        return node;
+    }
+
+    // --- PENANGKAP UTAS GAIB (MULTITHREADING) ---
+    if (t.jenis == TOKEN_UTAS) {
+        ASTNode* node = buat_node(AST_UTAS, p);
+        maju(p); // lewati kata 'utas' atau 'gaib'
+        
+        node->kiri = parse_ekspresi(p); // Tangkap panggilan fungsinya, misal: hitung_berat()
+        return node;
+    }
+
+    // 5. Apakah ini HUKUM TABU? (coba maka ... tabu melanggar e maka ... tebus maka ... pasrah)
+    if (t.jenis == TOKEN_COBA) {
+        ASTNode* node = buat_node(AST_COBA_TABU, p);
+        maju(p); // lewati kata 'coba'
+        if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+        // A. Tangkap isi blok COBA (TRY)
+        node->kiri = buat_node(AST_PROGRAM, p);
+        while (token_sekarang(p).jenis != TOKEN_EOF) {
+            Token t_cek = token_sekarang(p);
+            // Berhenti jika mulai masuk blok tabu, tebus, atau pasrah
+            if (t_cek.jenis == TOKEN_TABU || t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
+            ASTNode* stmt = parse_pernyataan(p);
+            if (stmt) tambah_anak(node->kiri, stmt);
+        }
+
+        // B. Cek apakah ada blok TABU MELANGGAR (EXCEPT)
+        if (token_sekarang(p).jenis == TOKEN_TABU) {
+            maju(p); // lewati 'tabu'
+            if (token_sekarang(p).jenis == TOKEN_MELANGGAR) {
+                maju(p); // lewati 'melanggar'
+                // Tangkap wadah error (misal nama variabel errornya)
+                if (token_sekarang(p).jenis == TOKEN_IDENTITAS) {
+                    node->nilai_teks = enki_salin_teks(token_sekarang(p).isi, 1); // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS
+                    maju(p);
+                }
+            }
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+            // Tangkap isi blok TABU
+            node->kanan = buat_node(AST_PROGRAM, p);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                // Berhenti jika mulai masuk blok tebus atau pasrah
+                if (t_cek.jenis == TOKEN_TEBUS || t_cek.jenis == TOKEN_PASRAH) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node->kanan, stmt);
+            }
+        }
+
+        // C. Cek apakah ada blok TEBUS (FINALLY)
+        if (token_sekarang(p).jenis == TOKEN_TEBUS) {
+            maju(p); // lewati 'tebus'
+            if (token_sekarang(p).jenis == TOKEN_KARMA && strcmp(token_sekarang(p).isi, "maka") == 0) maju(p);
+
+            // Tangkap isi blok TEBUS
+            node->blok_tebus = buat_node(AST_PROGRAM, p);
+            while (token_sekarang(p).jenis != TOKEN_EOF) {
+                Token t_cek = token_sekarang(p);
+                // Berhenti jika bertemu penutup pasrah
+                if (t_cek.jenis == TOKEN_PASRAH) break;
+                ASTNode* stmt = parse_pernyataan(p);
+                if (stmt) tambah_anak(node->blok_tebus, stmt);
+            }
+        }
+
+        // 🟢 Validasi Logika Try-Catch Mutlak
+        if (node->kanan == NULL && node->blok_tebus == NULL) {
+            kiamat_sintaksis(p, "Blok 'coba' tidak berguna karena tidak memiliki 'tabu' ataupun 'tebus'!", 
+                "Hukum Tabu tidak lengkap! Sebuah blok 'coba' harus diikuti oleh minimal satu blok 'tabu' (untuk menangkap error) atau blok 'tebus' (untuk eksekusi akhir).\n"
+                "Contoh yang benar:\ncoba maka\n   ...\ntabu melanggar [variabel_error] maka\n   ...\npasrah");
+        }
+
+        // D. Lewati kata 'pasrah' sebagai PENUTUP MUTLAK blok Hukum Tabu
+        if (token_sekarang(p).jenis == TOKEN_PASRAH) {
+            maju(p); 
+        } else {
+            kiamat_sintaksis(p, "Blok 'coba' kehilangan penutup 'pasrah'!", 
+                "Sistem Hukum Tabu wajib diakhiri dengan kata kunci 'pasrah'.\n"
+                "Struktur yang sah:\ncoba maka\n   ...\ntabu melanggar e maka\n   ...\npasrah");
+        }
+
+        return node;
+    }
+
+    if (t.jenis == TOKEN_TABU || t.jenis == TOKEN_TEBUS || t.jenis == TOKEN_PASRAH) {
+        kiamat_sintaksis(p, "Kata kunci Hukum Tabu ditemukan berdiri sendiri!", 
+            "Kata 'tabu', 'tebus', dan 'pasrah' tidak bisa digunakan sembarangan.\n"
+            "Mereka adalah bagian dari Hukum Tabu dan harus selalu diawali dengan blok 'coba'.\n"
+            "Struktur yang sah:\ncoba maka\n   ...\ntabu melanggar e maka\n   ...\npasrah");
+    }
+    
+    if (t.jenis == TOKEN_KARMA && (strcmp(t.isi, "maka") == 0 || strcmp(t.isi, "lain") == 0)) {
+        kiamat_sintaksis(p, "Kata kunci percabangan ditemukan tanpa induk 'jika'!", 
+            "Kata 'maka' dan 'lain' hanya bisa digunakan sebagai pasangan dari perintah 'jika'.");
+    }
+
+    // ... (blok if untuk TOKEN_TAKDIR, TOKEN_KARMA, dll) ...
+
+    // 🟢 SUNTIKAN KIAMAT MUTLAK (CATCH-ALL) 🟢
+    // Jika kode sampai di titik ini, berarti token sama sekali tidak dikenali 
+    // atau posisinya melanggar Hukum Enlil (misal: takdir*)
+    char pesan_kiamat[256];
+    snprintf(pesan_kiamat, sizeof(pesan_kiamat), "Sintaksis tersesat pada token: '%s'", t.isi);
+        
+    kiamat_sintaksis(p, pesan_kiamat, 
+        "Mesin tidak memahami maksud dari ejaan ini.\n"
+        "💡 PENYEBAB MUNGKIN:\n"
+        "1. Ada karakter ilegal (seperti %s, *, @, atau °) di luar tanda kutip teks.\n"
+        "2. Anda salah mengetik Hukum Takdir, Siklus, atau Karma.\n"
+        "Mesin dihentikan untuk mencegah kerusakan dimensi!");
+            
+    // WAJIB: Hentikan program agar tidak infinite loop!
+    exit(1); 
+    return NULL;
+}    
+
+// Pintu Masuk Parser: Membaca seluruh file hingga ketemu EOF
+ASTNode* parse_program(Parser* p) {
+    ASTNode* program = buat_node(AST_PROGRAM, p);
+    
+    while (token_sekarang(p).jenis != TOKEN_EOF) {
+        ASTNode* pernyataan = parse_pernyataan(p);
+        if (pernyataan != NULL) {
+            tambah_anak(program, pernyataan);
+        }
+
+
+    }
+    
+    return program;
+}#ifndef ENKI_PARSER_H
+#define ENKI_PARSER_H
+
+#include "enki_lexer.h"
+
+// =================================================================
+// KITAB POHON LOGIKA (AST - Abstract Syntax Tree)
+// Mengubah barisan Token menjadi rantai instruksi berstruktur
+// =================================================================
+
+// 1. DAFTAR WUJUD LOGIKA (Tipe Node AST)
+typedef enum {
+    AST_PROGRAM,          // Akar utama (Kumpulan seluruh baris kode)
+    AST_DEKLARASI_TAKDIR, // takdir.soft x = ...
+    AST_PERINTAH_KETIK,   // ketik(...)
+    AST_LITERAL_TEKS,     // "Sebuah Teks"
+    AST_IDENTITAS,        // nama_variabel
+    AST_TIDAK_DIKENAL,     // Node kosong/error
+    AST_OPERASI_MATEMATIKA, // AST Matematika Dasar
+    AST_HUKUM_KARMA,      // Blok jika...maka...lain...putus
+    AST_KONDISI,          // Kondisi (misal: umur > 10)
+    AST_OPERASI_LOGIKA,   // Gabungan kondisi (A dan B)
+    AST_DEKLARASI_DATANG, // datang
+    AST_PRAGMA_MEMORI,    // untuk array.dinamis / .statis
+    AST_PERINTAH_PERGI,    // pergi
+    AST_PERINTAH_TERUS,    // terus sama dengan continue di bahasa pemrogaman umum
+    AST_PERINTAH_HENTI,    // henti sama dengan break
+    AST_HUKUM_SIKLUS,     // effort X kali maka...
+    AST_STRUKTUR_ARRAY,    // buat array.dinamis
+    AST_AKSES_ARRAY,       // Akses data array
+    AST_PERINTAH_SOWAN ,    // Seperti import atau include, kata kunci pemanggilan file
+    AST_COBA_TABU,           // Ranting hukum tabu
+    AST_DEKLARASI_FUNGSI, // Untuk: ciptakan fungsi nama(x) maka ... putus
+    AST_PANGGILAN_FUNGSI, // Untuk: nama(10)
+    AST_PULANG,            // Untuk: pulang x
+    AST_OPERASI_BUKAN,     // Menyimpan logika pembalik // Seperti operasi NOT pada bahasa pemrograman umum
+    AST_PERINTAH_PASRAH,    // Menyimpan perintah eksekusi free()
+    AST_PERINTAH_JEDA,      // Fungsi jeda waktu seperti sleep X di bash
+    AST_STRUKTUR_OBJEK,        // Menampung kurung kurawal {}
+    AST_PASANGAN_KUNCI_NILAI,  // Menampung format "kunci": nilai
+    AST_AKSES_DOMAIN,          // Menampung akses titik (misal: dewa.nama)
+    AST_PERINTAH_BALIKAN,       // Membalikan keadaan seperti sebelumnya (mesin waktu)
+    AST_FUNGSI_PANAH,           // Fungsi Anonim (x) => ...
+    AST_COCOKKAN,              // Blok percocokan pola
+    AST_KASUS,                  // Ranting kasus individu
+    AST_TERNARI,                // Percabangan sebaris (jika A maka B lain C)
+    AST_KECUALI,                // Logika terbalik (Unless)
+    AST_UTAS,                    // Eksekusi Asinkron (Multithread)
+    AST_JADWAL,                 // Cron-Job waktu absolut
+    AST_EFFORT_WAKTU            // Loop interval waktu asinkron
+} ASTJenis;
+
+// 2. STRUKTUR NODE POHON (Wujud 1 Blok Logika)
+// Karena C tidak dinamis, 1 Struct ini harus bisa "menyamar" menjadi berbagai bentuk.
+typedef struct ASTNode {
+    ASTJenis jenis;
+    
+    // --- Cabang untuk AST_PROGRAM (Menyimpan daftar perintah) ---
+    struct ASTNode** anak_anak; // Array of pointers (Banyak anak)
+    int jumlah_anak;
+    int kapasitas_anak;
+
+    // --- Cabang untuk Literal / Identitas ---
+    char* nilai_teks;           // Menyimpan teks (misal: "Siapa nama anda?")
+    char* operator_math; // Buat ngitung
+
+    // buat error handling
+    int baris;       
+    int kolom;       
+    char* nama_file; 
+
+    // --- Cabang untuk Deklarasi (Kiri = Kanan) atau Panggilan Fungsi ---
+    struct ASTNode* kiri;       // Contoh: Menunjuk ke node identitas (nama_user)
+    struct ASTNode* kanan;      // Contoh: Menunjuk ke nilai (dengar())
+
+    struct ASTNode* syarat;     // Menunjuk ke AST_KONDISI
+    struct ASTNode* blok_maka;  // Menunjuk ke blok perintah jika SAH
+    struct ASTNode* blok_lain;  // Menunjuk ke blok perintah jika GAGAL (else)
+
+    struct ASTNode* batas_loop;  // Menunjuk ke node jumlah perulangan
+    struct ASTNode* blok_siklus; // Menunjuk ke blok perintah yang diulang
+    struct ASTNode* indeks_array; // Buat memetakan index memori
+    struct ASTNode* blok_tebus;   // berfungsi seperti finnaly
+
+    char* pembanding;           // Teks operator, misal "==" atau ">"
+
+} ASTNode;
+
+// 3. STRUKTUR MESIN PARSER (Pelacak Jejak Token)
+typedef struct {
+    TokenArray tokens;          // Daftar token dari Lexer
+    int kursor;                 // Posisi token yang sedang dibaca saat ini
+} Parser;
+
+// 4. FUNGSI-FUNGSI PARSER UTAMA
+Parser inisialisasi_parser(TokenArray tokens);
+ASTNode* parse_program(Parser* parser);
+// Fungsi bantuan untuk menambah anak cabang
+void tambah_anak(ASTNode* induk, ASTNode* anak);
+
+// --- SUNTIKAN BARU UNTUK SIHIR EVALUASI ---
+ASTNode* parse_ekspresi(Parser* parser);
+// ------------------------------------------
+
+// Fung// <--- Sowan ke Jantung Eksekusisi Wajib untuk membuang Pohon dari RAM saat program selesai
+void bebaskan_ast(ASTNode* node);
+
+#endif // ENKI_PARSER_H#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+#include "enki_scheduler.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+// Helper Waktu
+long hitung_jeda_ke_jadwal(const char* waktu_target) {
+    time_t sekarang = time(NULL);
+    struct tm* tm_lokal = localtime(&sekarang);
+    
+    int jam = 0, menit = 0, detik = 0;
+    sscanf(waktu_target, "%d:%d:%d", &jam, &menit, &detik);
+    
+    struct tm tm_target = *tm_lokal;
+    tm_target.tm_hour = jam;
+    tm_target.tm_min = menit;
+    tm_target.tm_sec = detik;
+    
+    time_t waktu_tujuan = mktime(&tm_target);
+    if (waktu_tujuan <= sekarang) waktu_tujuan += 24 * 3600; // Jadwalkan besok jika sudah lewat
+    
+    return (long)difftime(waktu_tujuan, sekarang) * 1000;
+}
+
+long hitung_ms_interval(const char* teks) {
+    int angka = atoi(teks);
+    if (strstr(teks, "ms")) return angka;
+    if (strstr(teks, "s")) return angka * 1000;
+    if (strstr(teks, "m")) return angka * 60000;
+    if (strstr(teks, "h")) return angka * 3600000;
+    return angka; 
+}
+
+// Pelari Utas (Thread Runners)
+void* pelari_jadwal(void* arg) {
+    KapsulJadwal* kapsul = (KapsulJadwal*)arg;
+    EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    char target_str[256] = ""; // Wadah statis yang aman
+    
+    if (target_obj && target_obj->tipe == ENKI_TEKS) {
+        strcpy(target_str, target_obj->nilai.teks);
+    }
+    // Menggunakan variabel status_array_dinamis dari ram untuk menghancurkan (Hukum A)
+    if (target_obj) hancurkan_objek(target_obj, kapsul->ram_paralel->status_array_dinamis);
+    
+    long jeda_ms = hitung_jeda_ke_jadwal(target_str);
+    
+    usleep(jeda_ms * 1000); // Hibernasi hingga waktu tiba
+    eksekusi_program(kapsul->blok_eksekusi, kapsul->ram_paralel);
+    
+    bebaskan_ram(kapsul->ram_paralel);
+    enki_bebas(kapsul->ram_paralel, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+    enki_bebas(kapsul, 1);              // 🟢 MENGGUNAKAN ENKI_BEBAS
+    return NULL;
+}
+
+void* pelari_effort(void* arg) {
+    KapsulJadwal* kapsul = (KapsulJadwal*)arg;
+    EnkiObject* target_obj = evaluasi_ekspresi(kapsul->simpul_waktu, kapsul->ram_paralel);
+    char interval_str[256] = ""; 
+    
+    if (target_obj && target_obj->tipe == ENKI_TEKS) {
+        strcpy(interval_str, target_obj->nilai.teks);
+    } else if (target_obj && target_obj->tipe == ENKI_ANGKA) {
+        snprintf(interval_str, sizeof(interval_str), "%d", (int)target_obj->nilai.angka);
+    }
+    // Menggunakan variabel status_array_dinamis dari ram untuk menghancurkan (Hukum A)
+    if (target_obj) hancurkan_objek(target_obj, kapsul->ram_paralel->status_array_dinamis);
+    
+    long jeda_ms = hitung_ms_interval(interval_str);
+    
+    while (1) {
+        usleep(jeda_ms * 1000); // Hibernasi antar siklus
+        eksekusi_program(kapsul->blok_eksekusi, kapsul->ram_paralel);
+    }
+    return NULL; // Secara logis ini berjalan abadi sampai OS mati
+}
+
+// Pintu Eksekusi dari Interpreter Utama
+void eksekusi_jadwal_gaib(ASTNode* node, EnkiRAM* ram_utama) {
+    pthread_t id_utas;
+    KapsulJadwal* kapsul = (KapsulJadwal*)enki_alokasi(sizeof(KapsulJadwal), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    kapsul->simpul_waktu = node->kiri;
+    kapsul->blok_eksekusi = node->blok_maka;
+    kapsul->ram_paralel = salin_ram_untuk_utas(ram_utama);
+    
+    pthread_create(&id_utas, NULL, pelari_jadwal, kapsul);
+    pthread_detach(id_utas);
+}
+
+void eksekusi_effort_gaib(ASTNode* node, EnkiRAM* ram_utama) {
+    pthread_t id_utas;
+    KapsulJadwal* kapsul = (KapsulJadwal*)enki_alokasi(sizeof(KapsulJadwal), 1); // 🟢 MENGGUNAKAN ENKI_ALOKASI
+    kapsul->simpul_waktu = node->batas_loop;
+    kapsul->blok_eksekusi = node->blok_siklus;
+    kapsul->ram_paralel = salin_ram_untuk_utas(ram_utama);
+    
+    pthread_create(&id_utas, NULL, pelari_effort, kapsul);
+    pthread_detach(id_utas);
+}#ifndef ENKI_SCHEDULER_H
+#define ENKI_SCHEDULER_H
+
+#include <pthread.h>
+#include "enki_interpreter.h"
+
+// Struktur Kapsul untuk dilempar ke dimensi paralel waktu
+typedef struct {
+    ASTNode* simpul_waktu;
+    ASTNode* blok_eksekusi;
+    EnkiRAM* ram_paralel;
+} KapsulJadwal;
+
+// Fungsi Publik untuk dieksekusi oleh Interpreter
+void eksekusi_jadwal_gaib(ASTNode* node, EnkiRAM* ram_utama);
+void eksekusi_effort_gaib(ASTNode* node, EnkiRAM* ram_utama);
+
+#endif // ENKI_SCHEDULER_H=== [WAKTU KIAMAT: 1775358266] ===
+🚨 [<unul-cli>: Baris 1:1] KIAMAT SINTAKSIS: Fungsi tulis() butuh target dan isi!
+   Kode Penyebab: tulis
+   Saran: Anda tidak memberikan tujuan atau data yang akan ditulis.
+Contoh: tulis("output.txt", data)
+=================================
+

@@ -1,9 +1,7 @@
 ^^ File: main.unul
 
-bakso array.dinamis
-anjing array.dinamis
-pragma array.dinamis  ^^ 🟢 KATA KUNCI YANG BENAR ADALAH PRAGMA!
 datang
+untuk array.dinamis
 
 takdir.soft kosmetik = muat_snul("gaya.snul")
 takdir.soft game_hidup = 1
@@ -46,10 +44,10 @@ putus
 ^^ Suntik pertama kali
 perbarui_layar(monster)
 
+^^ 3. SIKLUS GAME ENGINE (100ms per loop)
 siklus selama game_hidup == 1 maka
-    ^^ 🟢 PARAMETER WAKTU 100MS MUTLAK
-    takdir.soft form = tampilkan_tui(ui_game, kosmetik, 100) 
-    takdir.soft aksi = form.aksi
+    ^^ 🟢 LANGSUNG TANGKAP AKSI SEBAGAI TEKS! (Anti OOM!)
+    takdir.soft aksi = tampilkan_tui(ui_game, kosmetik, 100) 
     takdir.soft perlu_render = 0
 
     jika aksi == "btn_makan" atau aksi == "PANAH_KIRI" maka
@@ -76,10 +74,11 @@ siklus selama game_hidup == 1 maka
 
     jika perlu_render == 1 maka
         ekspor(monster, "monster.imah")
-        perbarui_layar(monster) ^^ Hanya mengubah String di RAM (Sangat Cepat & Hemat Memori)
+        perbarui_layar(monster) ^^ Suntik C langsung
     putus
 putus
 
+pasrah(ui_game)
 pasrah(kosmetik)
 ketik("Game Disimpan. Sampai jumpa!")
 pergi

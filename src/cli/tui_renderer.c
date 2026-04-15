@@ -277,6 +277,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
     if (strcmp(tag_nama, "daftar") == 0) next_level++; 
 
     tui_terapkan_warna(gaya_elemen);
+    
     if(strcmp(tag_nama, "judul") == 0) {
         if (y_anak >= 2 && y_anak <= lantai_terminal) { tui_pindah_kursor(x_aktual+2, y_anak); printf(">> %s <<", isi_teks); }
         y_anak++; 
@@ -300,23 +301,30 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
         y_anak++;
     }
     else if (strcmp(tag_nama, "areanulis") == 0) {
-        // 🟢 KOSONGKAN! Biarkan anak-anaknya yang berjenis 'teks' yang mencetak ke layar!
+        // 🟢 KOSONG! Biarkan anak berjenis 'teks' yang mencetaknya agar tidak Double!
     }
     else if(strcmp(jenis, "teks") == 0) {
         if (y_anak >= 2 && y_anak <= lantai_terminal) { 
             tui_pindah_kursor(x_aktual+2, y_anak); 
             if (apakah_fokus) printf("\033[7m");
             
+            // 🟢 HANCURKAN ILUSI OPTIK! HANYA gunakan 'isi_teks' untuk Node Teks Murni!
+            // 'teks_dalam' hanya untuk label tombol/centang (diatur oleh Bapaknya).
+            char* teks_final = isi_teks; 
+            
+            // Pengaman C murni agar tidak Segfault jika teks_final NULL
+            if (!teks_final) teks_final = ""; 
+
             if (next_is_pass) {
-                for(size_t i=0; i<strlen(isi_teks); i++) printf("*");
+                for(size_t i=0; i<strlen(teks_final); i++) printf("*");
             } else if (next_is_wrap) {
                 int w_area = lebar_aktual - 4;
                 if (w_area > 0) {
-                    tui_cetak_wrap(x_aktual+2, y_anak, w_area, isi_teks, lantai_terminal, perataan);
-                    y_anak += (strlen(isi_teks) / w_area);
+                    tui_cetak_wrap(x_aktual+2, y_anak, w_area, teks_final, lantai_terminal, perataan);
+                    y_anak += (strlen(teks_final) / w_area);
                 }
             } else {
-                printf("%s", isi_teks); 
+                printf("%s", teks_final); 
             }
         }
         y_anak++; 
@@ -329,7 +337,7 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
             y_anak = render_elemen_rekursif(anak_anak->nilai.array_elemen[i], x_aktual+2, y_anak, lebar_aktual-4, lebar_terminal, gaya_root, lantai_terminal, counter_interaktif, fokus_saat_ini, elemen_fokus_ptr, next_level, next_is_pass, next_is_wrap);
         }
     }
-    
+
     if (interaktif || strcmp(tag_nama, "wadah") == 0) {
         int tinggi = (y_anak - y_awal) + 1; if (tinggi < tinggi_minimal) tinggi = tinggi_minimal; 
         
@@ -364,8 +372,7 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
     if (!ui_root || ui_root->tipe != ENKI_OBJEK) {
         printf("\033[H\033[J\n\n🚨 [FATAL ERROR TUI] 🚨\nUI yang diberikan bukan Objek DOM OTIM yang valid!\n");
         if (ui_root && ui_root->tipe == ENKI_TEKS) printf("Pesan Error: %s\n", ui_root->nilai.teks);
-        printf("\nSistem dihentikan otomatis dalam 3 detik...\n");
-        sleep(3);
+        printf("\nSistem dihentikan otomatis dalam 3 detik...\n"); sleep(3);
         return ciptakan_teks("TUTUP_PAKSA", 1);
     }
 
@@ -393,17 +400,13 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
 
     int berjalan = 1; int scroll_y = 0; int indeks_fokus = 0; int total_interaktif = 0;
     EnkiObject* elemen_fokus_saat_ini = NULL; char* id_yang_diklik = NULL; 
-
-    long long waktu_klik_terakhir = 0;
-    int indeks_klik_terakhir = -1;
+    long long waktu_klik_terakhir = 0; int indeks_klik_terakhir = -1;
     static char buffer_id_dinamis[256]; 
 
     while (berjalan) {
         struct winsize w; ioctl(STDOUT_FILENO, TIOCGWINSZ, &w); 
-        int lantai_terminal = w.ws_row; 
-        int lebar_terminal = w.ws_col;
-        tui_bersihkan_layar();
-        jumlah_kotak = 0; 
+        int lantai_terminal = w.ws_row; int lebar_terminal = w.ws_col;
+        tui_bersihkan_layar(); jumlah_kotak = 0; 
 
         EnkiObject* root_anak = NULL;
         for(int i=0; i<ui_root->panjang; i++) {
@@ -411,17 +414,14 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
         }
 
         int counter_saat_ini = 0; elemen_fokus_saat_ini = NULL;
-
-        int lebar_root = 80; // Default
+        int lebar_root = 80; 
         if (ui_root->panjang > 0) {
             char* t_tag = tui_ambil_gaya_teks(ui_root, "tag", "wadah");
             char* t_id = tui_ambil_gaya_teks(ui_root, "id", "utama");
-            char selektor_root[256];
-            snprintf(selektor_root, 256, "@%s.%s", t_tag, t_id);
+            char selektor_root[256]; snprintf(selektor_root, 256, "@%s.%s", t_tag, t_id);
             for(int i=0; i<gaya_root->panjang; i++) {
                 if(strcmp(gaya_root->nilai.objek_peta.kunci[i]->nilai.teks, selektor_root) == 0) {
-                    lebar_root = tui_ambil_gaya_angka(gaya_root->nilai.objek_peta.konten[i], "lebar", 80);
-                    break;
+                    lebar_root = tui_ambil_gaya_angka(gaya_root->nilai.objek_peta.konten[i], "lebar", 80); break;
                 }
             }
         }
@@ -447,87 +447,72 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
                     for(int i=0; i<elemen_fokus_saat_ini->panjang; i++) {
                         char* tg = elemen_fokus_saat_ini->nilai.objek_peta.konten[i]->nilai.teks;
                         if(strcmp(elemen_fokus_saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, "tag") == 0 && strcmp(tg, "tombol") == 0) adlh_tombol = 1;
-                        if (adlh_tombol && strcmp(elemen_fokus_saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, "id") == 0) {
-                            id_yang_diklik = elemen_fokus_saat_ini->nilai.objek_peta.konten[i]->nilai.teks;
-                        }
+                        if (adlh_tombol && strcmp(elemen_fokus_saat_ini->nilai.objek_peta.kunci[i]->nilai.teks, "id") == 0) id_yang_diklik = elemen_fokus_saat_ini->nilai.objek_peta.konten[i]->nilai.teks;
                     }
                     if (adlh_tombol) berjalan = 0; 
                     else { id_yang_diklik = "ENTER"; berjalan = 0; } 
-                } else {
-                    id_yang_diklik = "ENTER"; berjalan = 0;
-                }
+                } else { id_yang_diklik = "ENTER"; berjalan = 0; }
             }
             else if (c == 9) { if (total_interaktif > 0) indeks_fokus = (indeks_fokus + 1) % total_interaktif; } 
             else if (c == '\033') { 
+                // 🟢 SOLUSI MUTLAK ESC (Anti-Freeze untuk Aplikasi Statis & Dinamis)
+                int old_vtime = terminal_lama.c_cc[VTIME];
+                int old_vmin  = terminal_lama.c_cc[VMIN];
+                
+                struct termios temp_term;
+                tcgetattr(STDIN_FILENO, &temp_term);
+                temp_term.c_cc[VMIN] = 0;
+                temp_term.c_cc[VTIME] = 0; // Mode Intip: Jangan tunggu
+                tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
+
                 char seq[4];
-                if (read(STDIN_FILENO, &seq[0], 1) == 1 && read(STDIN_FILENO, &seq[1], 1) == 1) {
-                    if (seq[0] == '[') {
-                        
-                        // 🟢 KECERDASAN GANDA: SCROLL (UI MODE) ATAU GERAK (GAME MODE)
-                        if (seq[1] == 'A') { 
-                            if (timeout_ms > 0) { id_yang_diklik = "PANAH_ATAS"; berjalan = 0; }
-                            else { scroll_y++; } 
-                        } 
-                        else if (seq[1] == 'B') { 
-                            if (timeout_ms > 0) { id_yang_diklik = "PANAH_BAWAH"; berjalan = 0; }
-                            else { scroll_y--; } 
-                        } 
-                        
-                        // 🟢 TANGKAP PANAH KANAN/KIRI (Selalu dikirim ke UNUL)
-                        else if (seq[1] == 'C') { id_yang_diklik = "PANAH_KANAN"; berjalan = 0; }
-                        else if (seq[1] == 'D') { id_yang_diklik = "PANAH_KIRI"; berjalan = 0; }
-                        
-                        // 🟢 TANGKAP LOGIKA MOUSE MENDALAM (SGR 1006)
-                        else if (seq[1] == '<') { 
-                            char mb[32] = {0}; int m_idx = 0; char m_c;
-                            while (read(STDIN_FILENO, &m_c, 1) == 1) { mb[m_idx++] = m_c; if (m_c == 'M' || m_c == 'm') break; }
-                            
-                            int cb, cx, cy;
-                            if (sscanf(mb, "%d;%d;%d", &cb, &cx, &cy) == 3) {
-                                mouse_x = cx; mouse_y = cy; 
+                int bytes_read = read(STDIN_FILENO, seq, 2);
 
-                                if (mb[m_idx-1] == 'M') { 
-                                    if (cb == 64) scroll_y++; else if (cb == 65) scroll_y--; 
-                                    else if (cb == 0 || cb == 2) { 
-                                        for (int i = 0; i < jumlah_kotak; i++) {
-                                            KotakInteraktif* ktk = &daftar_kotak[i];
-                                            if (cx >= ktk->x && cx <= ktk->x + ktk->w && cy >= ktk->y && cy <= ktk->y + ktk->h) {
-                                                indeks_fokus = ktk->indeks_logika; 
-                                                
-                                                if (cb == 0) { // Klik Kiri
-                                                    long long waktu_sekarang = dapatkan_waktu_ms();
-                                                    int adalah_double_click = 0;
+                temp_term.c_cc[VMIN] = old_vmin;
+                temp_term.c_cc[VTIME] = old_vtime;
+                tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
 
-                                                    if (indeks_fokus == indeks_klik_terakhir && (waktu_sekarang - waktu_klik_terakhir) < 300) {
-                                                        adalah_double_click = 1;
-                                                    }
-                                                    
-                                                    waktu_klik_terakhir = waktu_sekarang;
-                                                    indeks_klik_terakhir = indeks_fokus;
-
-                                                    if (adalah_double_click) {
-                                                        snprintf(buffer_id_dinamis, sizeof(buffer_id_dinamis), "GANDA_%s", ktk->id);
-                                                        id_yang_diklik = buffer_id_dinamis;
-                                                        berjalan = 0; 
-                                                    } 
-                                                    else {
-                                                        if (strstr(ktk->id, "btn_") != NULL || strstr(ktk->id, "tombol_") != NULL) {
-                                                            id_yang_diklik = ktk->id; 
-                                                            berjalan = 0; 
-                                                        } else if (strstr(ktk->id, "centang") != NULL) {
-                                                            tui_toggle_centang(ktk->node_asli); 
-                                                        }
-                                                    }
+                if (bytes_read == 2 && seq[0] == '[') {
+                    // 🟢 INI ADALAH PANAH / MOUSE!
+                    if (seq[1] == 'A') { if (timeout_ms > 0) { id_yang_diklik = "PANAH_ATAS"; berjalan = 0; } else { scroll_y++; } } 
+                    else if (seq[1] == 'B') { if (timeout_ms > 0) { id_yang_diklik = "PANAH_BAWAH"; berjalan = 0; } else { scroll_y--; } } 
+                    else if (seq[1] == 'C') { id_yang_diklik = "PANAH_KANAN"; berjalan = 0; }
+                    else if (seq[1] == 'D') { id_yang_diklik = "PANAH_KIRI"; berjalan = 0; }
+                    else if (seq[1] == '<') { 
+                        char mb[32] = {0}; int m_idx = 0; char m_c;
+                        while (read(STDIN_FILENO, &m_c, 1) == 1) { mb[m_idx++] = m_c; if (m_c == 'M' || m_c == 'm') break; }
+                        int cb, cx, cy;
+                        if (sscanf(mb, "%d;%d;%d", &cb, &cx, &cy) == 3) {
+                            mouse_x = cx; mouse_y = cy; 
+                            if (mb[m_idx-1] == 'M') { 
+                                if (cb == 64) scroll_y++; else if (cb == 65) scroll_y--; 
+                                else if (cb == 0 || cb == 2) { 
+                                    for (int i = 0; i < jumlah_kotak; i++) {
+                                        KotakInteraktif* ktk = &daftar_kotak[i];
+                                        if (cx >= ktk->x && cx <= ktk->x + ktk->w && cy >= ktk->y && cy <= ktk->y + ktk->h) {
+                                            indeks_fokus = ktk->indeks_logika; 
+                                            if (cb == 0) { 
+                                                long long waktu_sekarang = dapatkan_waktu_ms(); int adalah_double_click = 0;
+                                                if (indeks_fokus == indeks_klik_terakhir && (waktu_sekarang - waktu_klik_terakhir) < 300) adalah_double_click = 1;
+                                                waktu_klik_terakhir = waktu_sekarang; indeks_klik_terakhir = indeks_fokus;
+                                                if (adalah_double_click) { snprintf(buffer_id_dinamis, sizeof(buffer_id_dinamis), "GANDA_%s", ktk->id); id_yang_diklik = buffer_id_dinamis; berjalan = 0; } 
+                                                else {
+                                                    if (strstr(ktk->id, "btn_") != NULL || strstr(ktk->id, "tombol_") != NULL) { id_yang_diklik = ktk->id; berjalan = 0; } 
+                                                    else if (strstr(ktk->id, "centang") != NULL) { tui_toggle_centang(ktk->node_asli); }
                                                 }
-                                                break; 
                                             }
+                                            break; 
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                } else { berjalan = 0; } // 🟢 Keluar jika Timeout!
+                } else {
+                    // 🟢 MURNI TOMBOL ESC KEYBOARD!
+                    id_yang_diklik = "TUTUP_PAKSA";
+                    berjalan = 0;
+                }
             }
             else {
                 int adlh_input = 0; int adlh_tombol = 0; int adlh_centang = 0;
@@ -553,15 +538,12 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
                 } 
             }
         } 
-        else {
-            // 🟢 GAME LOOP: Jika timeout_ms berlalu tanpa input, kirim "DETAK"!
-            id_yang_diklik = "DETAK";
-            berjalan = 0;
-        }
+        else { id_yang_diklik = "DETAK"; berjalan = 0; }
     } 
     
     printf("\033[?1006l\033[?1003l\033[?1000l\033[?1049l\033[?25h"); 
     tui_matikan_raw_mode();
     
+    // 🟢 HANYA MENGEMBALIKAN TEKS AKSI! (Bukan Peta Objek Penuh)
     return id_yang_diklik ? ciptakan_teks(id_yang_diklik, 1) : ciptakan_teks("TUTUP_PAKSA", 1);
 }

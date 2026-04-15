@@ -1,0 +1,112 @@
+#include "ko.h"
+#include <string.h>
+
+EnkiObject* ambil_konten_objek(EnkiObject* obj, int mode_dinamis) {
+    if (obj == NULL || obj->tipe == ENKI_KOSONG) return ciptakan_kosong(mode_dinamis); 
+
+    EnkiObject* hasil_ko;
+
+    if (obj->tipe == ENKI_ARRAY) {
+        hasil_ko = ciptakan_array(obj->panjang, mode_dinamis); 
+        hasil_ko->panjang = obj->panjang;
+        for (int i = 0; i < obj->panjang; i++) {
+            hasil_ko->nilai.array_elemen[i] = ciptakan_salinan_objek(obj->nilai.array_elemen[i], mode_dinamis); 
+        }
+    } 
+    else if (obj->tipe == ENKI_OBJEK) {
+        hasil_ko = ciptakan_array(obj->panjang, mode_dinamis); 
+        hasil_ko->panjang = obj->panjang;
+        for (int i = 0; i < obj->panjang; i++) {
+            hasil_ko->nilai.array_elemen[i] = ciptakan_salinan_objek(obj->nilai.objek_peta.konten[i], mode_dinamis); 
+        }
+    } 
+    else {
+        hasil_ko = ciptakan_array(1, mode_dinamis); 
+        hasil_ko->panjang = 1;
+        hasil_ko->nilai.array_elemen[0] = ciptakan_salinan_objek(obj, mode_dinamis); 
+    }
+
+    return hasil_ko;
+}#ifndef ENKI_KO_H
+#define ENKI_KO_H
+
+#include "../enki_object.h"
+
+// 🟢 Menambahkan mode_dinamis agar bisa dikendalikan oleh Pragma
+EnkiObject* ambil_konten_objek(EnkiObject* obj, int mode_dinamis);
+
+#endif#include "ku.h"
+#include <string.h>
+#include <stdio.h> 
+
+EnkiObject* ambil_kunci_objek(EnkiObject* obj, int mode_dinamis) {
+    if (obj == NULL || obj->tipe == ENKI_KOSONG) return ciptakan_kosong(mode_dinamis); 
+
+    EnkiObject* hasil_ku;
+
+    if (obj->tipe == ENKI_OBJEK) {
+        hasil_ku = ciptakan_array(obj->panjang, mode_dinamis); 
+        hasil_ku->panjang = obj->panjang;
+        for (int i = 0; i < obj->panjang; i++) {
+            hasil_ku->nilai.array_elemen[i] = ciptakan_salinan_objek(obj->nilai.objek_peta.kunci[i], mode_dinamis); 
+        }
+    } 
+    else if (obj->tipe == ENKI_ARRAY) {
+        hasil_ku = ciptakan_array(obj->panjang, mode_dinamis); 
+        hasil_ku->panjang = obj->panjang;
+        for (int i = 0; i < obj->panjang; i++) {
+            char buf[16];
+            snprintf(buf, sizeof(buf), "%d", i + 1); 
+            hasil_ku->nilai.array_elemen[i] = ciptakan_teks(buf, mode_dinamis); 
+        }
+    }
+    else {
+        hasil_ku = ciptakan_array(1, mode_dinamis); 
+        hasil_ku->panjang = 1;
+        hasil_ku->nilai.array_elemen[0] = ciptakan_teks("1", mode_dinamis); 
+    }
+
+    return hasil_ku;
+}#ifndef ENKI_KU_H
+#define ENKI_KU_H
+
+#include "../enki_object.h"
+
+// 🟢 Menambahkan mode_dinamis agar bisa dikendalikan oleh Pragma
+EnkiObject* ambil_kunci_objek(EnkiObject* obj, int mode_dinamis);
+
+#endif#include "panjang.h"
+#include <string.h>
+
+int hitung_panjang_objek(EnkiObject* obj) {
+    if (obj == NULL) return 0;
+
+    switch (obj->tipe) {
+        case ENKI_ARRAY:
+        case ENKI_OBJEK:
+            // ⚡ KECEPATAN CAHAYA: Tidak ada loop, langsung ambil variabel 'panjang'
+            return obj->panjang;
+
+        case ENKI_TEKS:
+            // Untuk teks, panjang sudah dihitung saat diciptakan, tapi kita pastikan
+            if (obj->nilai.teks) return obj->panjang;
+            return 0;
+
+        case ENKI_BLOB:
+            return (int)obj->nilai.blob.ukuran;
+
+        case ENKI_ANGKA:
+            return 1; // Angka tunggal dianggap panjangnya 1
+
+        default:
+            return 0;
+    }
+}#ifndef ENKI_PANJANG_H
+#define ENKI_PANJANG_H
+
+#include "../enki_object.h"
+
+// Fungsi universal untuk mengambil panjang dari objek apapun
+int hitung_panjang_objek(EnkiObject* obj);
+
+#endif // ENKI_PANJANG_H
