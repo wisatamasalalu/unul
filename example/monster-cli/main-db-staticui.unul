@@ -24,23 +24,10 @@ jika panjang(cek_file) > 0 maka
 putus
 
 ^^ ==========================================
-^^ 2. MUAT OTIM (SEKALI SAJA DI AWAL)
+^^ 2. FUNGSI SAKTI: GENERATOR UI (State-Driven)
+^^ Menggantikan retas_memori_dom dengan Virtual DOM!
 ^^ ==========================================
-takdir.soft otim_str = '#!datang\n<wadah id="utama">\n'
-otim_str = otim_str + '    <judul> "--- UNULZILLA ---" </judul>\n'
-otim_str = otim_str + '    <areanulis id="layar_monster"> "MEMUAT..." </areanulis>\n'
-otim_str = otim_str + '    <tombol id="btn_makan"> "[PANAH KIRI] BERI MAKAN" </tombol>\n'
-otim_str = otim_str + '    <tombol id="btn_main"> "[PANAH KANAN] AJAK MAIN" </tombol>\n'
-otim_str = otim_str + '    <tombol id="btn_keluar"> "[ESC] KELUAR & SIMPAN" </tombol>\n'
-otim_str = otim_str + '</wadah>\npergi!#'
-
-tulis("ui_awal.otim", otim_str)
-takdir.soft ui_game = muat_otim("ui_awal.otim")
-
-^^ ==========================================
-^^ 3. FUNGSI PERAKIT GAMBAR (TEKS MURNI)
-^^ ==========================================
-ciptakan fungsi rakit_teks_layar(v_lapar, v_bahagia, v_umur) maka
+ciptakan fungsi render_ui(v_lapar, v_bahagia, v_umur) maka
     takdir.soft wajah = "( O _ O )"
     jika v_lapar > 20 maka wajah = "( T _ T )" putus
     jika v_bahagia > 20 maka wajah = "( ^ _ ^ )" putus
@@ -49,16 +36,25 @@ ciptakan fungsi rakit_teks_layar(v_lapar, v_bahagia, v_umur) maka
     takdir.soft layar = "\n\n/\\_/\\\n  " + wajah + "\n  = ^ =\n\n"
     layar = layar + "Lapar: " + v_lapar + " | Bahagia: " + v_bahagia + " | Umur: " + v_umur + "\n"
     jika v_lapar > 30 maka layar = layar + "\nMONSTER ANDA MATI KELAPARAN!\n" putus
-    
-    pulang layar
+
+    takdir.soft otim_str = '#!datang\n<wadah id="utama">\n'
+    otim_str = otim_str + '    <judul> "--- UNULZILLA ---" </judul>\n'
+    otim_str = otim_str + '    <areanulis id="layar_monster"> "' + layar + '" </areanulis>\n'
+    otim_str = otim_str + '    <tombol id="btn_makan"> "[PANAH KIRI] BERI MAKAN" </tombol>\n'
+    otim_str = otim_str + '    <tombol id="btn_main"> "[PANAH KANAN] AJAK MAIN" </tombol>\n'
+    otim_str = otim_str + '    <tombol id="btn_keluar"> "[ESC] KELUAR & SIMPAN" </tombol>\n'
+    otim_str = otim_str + '</wadah>\npergi!#'
+
+    tulis("sementara.otim", otim_str)
+    takdir.soft ui_baru = muat_otim("sementara.otim")
+    pulang ui_baru
 putus
 
-^^ SUNTIKAN RENDER PERTAMA SEBELUM LOOP
-takdir.soft layar_awal = rakit_teks_layar(stat_lapar, stat_bahagia, stat_umur)
-retas_memori_dom(ui_game, "layar_monster", layar_awal)
+^^ Bangkitkan UI pertama kali berdasarkan State
+takdir.soft ui_game = render_ui(stat_lapar, stat_bahagia, stat_umur)
 
 ^^ ==========================================
-^^ 4. SIKLUS GAME ENGINE (100ms per loop)
+^^ 3. SIKLUS GAME ENGINE (100ms per loop)
 ^^ ==========================================
 siklus selama game_hidup == 1 maka
     takdir.soft aksi = tampilkan_tui(ui_game, kosmetik, 100)  
@@ -86,15 +82,14 @@ siklus selama game_hidup == 1 maka
         putus
     putus
 
-    ^^ 🟢 GABUNGAN DIMENSI (MERGE)!
+    ^^ 🟢 RENDER ULANG HANYA JIKA ADA PERUBAHAN STATE!
     jika perlu_render == 1 maka
-        ^^ 🔥 1. PERSISTENSI DATABASE (Metode 2 - Aman, Pasti Tersimpan)
+        ^^ 1. SEMAYAMKAN KE DATABASE DENGAN VARIABEL BARU (Anti Bug Objek)
         takdir.soft simpan_db = { "nama": "UNULZILLA", "lapar": stat_lapar, "bahagia": stat_bahagia, "umur": stat_umur }
         ekspor(simpan_db, "monster.imah")
         
-        ^^ 🔥 2. AUTO-REFRESH UI KILAT (Metode 1 - Bypass Disk, Langsung RAM)
-        takdir.soft teks_baru = rakit_teks_layar(stat_lapar, stat_bahagia, stat_umur)
-        retas_memori_dom(ui_game, "layar_monster", teks_baru)
+        ^^ 2. RE-RENDER UI SEPERTI REACT!
+        ui_game = render_ui(stat_lapar, stat_bahagia, stat_umur)
     putus
 putus
 

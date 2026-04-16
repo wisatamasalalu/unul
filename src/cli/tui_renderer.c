@@ -370,6 +370,110 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
 }
 
 // ========================================================
+// 🎨 SIHIR KANVAS MUTLAK (IMMEDIATE MODE DRAWING)
+// ========================================================
+
+void tui_layar_bersih() {
+    printf("\033[2J\033[H");
+    fflush(stdout);
+}
+
+void tui_layar_kursor(int x, int y) {
+    printf("\033[%d;%dH", y, x);
+    fflush(stdout);
+}
+
+void tui_layar_cetak(int x, int y, const char* teks) {
+    if (!teks) return;
+    printf("\033[%d;%dH%s", y, x, teks);
+    fflush(stdout);
+}
+
+void tui_layar_piksel(int x, int y, const char* wujud, const char* warna) {
+    if (!wujud || !warna) return;
+
+    // 1. Tentukan Warna (Sihir ANSI)
+    char* kode_warna = "\033[0m"; // Reset default
+    if (strcmp(warna, "merah") == 0) kode_warna = "\033[1;31m";
+    else if (strcmp(warna, "hijau") == 0) kode_warna = "\033[1;32m";
+    else if (strcmp(warna, "kuning") == 0) kode_warna = "\033[1;33m";
+    else if (strcmp(warna, "biru") == 0) kode_warna = "\033[1;34m";
+    else if (strcmp(warna, "cyan") == 0) kode_warna = "\033[1;36m";
+    else if (strcmp(warna, "putih") == 0) kode_warna = "\033[1;37m";
+
+    // 2. Tentukan Wujud (Karakter Unicode Box Drawing)
+    char* char_wujud = " ";
+    if (strcmp(wujud, "penuh") == 0) char_wujud = "█";
+    else if (strcmp(wujud, "atas") == 0) char_wujud = "▀";
+    else if (strcmp(wujud, "bawah") == 0) char_wujud = "▄";
+    else if (strcmp(wujud, "titik") == 0) char_wujud = "•";
+    else if (strcmp(wujud, "garis_v") == 0) char_wujud = "│";
+    else if (strcmp(wujud, "garis_h") == 0) char_wujud = "─";
+    else char_wujud = (char*)wujud; // Jika dev memasukkan string custom
+
+    // 3. Tembak ke Layar! Pindah kursor -> Set Warna -> Cetak Wujud -> Reset Warna
+    printf("\033[%d;%dH%s%s\033[0m", y, x, kode_warna, char_wujud);
+    fflush(stdout);
+}
+
+void tui_layar_alternatif_buka() {
+    printf("\033[?1049h\033[?25l");
+    fflush(stdout);
+}
+
+void tui_layar_alternatif_tutup() {
+    printf("\033[?1049l\033[?25h");
+    fflush(stdout);
+}
+
+char* tui_layar_baca_tombol() {
+    struct termios oldt, newt;
+    int ch = -1;
+    
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO); // Matikan buffer dan echo layar
+    newt.c_cc[VMIN] = 0;  // 🟢 SIHIR NON-BLOCKING MUTLAK: Jangan tunggu user!
+    newt.c_cc[VTIME] = 0; // Langsung jalan terus!
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    
+    unsigned char seq[3];
+    if (read(STDIN_FILENO, &seq[0], 1) == 1) {
+        if (seq[0] == '\033') { // Menangkap ESC atau Panah
+            if (read(STDIN_FILENO, &seq[1], 1) == 1 && read(STDIN_FILENO, &seq[2], 1) == 1) {
+                if (seq[1] == '[' || seq[1] == 'O') {
+                    if (seq[2] == 'A') ch = 1001; // PANAH_ATAS
+                    else if (seq[2] == 'B') ch = 1002; // PANAH_BAWAH
+                    else if (seq[2] == 'C') ch = 1003; // PANAH_KANAN
+                    else if (seq[2] == 'D') ch = 1004; // PANAH_KIRI
+                }
+            } else {
+                ch = 27; // Murni ESC
+            }
+        } else {
+            ch = seq[0]; // Karakter biasa (a, b, w, s, spasi)
+        }
+    }
+    
+    // Kembalikan terminal ke wujud asalnya agar tidak rusak
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    
+    // Terjemahkan ke Teks Murni (String C)
+    if (ch == 1001) return strdup("PANAH_ATAS");
+    if (ch == 1002) return strdup("PANAH_BAWAH");
+    if (ch == 1003) return strdup("PANAH_KANAN");
+    if (ch == 1004) return strdup("PANAH_KIRI");
+    if (ch == 27) return strdup("ESC");
+    if (ch != -1) {
+        char* buf = (char*)malloc(2);
+        buf[0] = (char)ch;
+        buf[1] = '\0';
+        return buf;
+    }
+    return NULL; // Kosong jika tidak ada tombol ditekan
+}
+
+// ========================================================
 // 🎮 EVENT LOOP TUI UTAMA
 // ========================================================
 EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeout_ms) {

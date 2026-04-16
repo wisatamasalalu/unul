@@ -1,0 +1,17 @@
+^^ Uji Coba Kanvas UNUL
+datang
+layar_bersih()
+
+^^ Menggambar Bingkai Atas
+takdir.soft x = 1
+siklus selama x < 50 maka
+    layar_piksel(x, 1, "garis_h", "cyan")
+    x = x + 1
+putus
+
+^^ Menggambar Karakter
+layar_piksel(10, 5, "penuh", "merah")
+layar_cetak(12, 5, "AWAS ADA MONSTER KOTAK!", "putih")
+
+ketik("\n\nSelesai menggambar!")
+pergi

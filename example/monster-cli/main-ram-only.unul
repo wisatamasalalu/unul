@@ -1,0 +1,104 @@
+datang
+untuk array.dinamis
+
+takdir.soft kosmetik = muat_snul("gaya.snul")
+takdir.soft game_hidup = 1
+takdir.soft detak_waktu = 0
+
+takdir.soft cek_file = cari("monster.imah")
+takdir.soft monster = { "nama": "UNULZILLA", "lapar": 10, "bahagia": 10, "umur": 0 }
+jika panjang(cek_file) > 0 maka
+    coba maka monster = impor("monster.imah") tabu melanggar e maka pasrah
+putus
+
+^^ 🟢 1. MUAT OTIM SATU KALI SAJA!
+takdir.soft otim_str = '#!datang\n<wadah id="utama">\n'
+otim_str = otim_str + '    <judul> "--- ' + monster.nama + ' ---" </judul>\n'
+otim_str = otim_str + '    <areanulis id="layar_monster"> "MEMUAT..." </areanulis>\n'
+otim_str = otim_str + '    <tombol id="btn_makan"> "[PANAH KIRI] BERI MAKAN" </tombol>\n'
+otim_str = otim_str + '    <tombol id="btn_main"> "[PANAH KANAN] AJAK MAIN" </tombol>\n'
+otim_str = otim_str + '    <tombol id="btn_keluar"> "[ESC] KELUAR & SIMPAN" </tombol>\n'
+otim_str = otim_str + '</wadah>\npergi!#'
+
+tulis("ui_awal.otim", otim_str)
+takdir.soft ui_game = muat_otim("ui_awal.otim")
+
+^^ 🟢 2. FUNGSI RAKIT LAYAR (Menerima Variabel Datar!)
+ciptakan fungsi rakit_teks_layar(v_lapar, v_bahagia, v_umur) maka
+    takdir.soft wajah = "( O _ O )"
+    jika v_lapar > 20 maka wajah = "( T _ T )" putus
+    jika v_bahagia > 20 maka wajah = "( ^ _ ^ )" putus
+    jika v_lapar > 30 maka wajah = "( x _ x )" putus
+
+    takdir.soft layar = "\n\n/\\_/\\\n  " + wajah + "\n  = ^ =\n\n"
+    layar = layar + "Lapar: " + v_lapar + " | Bahagia: " + v_bahagia + " | Umur: " + v_umur + "\n"
+    jika v_lapar > 30 maka layar = layar + "\nMONSTER ANDA MATI KELAPARAN!\n" putus
+    
+    pulang layar
+putus
+
+^^ 🔥 EKSTRAK SIFAT MONSTER KE VARIABEL DATAR (Mencegah Bug Otak Ganda)
+takdir.soft stat_lapar = monster.lapar
+takdir.soft stat_bahagia = monster.bahagia
+takdir.soft stat_umur = monster.umur
+
+^^ SUNTIKAN PERTAMA KALI
+takdir.soft teks_awal = rakit_teks_layar(stat_lapar, stat_bahagia, stat_umur)
+retas_memori_dom(ui_game, "layar_monster", teks_awal)
+
+^^ 3. SIKLUS GAME ENGINE (100ms per loop)
+siklus selama game_hidup == 1 maka
+    takdir.soft aksi = tampilkan_tui(ui_game, kosmetik, 100)  
+    takdir.soft perlu_render = 0
+
+    jika aksi == "btn_makan" maka
+        stat_lapar = stat_lapar - 2
+        perlu_render = 1
+    putus
+
+    jika aksi == "PANAH_KIRI" maka
+        stat_lapar = stat_lapar - 2
+        perlu_render = 1
+    putus
+
+    jika aksi == "btn_main" maka
+        stat_bahagia = stat_bahagia + 3
+        stat_lapar = stat_lapar + 1
+        perlu_render = 1
+    putus
+
+    jika aksi == "PANAH_KANAN" maka
+        stat_bahagia = stat_bahagia + 3
+        stat_lapar = stat_lapar + 1
+        perlu_render = 1
+    putus
+
+    jika aksi == "btn_keluar" maka game_hidup = 0 putus
+    jika aksi == "TUTUP_PAKSA" maka game_hidup = 0 putus
+
+    jika aksi == "DETAK" maka
+        detak_waktu = detak_waktu + 1
+        jika detak_waktu > 20 maka
+            stat_lapar = stat_lapar + 1
+            stat_bahagia = stat_bahagia - 1
+            stat_umur = stat_umur + 1
+            detak_waktu = 0
+            perlu_render = 1
+        putus
+    putus
+
+    jika perlu_render == 1 maka
+        ^^ 🔥 CIPTAKAN ULANG OBJEK DARI NOL AGAR SINKRON, LALU EKSPOR!
+        monster = { "nama": "UNULZILLA", "lapar": stat_lapar, "bahagia": stat_bahagia, "umur": stat_umur }
+        ekspor(monster, "monster.imah")
+        
+        ^^ 🔥 RETAS RAM GLOBAL, LAYAR AKAN BERUBAH DETIK ITU JUGA!
+        takdir.soft teks_baru = rakit_teks_layar(stat_lapar, stat_bahagia, stat_umur)
+        retas_memori_dom(ui_game, "layar_monster", teks_baru)
+    putus
+putus
+
+pasrah(ui_game)
+pasrah(kosmetik)
+ketik("Game Disimpan. Sampai jumpa!")
+pergi

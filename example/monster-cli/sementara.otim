@@ -3,11 +3,13 @@
     <judul> "--- UNULZILLA ---" </judul>
     <areanulis id="layar_monster"> "
 
-   /\_/\
-  ( O _ O )
-   = ^ =
+/\_/\
+  ( x _ x )
+  = ^ =
 
-Lapar: 10 | Bahagia: 10 | Umur: 0
+Lapar: 31 | Bahagia: 33 | Umur: 25
+
+MONSTER ANDA MATI KELAPARAN!
 " </areanulis>
     <tombol id="btn_makan"> "[PANAH KIRI] BERI MAKAN" </tombol>
     <tombol id="btn_main"> "[PANAH KANAN] AJAK MAIN" </tombol>

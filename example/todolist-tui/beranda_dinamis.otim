@@ -1,0 +1,10 @@
+#!datang
+<wadah id="utama">
+    <judul> "--- CATATAN TUGAS (TODO) ---" </judul>
+    <masukan id="input_tugas" tipe="teks"> "" </masukan>
+    <tombol id="btn_tambah"> "[+] TAMBAH TUGAS" </tombol>
+    <areanulis id="daftar_tampilan"> "- beli ayam                                     - beli madu                                     - beli motor                                    - makan babi                                    - sate kambing                                  - masak saksang babi                            - beli rempah-rempah                            - beli makanan kucing                           - masak tempe orek                              " </areanulis>
+    <tombol id="btn_hapus"> "[-] HAPUS SEMUA" </tombol>
+    <tombol id="btn_keluar"> "[X] KELUAR" </tombol>
+</wadah>
+pergi!#
