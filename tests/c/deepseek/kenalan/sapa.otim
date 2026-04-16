@@ -3,7 +3,7 @@
     <teks>=== PENYAPA UNUL ===</teks>
     <wadah id="kartu">
         <teks>Masukkan nama Anda:</teks>
-        <masukan id="input_nama"></masukan>
+        <masukan id="input_nama"> </masukan>   <!-- ⬅️ Tambahkan spasi di sini -->
         <tombol id="tombol_sapa">Sapa Sekarang</tombol>
         <teks id="teks_output"></teks>
     </wadah>

@@ -1,9 +1,9 @@
-@wadah#utama {
+@wadah.utama {
     lebar: 70;
     susunan: tengah;
 }
 
-@wadah#kartu {
+@wadah.kartu {
     lebar: 60;
     tinggi: 15;
     batas: ganda;

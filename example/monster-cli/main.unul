@@ -1,5 +1,3 @@
-^^ File: main.unul
-
 datang
 untuk array.dinamis
 
@@ -25,56 +23,77 @@ otim_str = otim_str + '</wadah>\npergi!#'
 tulis("ui_awal.otim", otim_str)
 takdir.soft ui_game = muat_otim("ui_awal.otim")
 
-^^ 🟢 2. FUNGSI INJEKSI DOM (Memanfaatkan Sihir C Anda!)
-ciptakan fungsi perbarui_layar(m) maka
+^^ 🟢 2. FUNGSI HANYA MERAKIT TEKS (BUKAN MERETAS DOM)
+ciptakan fungsi rakit_teks_layar(m) maka
     takdir.soft wajah = "( O _ O )"
     jika m.lapar > 20 maka wajah = "( T _ T )" putus
     jika m.bahagia > 20 maka wajah = "( ^ _ ^ )" putus
     jika m.lapar > 30 maka wajah = "( x _ x )" putus
 
-    ^^ Susun teks (Tidak usah repot-repot sanitize <> karena kita pakai C Memory Injection)
-    takdir.soft layar = "\n\n/\\_/\\\n" + wajah + "\n= ^ =\n\n"
+    takdir.soft layar = "\n\n/\\_/\\\n  " + wajah + "\n  = ^ =\n\n"
     layar = layar + "Lapar: " + m.lapar + " | Bahagia: " + m.bahagia + " | Umur: " + m.umur + "\n"
     jika m.lapar > 30 maka layar = layar + "\nMONSTER ANDA MATI KELAPARAN!\n" putus
     
-    ^^ 🔥 MEMANGGIL FUNGSI C BUATAN ANDA UNTUK MENGGANTI ISI VARIABEL ui_game!
-    retas_memori_dom(ui_game, "layar_monster", layar)
+    pulang layar
 putus
 
-^^ Suntik pertama kali
-perbarui_layar(monster)
+^^ 🔥 RETAS DOM DI GLOBAL! (Langsung kena jantungnya)
+takdir.soft teks_awal = rakit_teks_layar(monster)
+retas_memori_dom(ui_game, "layar_monster", teks_awal)
 
 ^^ 3. SIKLUS GAME ENGINE (100ms per loop)
 siklus selama game_hidup == 1 maka
-    ^^ 🟢 LANGSUNG TANGKAP AKSI SEBAGAI TEKS! (Anti OOM!)
-    takdir.soft aksi = tampilkan_tui(ui_game, kosmetik, 100) 
+    takdir.soft aksi = tampilkan_tui(ui_game, kosmetik, 100)  
     takdir.soft perlu_render = 0
 
-    jika aksi == "btn_makan" atau aksi == "PANAH_KIRI" maka
-        jika monster.lapar > 0 maka monster.lapar = monster.lapar - 2 putus
+    ^^ 🟢 LOGIKA DATAR MUTLAK DENGAN ASSIGNMENT BERSARANG
+    jika aksi == "btn_makan" maka
+        monster.lapar = monster.lapar - 2
         perlu_render = 1
-    lain jika aksi == "btn_main" atau aksi == "PANAH_KANAN" maka
+    putus
+
+    jika aksi == "PANAH_KIRI" maka
+        monster.lapar = monster.lapar - 2
+        perlu_render = 1
+    putus
+
+    jika aksi == "btn_main" maka
         monster.bahagia = monster.bahagia + 3
         monster.lapar = monster.lapar + 1
         perlu_render = 1
-    lain jika aksi == "btn_keluar" atau aksi == "TUTUP_PAKSA" maka
+    putus
+
+    jika aksi == "PANAH_KANAN" maka
+        monster.bahagia = monster.bahagia + 3
+        monster.lapar = monster.lapar + 1
+        perlu_render = 1
+    putus
+
+    jika aksi == "btn_keluar" maka
         game_hidup = 0
-    lain jika aksi == "DETAK" maka
-        jika monster.lapar <= 30 maka
-            detak_waktu = detak_waktu + 1
-            jika detak_waktu > 20 maka
-                monster.lapar = monster.lapar + 1
-                monster.bahagia = monster.bahagia - 1
-                monster.umur = monster.umur + 1
-                detak_waktu = 0
-                perlu_render = 1
-            putus
+    putus
+
+    jika aksi == "TUTUP_PAKSA" maka
+        game_hidup = 0
+    putus
+
+    jika aksi == "DETAK" maka
+        detak_waktu = detak_waktu + 1
+        jika detak_waktu > 20 maka
+            monster.lapar = monster.lapar + 1
+            monster.bahagia = monster.bahagia - 1
+            monster.umur = monster.umur + 1
+            detak_waktu = 0
+            perlu_render = 1
         putus
     putus
 
     jika perlu_render == 1 maka
         ekspor(monster, "monster.imah")
-        perbarui_layar(monster) ^^ Suntik C langsung
+        
+        ^^ 🔥 RETAS DOM DI GLOBAL KEMBALI AGAR LAYAR BERUBAH!
+        takdir.soft teks_baru = rakit_teks_layar(monster)
+        retas_memori_dom(ui_game, "layar_monster", teks_baru)
     putus
 putus
 

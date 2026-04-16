@@ -63,3 +63,78 @@ Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa
    Saran: Jumlah 'kali' pada effort harus berupa angka mutlak lebih dari 0.
 =================================
 
+=== [WAKTU KIAMAT: 1776258677] ===
+🚨 [app.unul: Baris 119:33] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: aksi
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1776258682] ===
+🚨 [app.unul: Baris 119:33] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: aksi
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1776258813] ===
+🚨 [app.unul: Baris 119:33] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: aksi
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1776258879] ===
+🚨 [app.unul: Baris 119:33] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: aksi
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+
+=== [WAKTU KIAMAT: 1776261430] ===
+🚨 [app.unul: Baris 119:33] KIAMAT SINTAKSIS: Domain bersarang atau properti tidak ditemukan!
+   Kode Penyebab: aksi
+   Saran: Domain bersarang adalah fitur untuk memanggil isi objek menggunakan tanda titik (.).
+Mesin UNUL kini mendukung akses lintas dimensi tanpa batas (contoh: bos.gaji atau planet[1].nama).
+
+Penyebab Kiamat ini:
+1. Variabel induk belum diciptakan di RAM, ATAU
+2. Variabel induk bukan berwujud objek { }, ATAU
+3. Properti yang Anda cari tidak ada di dalam objek tersebut, ATAU
+4. Anda mencoba menembus indeks array yang kosong atau salah sebelum tanda titik.
+
+💡 SOLUSI: Pastikan struktur array ata database atau kode Anda benar. Gunakan ketik() untuk memeriksa wujud asli dari variabel induk Anda.
+=================================
+

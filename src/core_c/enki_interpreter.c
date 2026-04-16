@@ -181,7 +181,7 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
         if (teks_input_idx != -1) { hancurkan_objek(elemen->nilai.objek_peta.konten[teks_input_idx], 1); elemen->nilai.objek_peta.konten[teks_input_idx] = ciptakan_teks(teks_baru, 1); }
         if (teks_dalam_idx != -1) { hancurkan_objek(elemen->nilai.objek_peta.konten[teks_dalam_idx], 1); elemen->nilai.objek_peta.konten[teks_dalam_idx] = ciptakan_teks(teks_baru, 1); }
         
-        // 🟢 SUNTIK TEKS NODE ANAK SECARA MUTLAK (Hancurkan Hantu 'teks_dalam' dan 'isi' di Anak!)
+        // 🟢 SUNTIK TEKS NODE ANAK SECARA MUTLAK (Hancurkan Hantu 'teks_dalam' di Anak!)
         if (anak_anak && anak_anak->tipe == ENKI_ARRAY && anak_anak->panjang > 0) {
             EnkiObject* anak_pertama = anak_anak->nilai.array_elemen[0];
             if (anak_pertama && anak_pertama->tipe == ENKI_OBJEK) {
@@ -190,6 +190,7 @@ void sihir_suntik_dom(EnkiObject* elemen, const char* target_id, const char* tek
                         hancurkan_objek(anak_pertama->nilai.objek_peta.konten[j], 1);
                         anak_pertama->nilai.objek_peta.konten[j] = ciptakan_teks(teks_baru, 1);
                     }
+                    // 🟢 HANCURKAN JUGA TEKS_DALAM AGAR TUI TIDAK TERKECOH!
                     if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "teks_dalam") == 0) {
                         hancurkan_objek(anak_pertama->nilai.objek_peta.konten[j], 1);
                         anak_pertama->nilai.objek_peta.konten[j] = ciptakan_teks(teks_baru, 1);
@@ -3294,23 +3295,34 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             EnkiObject* obj_aksi = tampilkan_tui(arg_ui, arg_gaya, timeout_ms);
             if (arg_gaya) hancurkan_objek(arg_gaya, ram->status_array_dinamis);
 
-            // 2. BENTUK OBJEK PAYLOAD (STATELESS UI)
-            EnkiObject* obj_kembalian = ciptakan_objek_peta(2, ram->status_array_dinamis);
-            obj_kembalian->panjang = 2;
+            // =======================================================
+            // 🟢 LOGIKA HYBRID ARSITEK (ADAPTASI MEMORI OTOMATIS)
+            // =======================================================
+            if (ram->status_array_dinamis == 1) {
+                // 🚀 JALUR DINAMIS (Monster CLI / Game Loop)
+                // Anti OOM! Hanya kembalikan Teks Aksi murni, buang UI dari RAM sementara!
+                if (arg_ui) hancurkan_objek(arg_ui, ram->status_array_dinamis);
+                return obj_aksi;
+            } 
+            else {
+                // 🐢 JALUR STATIS DEFAULT (Todo-List)
+                // Kembalikan Peta Lengkap {"aksi", "ui"} agar user bisa baca form input!
+                EnkiObject* obj_kembalian = ciptakan_objek_peta(2, ram->status_array_dinamis);
+                obj_kembalian->panjang = 2;
 
-            obj_kembalian->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi", ram->status_array_dinamis);
-            obj_kembalian->nilai.objek_peta.konten[0] = obj_aksi; 
+                obj_kembalian->nilai.objek_peta.kunci[0] = ciptakan_teks("aksi", ram->status_array_dinamis);
+                obj_kembalian->nilai.objek_peta.konten[0] = obj_aksi; 
 
-            obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui", ram->status_array_dinamis);
-            
-            // 🟢 SOLUSI MUTLAK ANTI-OOM (DEEP COPY DOM)
-            // Memastikan DOM asli tidak hancur saat variabel 'form' ditimpa!
-            obj_kembalian->nilai.objek_peta.konten[1] = ciptakan_salinan_objek(arg_ui, ram->status_array_dinamis); 
-            
-            // Bersihkan arg_ui mentah
-            if (arg_ui) hancurkan_objek(arg_ui, ram->status_array_dinamis);
-            
-            return obj_kembalian;
+                obj_kembalian->nilai.objek_peta.kunci[1] = ciptakan_teks("ui", ram->status_array_dinamis);
+                
+                // Deep Copy UI agar memori TUI tidak hilang saat variabel UNUL ditimpa
+                obj_kembalian->nilai.objek_peta.konten[1] = ciptakan_salinan_objek(arg_ui, ram->status_array_dinamis); 
+                
+                // Bersihkan arg_ui mentah
+                if (arg_ui) hancurkan_objek(arg_ui, ram->status_array_dinamis);
+                
+                return obj_kembalian;
+            }
         }
 
         // =======================================================

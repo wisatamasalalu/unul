@@ -321,7 +321,13 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
                 int w_area = lebar_aktual - 4;
                 if (w_area > 0) {
                     tui_cetak_wrap(x_aktual+2, y_anak, w_area, teks_final, lantai_terminal, perataan);
-                    y_anak += (strlen(teks_final) / w_area);
+                    
+                    // 🟢 HITUNG JUMLAH ENTER (\n) AGAR TOMBOL TIDAK MENIMPA MONSTER!
+                    int num_lines = 0;
+                    for (int i = 0; teks_final[i] != '\0'; i++) {
+                        if (teks_final[i] == '\n') num_lines++;
+                    }
+                    y_anak += num_lines + (strlen(teks_final) / w_area);
                 }
             } else {
                 printf("%s", teks_final); 
@@ -395,10 +401,11 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
     tui_aktifkan_raw_mode(timeout_ms);
     signal(SIGINT, tangkap_kiamat_sigint);
 
-    // 🟢 AKTIFKAN MOUSE TRACKING PENUH
+    // 🟢 AKTIFKAN LAYAR ALTERNATIF (1049h) & MOUSE TRACKING PENUH
     printf("\033[?1049h\033[?25l\033[?1003h\033[?1006h"); 
 
-    int berjalan = 1; int scroll_y = 0; int indeks_fokus = 0; int total_interaktif = 0;
+    // 🟢 STATIC mencegah fokus kembali ke atas saat layar berdetak (Anti-Flicker!)
+    int berjalan = 1; int scroll_y = 0; static int indeks_fokus = 0; int total_interaktif = 0;
     EnkiObject* elemen_fokus_saat_ini = NULL; char* id_yang_diklik = NULL; 
     long long waktu_klik_terakhir = 0; int indeks_klik_terakhir = -1;
     static char buffer_id_dinamis[256]; 
@@ -455,24 +462,40 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
             }
             else if (c == 9) { if (total_interaktif > 0) indeks_fokus = (indeks_fokus + 1) % total_interaktif; } 
             else if (c == '\033') { 
-                // 🟢 SOLUSI MUTLAK ESC (Anti-Freeze untuk Aplikasi Statis & Dinamis)
-                int old_vtime = terminal_lama.c_cc[VTIME];
-                int old_vmin  = terminal_lama.c_cc[VMIN];
-                
                 struct termios temp_term;
-                tcgetattr(STDIN_FILENO, &temp_term);
-                temp_term.c_cc[VMIN] = 0;
-                temp_term.c_cc[VTIME] = 0; // Mode Intip: Jangan tunggu
-                tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
+                int old_vmin = 0;
+                int old_vtime = 0;
+                int is_blocking = (timeout_ms == 0); // Cek apakah ini aplikasi Statis
+                
+                // 🟢 HANYA ubah terminal jika ini Todo-List (Statis).
+                // Jika ini Game Monster (Dinamis), biarkan Buffer Linux mengalir murni!
+                if (is_blocking) {
+                    tcgetattr(STDIN_FILENO, &temp_term);
+                    old_vmin = temp_term.c_cc[VMIN];
+                    old_vtime = temp_term.c_cc[VTIME];
+                    temp_term.c_cc[VMIN] = 0;
+                    temp_term.c_cc[VTIME] = 1; // Mode Intip 100ms
+                    tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
+                }
 
-                char seq[4];
-                int bytes_read = read(STDIN_FILENO, seq, 2);
+                char seq[3] = {0};
+                int is_arrow = 0;
+                
+                // 🟢 Tangkap Ekor Panah / Mouse yang meluncur di Buffer
+                if (read(STDIN_FILENO, &seq[0], 1) == 1) {
+                    if ((seq[0] == '[' || seq[0] == 'O') && read(STDIN_FILENO, &seq[1], 1) == 1) {
+                        is_arrow = 1;
+                    }
+                }
 
-                temp_term.c_cc[VMIN] = old_vmin;
-                temp_term.c_cc[VTIME] = old_vtime;
-                tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
+                // Kembalikan ke mode awal HANYA untuk aplikasi Statis
+                if (is_blocking) {
+                    temp_term.c_cc[VMIN] = old_vmin;
+                    temp_term.c_cc[VTIME] = old_vtime;
+                    tcsetattr(STDIN_FILENO, TCSANOW, &temp_term);
+                }
 
-                if (bytes_read == 2 && seq[0] == '[') {
+                if (is_arrow) {
                     // 🟢 INI ADALAH PANAH / MOUSE!
                     if (seq[1] == 'A') { if (timeout_ms > 0) { id_yang_diklik = "PANAH_ATAS"; berjalan = 0; } else { scroll_y++; } } 
                     else if (seq[1] == 'B') { if (timeout_ms > 0) { id_yang_diklik = "PANAH_BAWAH"; berjalan = 0; } else { scroll_y--; } } 
@@ -509,7 +532,7 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
                         }
                     }
                 } else {
-                    // 🟢 MURNI TOMBOL ESC KEYBOARD!
+                    // 🟢 ESC DITEKAN MURNI!
                     id_yang_diklik = "TUTUP_PAKSA";
                     berjalan = 0;
                 }
@@ -541,9 +564,18 @@ EnkiObject* tampilkan_tui(EnkiObject* ui_root, EnkiObject* gaya_root, int timeou
         else { id_yang_diklik = "DETAK"; berjalan = 0; }
     } 
     
+    // 🟢 TUTUP LAYAR ALTERNATIF (1049l)
     printf("\033[?1006l\033[?1003l\033[?1000l\033[?1049l\033[?25h"); 
     tui_matikan_raw_mode();
     
-    // 🟢 HANYA MENGEMBALIKAN TEKS AKSI! (Bukan Peta Objek Penuh)
+    // ========================================================
+    // 🟢 RADAR DEBUG: Merekam apa yang sebenarnya dilihat oleh C!
+    // ========================================================
+    FILE* radar = fopen("radar_c.log", "a");
+    if (radar) {
+        fprintf(radar, "[RADAR C] Mengirim aksi ke UNUL: %s\n", id_yang_diklik ? id_yang_diklik : "TUTUP_PAKSA");
+        fclose(radar);
+    }
+    
     return id_yang_diklik ? ciptakan_teks(id_yang_diklik, 1) : ciptakan_teks("TUTUP_PAKSA", 1);
 }

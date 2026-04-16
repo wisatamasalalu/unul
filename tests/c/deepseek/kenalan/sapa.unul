@@ -6,23 +6,25 @@ takdir.soft tema = muat_snul("gaya.snul")
 takdir.soft sedang_berjalan = 1
 
 siklus selama sedang_berjalan == 1 maka
-    takdir.soft hasil = tampilkan_tui(ui, tema, 0)
+    takdir.soft hasil = tampilkan_tui(ui, tema, 100)  ^^ ⬅️ Timeout 100ms
 
     cocokkan hasil["aksi"] maka
         kasus "tombol_sapa" maka
-            ^^ Telusuri hierarki: wadah utama -> wadah kartu -> masukan input_nama
-            takdir.soft wadah_kartu = ui["anak_anak"][1]          ^^ indeks 1 = wadah id="kartu"
-            takdir.soft elemen_masukan = wadah_kartu["anak_anak"][1]  ^^ indeks 1 = <masukan>
-            takdir.soft nama = elemen_masukan["teks_input"]
+            ^^ Ambil nilai dari node teks anak pertama
+            takdir.soft nama = ""
+            coba maka
+                takdir.soft wadah_kartu = ui["anak_anak"][2]          ^^ anak ke-2 (setelah <teks> judul)
+                takdir.soft elemen_masukan = wadah_kartu["anak_anak"][2] ^^ anak ke-2 (setelah <teks> "Masukkan nama...")
+                nama = elemen_masukan["anak_anak"][1]["isi"]          ^^ node teks pertama
+            tabu melanggar e maka
+                nama = ""  ^^ Jika belum ada input
+            pasrah
 
-            ^^ Jika kosong, beri nilai default
             jika panjang(nama) == 0 maka
                 nama = "Tanpa Nama"
             putus
 
             takdir.soft sapaan = "Halo, " + nama + "! Selamat datang di UNUL."
-
-            ^^ Suntik teks ke elemen output
             retas_memori_dom(ui, "teks_output", sapaan)
         putus
         kasus "TUTUP_PAKSA" maka
