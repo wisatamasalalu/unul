@@ -426,51 +426,53 @@ void tui_layar_alternatif_tutup() {
     fflush(stdout);
 }
 
+// 🟢 MENGGUNAKAN ENKI_MEMORY SECARA MUTLAK
 char* tui_layar_baca_tombol() {
     struct termios oldt, newt;
     int ch = -1;
     
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO); // Matikan buffer dan echo layar
-    newt.c_cc[VMIN] = 0;  // 🟢 SIHIR NON-BLOCKING MUTLAK: Jangan tunggu user!
-    newt.c_cc[VTIME] = 0; // Langsung jalan terus!
+    newt.c_lflag &= ~(ICANON | ECHO); 
+    newt.c_cc[VMIN] = 0;  
+    newt.c_cc[VTIME] = 0; 
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
     
     unsigned char seq[3];
     if (read(STDIN_FILENO, &seq[0], 1) == 1) {
-        if (seq[0] == '\033') { // Menangkap ESC atau Panah
+        if (seq[0] == '\033') { 
             if (read(STDIN_FILENO, &seq[1], 1) == 1 && read(STDIN_FILENO, &seq[2], 1) == 1) {
                 if (seq[1] == '[' || seq[1] == 'O') {
-                    if (seq[2] == 'A') ch = 1001; // PANAH_ATAS
-                    else if (seq[2] == 'B') ch = 1002; // PANAH_BAWAH
-                    else if (seq[2] == 'C') ch = 1003; // PANAH_KANAN
-                    else if (seq[2] == 'D') ch = 1004; // PANAH_KIRI
+                    if (seq[2] == 'A') ch = 1001; 
+                    else if (seq[2] == 'B') ch = 1002; 
+                    else if (seq[2] == 'C') ch = 1003; 
+                    else if (seq[2] == 'D') ch = 1004; 
                 }
             } else {
-                ch = 27; // Murni ESC
+                ch = 27; 
             }
         } else {
-            ch = seq[0]; // Karakter biasa (a, b, w, s, spasi)
+            ch = seq[0]; 
         }
     }
     
     // Kembalikan terminal ke wujud asalnya agar tidak rusak
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     
-    // Terjemahkan ke Teks Murni (String C)
-    if (ch == 1001) return strdup("PANAH_ATAS");
-    if (ch == 1002) return strdup("PANAH_BAWAH");
-    if (ch == 1003) return strdup("PANAH_KANAN");
-    if (ch == 1004) return strdup("PANAH_KIRI");
-    if (ch == 27) return strdup("ESC");
+    // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS DAN ENKI_ALOKASI AGAR TUNDUK PADA KOLAM MEMORI!
+    // Kita gunakan mode dinamis (1) agar mudah dibersihkan nanti.
+    if (ch == 1001) return enki_salin_teks("PANAH_ATAS", 1);
+    if (ch == 1002) return enki_salin_teks("PANAH_BAWAH", 1);
+    if (ch == 1003) return enki_salin_teks("PANAH_KANAN", 1);
+    if (ch == 1004) return enki_salin_teks("PANAH_KIRI", 1);
+    if (ch == 27) return enki_salin_teks("ESC", 1);
     if (ch != -1) {
-        char* buf = (char*)malloc(2);
+        char* buf = (char*)enki_alokasi(2, 1);
         buf[0] = (char)ch;
         buf[1] = '\0';
         return buf;
     }
-    return NULL; // Kosong jika tidak ada tombol ditekan
+    return NULL; 
 }
 
 // ========================================================

@@ -3232,7 +3232,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             
             if (hasil_mentah != NULL) {
                 hasil = ciptakan_teks(hasil_mentah, ram->status_array_dinamis);
-                free(hasil_mentah); // Bebaskan malloc dari tui_renderer
+                enki_bebas(hasil_mentah, 1); // 🟢 SUNTIKAN: GANTI free() MENJADI enki_bebas()
             }
             return hasil;
         }
