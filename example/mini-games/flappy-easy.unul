@@ -1,0 +1,123 @@
+^^ GAME FLAPPY KOTAK SAKTI (DENGAN PAUSE & RESTART)
+datang
+untuk array.dinamis
+
+takdir.hard anjing = {}
+anjing = "lucu"
+jika anjing == "lucu" maka
+    anjing.lucu = "Mulai"
+    jika anjing.lucu == tanya("Ketik 'Mulai' untuk memainkan game! : ") maka
+    lain maka
+        tanya("Ketik 'Mulai' untuk memainkan game! : ")
+        terus
+    putus
+putus
+
+layar_alternatif_buka()
+
+takdir.soft aplikasi_hidup = 1
+
+siklus selama aplikasi_hidup == 1 maka
+    takdir.soft game_hidup = 1
+    takdir.soft burung_y = 10
+    takdir.soft kecepatan_y = 0
+    takdir.soft skor = 0
+    takdir.soft pipa_x = 70
+    takdir.soft celah_y = acak(5, 15)
+    takdir.soft pause = 0
+
+    siklus selama game_hidup == 1 maka
+        takdir.soft tombol = layar_baca_tombol()
+        
+        jika tombol == "ESC" maka
+            game_hidup = 0
+            aplikasi_hidup = 0
+        lain jika tombol == "p" atau tombol == "P" maka
+            ^^ Toggle Pause
+            jika pause == 1 maka pause = 0 lain maka pause = 1 putus
+        putus
+        
+        jika pause == 1 maka
+            layar_cetak(35, 10, " PAUSE ", "kuning")
+            jeda(100)
+            terus ^^ Lewati logika gravitasi dan render ulang
+        putus
+        
+        jika tombol == "w" atau tombol == "PANAH_ATAS" atau tombol == " " maka
+            ^^ Lompat (Melawan gravitasi)
+            kecepatan_y = -3
+        putus
+
+        layar_bersih()
+        
+        ^^ 1. Fisika Gravitasi
+        kecepatan_y = kecepatan_y + 1
+        burung_y = burung_y + kecepatan_y
+        
+        ^^ 2. Gerak Pipa
+        pipa_x = pipa_x - 3
+        jika pipa_x < 2 maka
+            pipa_x = 75
+            celah_y = acak(6, 14)
+            skor = skor + 1
+        putus
+        
+        ^^ 3. Cek Kematian
+        jika burung_y >= 20 atau burung_y <= 1 maka game_hidup = 0 putus
+        jika pipa_x <= 13 dan pipa_x >= 8 maka
+            jika burung_y <= celah_y - 2 atau burung_y >= celah_y + 2 maka game_hidup = 0 putus
+        putus
+        
+        ^^ 4. Gambar Langit & Tanah
+        takdir.soft i = 1
+        siklus selama i <= 80 maka
+            layar_piksel(i, 1, "garis_h", "cyan")
+            layar_piksel(i, 20, "garis_h", "hijau")
+            i = i + 1
+        putus
+        
+        ^^ 5. Gambar Pipa
+        takdir.soft p = 2
+        siklus selama p < 20 maka
+            jika p <= celah_y - 3 atau p >= celah_y + 3 maka
+                layar_piksel(pipa_x, p, "penuh", "kuning")
+                layar_piksel(pipa_x + 1, p, "penuh", "kuning")
+            putus
+            p = p + 1
+        putus
+        
+        ^^ 6. Gambar Burung
+        layar_piksel(10, burung_y, "penuh", "merah")
+        
+        layar_cetak(2, 22, "Skor: " + skor, "putih")
+        layar_cetak(2, 23, "W/Spasi: Terbang | P: Pause | ESC: Keluar", "cyan")
+        
+        ^^ 7. Diperlambat agar manusiawi (dari 100ms ke 150ms)
+        jeda(150) 
+    putus
+    
+    ^^ ==========================================
+    ^^ LAYAR GAME OVER DI DALAM GAME
+    ^^ ==========================================
+    jika aplikasi_hidup == 1 maka
+        layar_bersih()
+        layar_cetak(35, 10, "GAME OVER!", "merah")
+        layar_cetak(35, 11, "Skor Anda: " + skor, "putih")
+        layar_cetak(22, 13, "Tekan SPASI untuk main lagi, ESC untuk keluar.", "kuning")
+        
+        takdir.soft nunggu = 1
+        siklus selama nunggu == 1 maka
+            takdir.soft t_akhir = layar_baca_tombol()
+            jika t_akhir == "ESC" maka
+                nunggu = 0
+                aplikasi_hidup = 0
+            lain jika t_akhir == "\n" atau t_akhir == "\r" atau t_akhir == "ENTER" atau t_akhir == " " maka
+                nunggu = 0 ^^ Keluar dari siklus tunggu, dan Loop Utama akan me-restart game!
+            putus
+            jeda(100)
+        putus
+    putus
+putus
+
+layar_alternatif_tutup()
+pergi

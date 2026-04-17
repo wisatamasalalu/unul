@@ -1,0 +1,5 @@
+@wadah.utama { lebar: 36; warna_teks: cyan; bingkai: ganda; }
+@wadah.baris { susunan: tengah; batas: polos; tinggi: 4; }
+@tombol { lebar: 10; tinggi: 4; warna_latar: #333333; warna_teks: putih; }
+@tombol.menang { warna_latar: hijau; warna_teks: putih; }
+@judul { warna_teks: kuning; susunan: tengah; }

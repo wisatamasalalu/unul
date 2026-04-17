@@ -1,0 +1,84 @@
+^^ GAME FLAPPY KOTAK SAKTI
+datang
+untuk array.dinamis
+
+layar_alternatif_buka()
+
+takdir.soft game_hidup = 1
+takdir.soft burung_y = 10
+takdir.soft kecepatan_y = 0
+takdir.soft skor = 0
+
+^^ Pipa
+takdir.soft pipa_x = 70
+takdir.soft celah_y = acak(5, 15)
+
+siklus selama game_hidup == 1 maka
+    layar_bersih()
+    
+    ^^ 1. Fisika Gravitasi (Jatuh ke bawah)
+    kecepatan_y = kecepatan_y + 1
+    burung_y = burung_y + kecepatan_y
+    
+    ^^ 2. Kontrol Keyboard (Lompat)
+    takdir.soft tombol = layar_baca_tombol()
+    jika tombol == "w" atau tombol == "PANAH_ATAS" atau tombol == " " maka
+        ^^ Hentak ke atas melawan gravitasi
+        kecepatan_y = -3
+    lain jika tombol == "ESC" maka
+        game_hidup = 0
+    putus
+    
+    ^^ 3. Gerak Pipa ke Kiri
+    pipa_x = pipa_x - 3
+    jika pipa_x < 2 maka
+        pipa_x = 75
+        celah_y = acak(6, 14)
+        skor = skor + 1
+    putus
+    
+    ^^ 4. Cek Kematian (Jatuh ke Tanah atau Nabrak Atap)
+    jika burung_y >= 20 atau burung_y <= 1 maka
+        game_hidup = 0
+    putus
+    
+    ^^ 5. Cek Kematian (Nabrak Pipa)
+    jika pipa_x <= 13 dan pipa_x >= 8 maka
+        ^^ Jika burung berada DI LUAR celah aman
+        jika burung_y <= celah_y - 2 atau burung_y >= celah_y + 2 maka
+            game_hidup = 0
+        putus
+    putus
+    
+    ^^ 6. Gambar Langit (Cyan) & Tanah (Hijau)
+    takdir.soft i = 1
+    siklus selama i <= 80 maka
+        layar_piksel(i, 1, "garis_h", "cyan")
+        layar_piksel(i, 20, "garis_h", "hijau")
+        i = i + 1
+    putus
+    
+    ^^ 7. Gambar Pipa Atas & Bawah
+    takdir.soft p = 2
+    siklus selama p < 20 maka
+        jika p <= celah_y - 3 atau p >= celah_y + 3 maka
+            layar_piksel(pipa_x, p, "penuh", "kuning")
+            layar_piksel(pipa_x + 1, p, "penuh", "kuning")
+        putus
+        p = p + 1
+    putus
+    
+    ^^ 8. Gambar Burung (Pemain)
+    layar_piksel(10, burung_y, "penuh", "merah")
+    
+    layar_cetak(2, 22, "Skor: " + skor, "putih")
+    layar_cetak(2, 23, "TEKAN 'W' ATAU SPASI UNTUK TERBANG!", "cyan")
+    
+    ^^ Frame Rate / Game Speed
+    jeda(100)
+putus
+
+layar_alternatif_tutup()
+ketik("GAME OVER! Burung Anda Menabrak Sesuatu.")
+ketik("Skor Akhir Anda: " + skor)
+pergi

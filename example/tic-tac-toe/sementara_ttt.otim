@@ -1,0 +1,18 @@
+#!datang
+<wadah id="utama">
+    <judul> "--- TIC TAC TOE ---" </judul>
+    <judul> "GILIRAN: X (Lawan Bot)" </judul>
+    <wadah id="baris">
+        <tombol id="1"> " - " </tombol>        <tombol id="2"> " - " </tombol>        <tombol id="3"> " - " </tombol>
+    </wadah>
+    <wadah id="baris">
+        <tombol id="4"> " - " </tombol>        <tombol id="5"> " - " </tombol>        <tombol id="6"> " - " </tombol>
+    </wadah>
+    <wadah id="baris">
+        <tombol id="7"> " - " </tombol>        <tombol id="8"> " - " </tombol>        <tombol id="9"> " - " </tombol>
+    </wadah>
+    <tombol id="RESET"> "[ ULANG GAME ]" </tombol>
+    <tombol id="GANTI_MODE"> "[ GANTI MODE BOT/PvP ]" </tombol>
+    <tombol id="KELUAR"> "[ KELUAR ]" </tombol>
+</wadah>
+pergi!#

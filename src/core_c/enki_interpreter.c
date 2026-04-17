@@ -291,6 +291,8 @@ void sihir_semayamkan_imah(EnkiObject* obj, FILE* fp, int level) {
 
 // Membangkitkan RAM Induk (OS Utama)
 EnkiRAM inisialisasi_ram() {
+    srand(time(NULL)); // 🟢 SUNTIKAN BENIH WAKTU AGAR ACAK BENAR-BENAR ACAK!
+
     EnkiRAM ram;
     ram.kapasitas = 10;
     ram.jumlah = 0;
@@ -2093,7 +2095,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         // =======================================================
         // L. ALAM RAHASIA (Menarik Data dari Kavling .anu)
         // =======================================================
-        else if (strcmp(node->nilai_teks, "secret") == 0 || strcmp(node->nilai_teks, "tarik_rahasia") == 0) {
+        else if (strcmp(node->nilai_teks, "secret") == 0 || strcmp(node->nilai_teks, "tarik_rahasia") == 0 || strcmp(node->nilai_teks, "tarik_anu") == 0) {
             if (node->jumlah_anak < 1) return ciptakan_kosong(ram->status_array_dinamis);
             
             EnkiObject* obj_kunci = evaluasi_ekspresi(node->anak_anak[0], ram);
@@ -3183,18 +3185,20 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
         }
 
         if (strcmp(node->nilai_teks, "layar_cetak") == 0) {
-            if (node->jumlah_anak < 3) return ciptakan_kosong(ram->status_array_dinamis);
+            if (node->jumlah_anak < 4) return ciptakan_kosong(ram->status_array_dinamis);
             EnkiObject* obj_x = evaluasi_ekspresi(node->anak_anak[0], ram);
             EnkiObject* obj_y = evaluasi_ekspresi(node->anak_anak[1], ram);
             EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[2], ram);
+            EnkiObject* obj_warna = evaluasi_ekspresi(node->anak_anak[3], ram);
             
-            if (obj_x && obj_y && obj_teks && obj_teks->tipe == ENKI_TEKS) {
-                tui_layar_cetak((int)obj_x->nilai.angka, (int)obj_y->nilai.angka, obj_teks->nilai.teks);
+            if (obj_x && obj_y && obj_teks && obj_warna && obj_x->tipe == ENKI_ANGKA && obj_y->tipe == ENKI_ANGKA && obj_teks->tipe == ENKI_TEKS && obj_warna->tipe == ENKI_TEKS) {
+                tui_layar_cetak((int)obj_x->nilai.angka, (int)obj_y->nilai.angka, obj_teks->nilai.teks, obj_warna->nilai.teks);
             }
             
             if(obj_x) hancurkan_objek(obj_x, ram->status_array_dinamis);
             if(obj_y) hancurkan_objek(obj_y, ram->status_array_dinamis);
             if(obj_teks) hancurkan_objek(obj_teks, ram->status_array_dinamis);
+            if(obj_warna) hancurkan_objek(obj_warna, ram->status_array_dinamis);
             return ciptakan_kosong(ram->status_array_dinamis);
         }
 

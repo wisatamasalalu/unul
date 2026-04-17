@@ -19,7 +19,7 @@ void tui_set_warna(const char* warna_snul);
 // ========================================================
 void tui_layar_bersih();
 void tui_layar_kursor(int x, int y);
-void tui_layar_cetak(int x, int y, const char* teks);
+void tui_layar_cetak(int x, int y, const char* teks, const char* warna);
 void tui_layar_piksel(int x, int y, const char* wujud, const char* warna);
 
 // Pintu Dimensi Layar Alternatif (Mode Vim/htop)

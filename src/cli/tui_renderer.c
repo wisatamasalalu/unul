@@ -370,8 +370,12 @@ int render_elemen_rekursif(EnkiObject* elemen, int x_parent, int y, int lebar_pa
 }
 
 // ========================================================
-// 🎨 SIHIR KANVAS MUTLAK (IMMEDIATE MODE DRAWING)
+// 🎨 IMPLEMENTASI SIHIR KANVAS MUTLAK
 // ========================================================
+#include <stdlib.h> // Untuk atexit()
+
+static struct termios terminal_asli_kanvas;
+static int mode_kanvas_aktif = 0;
 
 void tui_layar_bersih() {
     printf("\033[2J\033[H");
@@ -383,25 +387,42 @@ void tui_layar_kursor(int x, int y) {
     fflush(stdout);
 }
 
-void tui_layar_cetak(int x, int y, const char* teks) {
-    if (!teks) return;
-    printf("\033[%d;%dH%s", y, x, teks);
+void tui_layar_cetak(int x, int y, const char* teks, const char* warna) {
+    if (!teks || !warna) return;
+    char kode_warna[64];
+    strcpy(kode_warna, "\033[0m"); 
+    if (warna[0] == '#') { // 🟢 DUKUNGAN HEX CODE!
+        int r, g, b;
+        if (sscanf(warna, "#%02x%02x%02x", &r, &g, &b) == 3) snprintf(kode_warna, sizeof(kode_warna), "\033[38;2;%d;%d;%dm", r, g, b);
+    } else {
+        if (strcmp(warna, "merah") == 0) strcpy(kode_warna, "\033[1;31m");
+        else if (strcmp(warna, "hijau") == 0) strcpy(kode_warna, "\033[1;32m");
+        else if (strcmp(warna, "kuning") == 0) strcpy(kode_warna, "\033[1;33m");
+        else if (strcmp(warna, "biru") == 0) strcpy(kode_warna, "\033[1;34m");
+        else if (strcmp(warna, "cyan") == 0) strcpy(kode_warna, "\033[1;36m");
+        else if (strcmp(warna, "putih") == 0) strcpy(kode_warna, "\033[1;37m");
+    }
+    printf("\033[%d;%dH%s%s\033[0m", y, x, kode_warna, teks);
     fflush(stdout);
 }
 
 void tui_layar_piksel(int x, int y, const char* wujud, const char* warna) {
     if (!wujud || !warna) return;
 
-    // 1. Tentukan Warna (Sihir ANSI)
-    char* kode_warna = "\033[0m"; // Reset default
-    if (strcmp(warna, "merah") == 0) kode_warna = "\033[1;31m";
-    else if (strcmp(warna, "hijau") == 0) kode_warna = "\033[1;32m";
-    else if (strcmp(warna, "kuning") == 0) kode_warna = "\033[1;33m";
-    else if (strcmp(warna, "biru") == 0) kode_warna = "\033[1;34m";
-    else if (strcmp(warna, "cyan") == 0) kode_warna = "\033[1;36m";
-    else if (strcmp(warna, "putih") == 0) kode_warna = "\033[1;37m";
+    char kode_warna[64];
+    strcpy(kode_warna, "\033[0m"); 
+    if (warna[0] == '#') { // 🟢 DUKUNGAN HEX CODE!
+        int r, g, b;
+        if (sscanf(warna, "#%02x%02x%02x", &r, &g, &b) == 3) snprintf(kode_warna, sizeof(kode_warna), "\033[38;2;%d;%d;%dm", r, g, b);
+    } else {
+        if (strcmp(warna, "merah") == 0) strcpy(kode_warna, "\033[1;31m");
+        else if (strcmp(warna, "hijau") == 0) strcpy(kode_warna, "\033[1;32m");
+        else if (strcmp(warna, "kuning") == 0) strcpy(kode_warna, "\033[1;33m");
+        else if (strcmp(warna, "biru") == 0) strcpy(kode_warna, "\033[1;34m");
+        else if (strcmp(warna, "cyan") == 0) strcpy(kode_warna, "\033[1;36m");
+        else if (strcmp(warna, "putih") == 0) strcpy(kode_warna, "\033[1;37m");
+    }
 
-    // 2. Tentukan Wujud (Karakter Unicode Box Drawing)
     char* char_wujud = " ";
     if (strcmp(wujud, "penuh") == 0) char_wujud = "█";
     else if (strcmp(wujud, "atas") == 0) char_wujud = "▀";
@@ -409,38 +430,59 @@ void tui_layar_piksel(int x, int y, const char* wujud, const char* warna) {
     else if (strcmp(wujud, "titik") == 0) char_wujud = "•";
     else if (strcmp(wujud, "garis_v") == 0) char_wujud = "│";
     else if (strcmp(wujud, "garis_h") == 0) char_wujud = "─";
-    else char_wujud = (char*)wujud; // Jika dev memasukkan string custom
+    else char_wujud = (char*)wujud; 
 
-    // 3. Tembak ke Layar! Pindah kursor -> Set Warna -> Cetak Wujud -> Reset Warna
     printf("\033[%d;%dH%s%s\033[0m", y, x, kode_warna, char_wujud);
     fflush(stdout);
+}
+
+void tui_layar_alternatif_tutup() {
+    // 1049l = Tutup layar alternatif, 25h = Munculkan kursor
+    printf("\033[?1049l\033[?25h");
+    
+    // 🟢 SUNTIKAN DX (Developer Experience): Beri ruang napas otomatis untuk OS!
+    printf("\n\n"); 
+    
+    fflush(stdout);
+    if (mode_kanvas_aktif) {
+        tcsetattr(STDIN_FILENO, TCSANOW, &terminal_asli_kanvas);
+        mode_kanvas_aktif = 0;
+    }
 }
 
 void tui_layar_alternatif_buka() {
     printf("\033[?1049h\033[?25l");
     fflush(stdout);
-}
-
-void tui_layar_alternatif_tutup() {
-    printf("\033[?1049l\033[?25h");
-    fflush(stdout);
-}
-
-// 🟢 MENGGUNAKAN ENKI_MEMORY SECARA MUTLAK
-char* tui_layar_baca_tombol() {
-    struct termios oldt, newt;
-    int ch = -1;
     
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
+    // 🟢 MATIKAN ECHO DAN KUNCI TERMINAL SELAMA GAME BERJALAN!
+    tcgetattr(STDIN_FILENO, &terminal_asli_kanvas);
+    struct termios newt = terminal_asli_kanvas;
     newt.c_lflag &= ~(ICANON | ECHO); 
     newt.c_cc[VMIN] = 0;  
     newt.c_cc[VTIME] = 0; 
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    mode_kanvas_aktif = 1;
     
+    // 🟢 DAFTARKAN PEMBERSIH KIAMAT (Jika UNUL Crash, Terminal Tetap Aman!)
+    atexit(tui_layar_alternatif_tutup);
+}
+
+// 🟢 MENGGUNAKAN ENKI_MEMORY & ANTI-FRAGMENTASI ANSI
+char* tui_layar_baca_tombol() {
+    int ch = -1;
     unsigned char seq[3];
+    
+    // Baca 1 byte dengan sangat cepat
     if (read(STDIN_FILENO, &seq[0], 1) == 1) {
         if (seq[0] == '\033') { 
+            // 🟢 SIHIR PENANGKAP EKOR: Beri waktu 50ms agar '[' dan 'A' sampai ke CPU!
+            struct termios oldt, newt;
+            tcgetattr(STDIN_FILENO, &oldt);
+            newt = oldt;
+            newt.c_cc[VMIN] = 0;  
+            newt.c_cc[VTIME] = 1; // Tunggu maksimal 100ms
+            tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+            
             if (read(STDIN_FILENO, &seq[1], 1) == 1 && read(STDIN_FILENO, &seq[2], 1) == 1) {
                 if (seq[1] == '[' || seq[1] == 'O') {
                     if (seq[2] == 'A') ch = 1001; 
@@ -449,15 +491,17 @@ char* tui_layar_baca_tombol() {
                     else if (seq[2] == 'D') ch = 1004; 
                 }
             } else {
-                ch = 27; 
+                ch = 27; // Murni ESC
             }
+            tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // Kembalikan ke mode instan
         } else {
-            ch = seq[0]; 
+            ch = seq[0]; // Karakter biasa
         }
     }
     
-    // Kembalikan terminal ke wujud asalnya agar tidak rusak
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    // 🟢 KURAS SISA SAMPAH DI BUFFER JIKA USER SPAMMING TOMBOL!
+    unsigned char sampah;
+    while (read(STDIN_FILENO, &sampah, 1) == 1); 
     
     // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS DAN ENKI_ALOKASI AGAR TUNDUK PADA KOLAM MEMORI!
     // Kita gunakan mode dinamis (1) agar mudah dibersihkan nanti.
@@ -468,8 +512,7 @@ char* tui_layar_baca_tombol() {
     if (ch == 27) return enki_salin_teks("ESC", 1);
     if (ch != -1) {
         char* buf = (char*)enki_alokasi(2, 1);
-        buf[0] = (char)ch;
-        buf[1] = '\0';
+        buf[0] = (char)ch; buf[1] = '\0';
         return buf;
     }
     return NULL; 

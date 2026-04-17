@@ -1,0 +1,103 @@
+^^ GAME SNAKE SAKTI UNUL
+datang
+untuk array.dinamis
+
+layar_alternatif_buka()
+
+takdir.soft game_hidup = 1
+takdir.soft arah_x = 1
+takdir.soft arah_y = 0
+
+^^ Array Dinamis untuk Tubuh Ular (Kordinat X dan Y)
+takdir.soft ular_x = [10, 9, 8]
+takdir.soft ular_y = [5, 5, 5]
+takdir.soft panjang_ular = 3
+
+takdir.soft makan_x = acak(2, 48)
+takdir.soft makan_y = acak(2, 19)
+takdir.soft skor = 0
+
+siklus selama game_hidup == 1 maka
+    layar_bersih()
+    
+    ^^ 1. Gambar Batas Dunia (Tembok Biru HEX Code)
+    takdir.soft i = 1
+    siklus selama i <= 50 maka
+        layar_piksel(i, 1, "garis_h", "#4444FF")
+        layar_piksel(i, 20, "garis_h", "#4444FF")
+        i = i + 1
+    putus
+    i = 1
+    siklus selama i <= 20 maka
+        layar_piksel(1, i, "garis_v", "#4444FF")
+        layar_piksel(50, i, "garis_v", "#4444FF")
+        i = i + 1
+    putus
+    
+    ^^ 2. Cetak Makanan (Apel Hijau)
+    layar_piksel(makan_x, makan_y, "titik", "#00FF00")
+    
+    ^^ 3. Cetak Tubuh Ular (Panjang Dinamis)
+    takdir.soft j = 1
+    siklus selama j <= panjang_ular maka
+        layar_piksel(ular_x[j], ular_y[j], "penuh", "#FF0000")
+        j = j + 1
+    putus
+    
+    layar_cetak(2, 22, "Skor: " + skor, "putih")
+    layar_cetak(2, 23, "WASD/Panah: Gerak | ESC: Keluar", "kuning")
+    
+    ^^ 4. Kontrol Keyboard (Anti-Hantu)
+    takdir.soft tombol = layar_baca_tombol()
+    
+    jika tombol == "w" atau tombol == "PANAH_ATAS" maka
+        jika arah_y == 0 maka arah_x = 0 arah_y = -1 putus
+    lain jika tombol == "s" atau tombol == "PANAH_BAWAH" maka
+        jika arah_y == 0 maka arah_x = 0 arah_y = 1 putus
+    lain jika tombol == "a" atau tombol == "PANAH_KIRI" maka
+        jika arah_x == 0 maka arah_x = -1 arah_y = 0 putus
+    lain jika tombol == "d" atau tombol == "PANAH_KANAN" maka
+        jika arah_x == 0 maka arah_x = 1 arah_y = 0 putus
+    lain jika tombol == "ESC" maka
+        game_hidup = 0
+    putus
+    
+    ^^ 5. Logika Gerak Kepala Baru (Berjalan Sendiri!)
+    takdir.soft kepala_x = ular_x[1] + arah_x
+    takdir.soft kepala_y = ular_y[1] + arah_y
+    
+    ^^ Cek Kematian (Nabrak tembok)
+    jika kepala_x <= 1 atau kepala_x >= 50 atau kepala_y <= 1 atau kepala_y >= 20 maka
+        game_hidup = 0
+    putus
+    
+    ^^ Cek Makan (Tumbuh Panjang)
+    jika kepala_x == makan_x dan kepala_y == makan_y maka
+        skor = skor + 10
+        panjang_ular = panjang_ular + 1
+        tambah_array(ular_x, 0) ^^ Tambah slot kosong di ekor
+        tambah_array(ular_y, 0)
+        makan_x = acak(2, 48)
+        makan_y = acak(2, 19)
+    putus
+    
+    ^^ 6. Geser Badan Ular (Dari Ekor ke Leher menggunakan L-VALUE UNUL)
+    takdir.soft k = panjang_ular
+    siklus selama k > 1 maka
+        ular_x[k] = ular_x[k - 1]
+        ular_y[k] = ular_y[k - 1]
+        k = k - 1
+    putus
+    
+    ^^ 7. Letakkan Kepala Baru
+    ular_x[1] = kepala_x
+    ular_y[1] = kepala_y
+    
+    jeda(80) ^^ Kecepatan Ular
+putus
+
+layar_alternatif_tutup()
+ketik("GAME OVER! Skor Akhir Anda: " + skor)
+pergi
+
+ketik("Teks ini tidak akan pernah tercetak karena program sudah pergi!")

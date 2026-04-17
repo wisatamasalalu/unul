@@ -1,0 +1,153 @@
+^^ GAME TIC-TAC-TOE (STATE-DRIVEN DOM)
+datang
+untuk array.dinamis
+
+^^ ==========================================
+^^ 1. PERSIAPAN GAYA KOSMETIK (SNUL)
+^^ ==========================================
+takdir.soft gaya_snul = ""
+gaya_snul = gaya_snul + "@wadah.utama { lebar: 36; warna_teks: cyan; bingkai: ganda; }\n"
+gaya_snul = gaya_snul + "@wadah.baris { susunan: tengah; batas: polos; tinggi: 4; }\n"
+gaya_snul = gaya_snul + "@tombol { lebar: 10; tinggi: 4; warna_latar: #333333; warna_teks: putih; }\n"
+gaya_snul = gaya_snul + "@tombol.menang { warna_latar: hijau; warna_teks: putih; }\n"
+gaya_snul = gaya_snul + "@judul { warna_teks: kuning; susunan: tengah; }\n"
+tulis("gaya_ttt.snul", gaya_snul)
+takdir.soft kosmetik = muat_snul("gaya_ttt.snul")
+
+^^ ==========================================
+^^ 2. STATE GAME (VIRTUAL DOM DATA)
+^^ ==========================================
+takdir.soft papan = ["-", "-", "-", "-", "-", "-", "-", "-", "-"]
+takdir.soft giliran = "X" ^^ X jalan duluan
+takdir.soft pemenang = "-"
+takdir.soft game_hidup = 1
+takdir.soft mode_bot = 1 ^^ 1 = Lawan Komputer, 0 = Player vs Player
+
+^^ ==========================================
+^^ 3. FUNGSI CEK KEMENANGAN
+^^ ==========================================
+ciptakan fungsi cek_menang() maka
+    takdir.soft m = "-"
+    ^^ Cek Baris
+    jika papan[1] != "-" dan papan[1] == papan[2] dan papan[2] == papan[3] maka m = papan[1] putus
+    jika papan[4] != "-" dan papan[4] == papan[5] dan papan[5] == papan[6] maka m = papan[4] putus
+    jika papan[7] != "-" dan papan[7] == papan[8] dan papan[8] == papan[9] maka m = papan[7] putus
+    ^^ Cek Kolom
+    jika papan[1] != "-" dan papan[1] == papan[4] dan papan[4] == papan[7] maka m = papan[1] putus
+    jika papan[2] != "-" dan papan[2] == papan[5] dan papan[5] == papan[8] maka m = papan[2] putus
+    jika papan[3] != "-" dan papan[3] == papan[6] dan papan[6] == papan[9] maka m = papan[3] putus
+    ^^ Cek Diagonal
+    jika papan[1] != "-" dan papan[1] == papan[5] dan papan[5] == papan[9] maka m = papan[1] putus
+    jika papan[3] != "-" dan papan[3] == papan[5] dan papan[5] == papan[7] maka m = papan[3] putus
+    pulang m
+putus
+
+^^ ==========================================
+^^ 4. GENERATOR UI (REACT-LIKE)
+^^ ==========================================
+ciptakan fungsi render_papan() maka
+    takdir.soft pesan = "GILIRAN: " + giliran
+    jika pemenang != "-" maka pesan = "PEMENANGNYA: " + pemenang + " 🎉" putus
+    jika mode_bot == 1 maka pesan = pesan + " (Lawan Bot)" lain maka pesan = pesan + " (PvP)" putus
+
+    takdir.soft ui = '#!datang\n<wadah id="utama">\n'
+    ui = ui + '    <judul> "--- TIC TAC TOE ---" </judul>\n'
+    ui = ui + '    <judul> "' + pesan + '" </judul>\n'
+    
+    ^^ Baris 1
+    ui = ui + '    <wadah id="baris">\n'
+    ui = ui + '        <tombol id="1"> " ' + papan[1] + ' " </tombol>'
+    ui = ui + '        <tombol id="2"> " ' + papan[2] + ' " </tombol>'
+    ui = ui + '        <tombol id="3"> " ' + papan[3] + ' " </tombol>\n'
+    ui = ui + '    </wadah>\n'
+    
+    ^^ Baris 2
+    ui = ui + '    <wadah id="baris">\n'
+    ui = ui + '        <tombol id="4"> " ' + papan[4] + ' " </tombol>'
+    ui = ui + '        <tombol id="5"> " ' + papan[5] + ' " </tombol>'
+    ui = ui + '        <tombol id="6"> " ' + papan[6] + ' " </tombol>\n'
+    ui = ui + '    </wadah>\n'
+    
+    ^^ Baris 3
+    ui = ui + '    <wadah id="baris">\n'
+    ui = ui + '        <tombol id="7"> " ' + papan[7] + ' " </tombol>'
+    ui = ui + '        <tombol id="8"> " ' + papan[8] + ' " </tombol>'
+    ui = ui + '        <tombol id="9"> " ' + papan[9] + ' " </tombol>\n'
+    ui = ui + '    </wadah>\n'
+    
+    ui = ui + '    <tombol id="RESET"> "[ ULANG GAME ]" </tombol>\n'
+    ui = ui + '    <tombol id="GANTI_MODE"> "[ GANTI MODE BOT/PvP ]" </tombol>\n'
+    ui = ui + '    <tombol id="KELUAR"> "[ KELUAR ]" </tombol>\n'
+    ui = ui + '</wadah>\npergi!#'
+    
+    tulis("sementara_ttt.otim", ui)
+    pulang muat_otim("sementara_ttt.otim")
+putus
+
+^^ ==========================================
+^^ 5. SIKLUS UTAMA
+^^ ==========================================
+takdir.soft ui_aktif = render_papan()
+
+siklus selama game_hidup == 1 maka
+    ^^ timeout 0 = Menunggu input user (BLOCKING), sangat hemat CPU!
+    takdir.soft aksi = tampilkan_tui(ui_aktif, kosmetik, 0)
+    takdir.soft perlu_render = 0
+    
+    jika aksi == "KELUAR" atau aksi == "TUTUP_PAKSA" maka
+        game_hidup = 0
+    lain jika aksi == "GANDA_GANTI_MODE" atau aksi == "GANTI_MODE" maka
+        jika mode_bot == 1 maka mode_bot = 0 lain maka mode_bot = 1 putus
+        papan = ["-", "-", "-", "-", "-", "-", "-", "-", "-"]
+        giliran = "X"
+        pemenang = "-"
+        perlu_render = 1
+    lain jika aksi == "GANDA_RESET" atau aksi == "RESET" maka
+        papan = ["-", "-", "-", "-", "-", "-", "-", "-", "-"]
+        giliran = "X"
+        pemenang = "-"
+        perlu_render = 1
+    lain maka
+        ^^ User mengklik kotak 1 sampai 9
+        takdir.soft kotak_dipilih = ke_angka(aksi)
+        
+        jika pemenang == "-" dan kotak_dipilih >= 1 dan kotak_dipilih <= 9 maka
+            jika papan[kotak_dipilih] == "-" maka
+                ^^ 1. Giliran Manusia
+                papan[kotak_dipilih] = giliran
+                pemenang = cek_menang()
+                perlu_render = 1
+                
+                ^^ Ganti giliran
+                jika giliran == "X" maka giliran = "O" lain maka giliran = "X" putus
+                
+                ^^ 2. Logika BOT (Jika mode Bot aktif dan game belum selesai)
+                jika mode_bot == 1 dan pemenang == "-" dan giliran == "O" maka
+                    ^^ Cari kotak kosong secara acak
+                    takdir.soft bot_jalan = 0
+                    takdir.soft iterasi = 0
+                    siklus selama bot_jalan == 0 dan iterasi < 50 maka
+                        takdir.soft r = acak(1, 9)
+                        jika papan[r] == "-" maka
+                            papan[r] = "O"
+                            bot_jalan = 1
+                        putus
+                        iterasi = iterasi + 1
+                    putus
+                    
+                    pemenang = cek_menang()
+                    giliran = "X" ^^ Kembali ke manusia
+                putus
+            putus
+        putus
+    putus
+    
+    jika perlu_render == 1 maka
+        ui_aktif = render_papan()
+    putus
+putus
+
+pasrah(ui_aktif)
+pasrah(kosmetik)
+ketik("Terima kasih telah bermain Tic-Tac-Toe!")
+pergi

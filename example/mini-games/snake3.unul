@@ -1,0 +1,183 @@
+^^ GAME SNAKE SAKTI UNUL (VERSI HIGH SCORE & RINTANGAN ACAK)
+datang
+untuk array.dinamis
+
+^^ ==========================================
+^^ 1. INISIALISASI DATABASE SKOR (.imah)
+^^ ==========================================
+takdir.soft cek_db = cari("skor_ular.imah")
+takdir.soft skor_tertinggi = 0
+
+jika panjang(cek_db) > 0 maka
+    coba maka 
+        takdir.soft db = impor("skor_ular.imah")
+        skor_tertinggi = db.tertinggi
+    tabu melanggar e maka 
+        pasrah
+putus
+
+layar_alternatif_buka()
+
+takdir.soft game_hidup = 1
+takdir.soft arah_x = 1
+takdir.soft arah_y = 0
+
+^^ Ukuran Arena
+takdir.soft batas_x = 80
+takdir.soft batas_y = 20
+
+^^ Array Tubuh Ular
+takdir.soft ular_x = [10, 9, 8]
+takdir.soft ular_y = [10, 10, 10]
+takdir.soft panjang_ular = 3
+
+takdir.soft makan_x = acak(3, batas_x - 2)
+takdir.soft makan_y = acak(3, batas_y - 2)
+takdir.soft skor = 0
+takdir.soft kecepatan = 120
+
+^^ ==========================================
+^^ 2. GENERATOR RINTANGAN ACAK SETIAP MULAI
+^^ ==========================================
+takdir.soft batu_x = []
+takdir.soft batu_y = []
+takdir.soft jumlah_batu = 10 ^^ Semakin banyak semakin sulit!
+
+takdir.soft ib = 1
+siklus selama ib <= jumlah_batu maka
+    tambah_array(batu_x, acak(5, batas_x - 5))
+    tambah_array(batu_y, acak(3, batas_y - 3))
+    ib = ib + 1
+putus
+
+^^ ==========================================
+^^ 3. SIKLUS GAME
+^^ ==========================================
+siklus selama game_hidup == 1 maka
+    layar_bersih()
+    
+    ^^ Gambar Batas Dunia
+    takdir.soft i = 1
+    siklus selama i <= batas_x maka
+        layar_piksel(i, 1, "garis_h", "cyan")
+        layar_piksel(i, batas_y, "garis_h", "cyan")
+        i = i + 1
+    putus
+    i = 1
+    siklus selama i <= batas_y maka
+        layar_piksel(1, i, "garis_v", "cyan")
+        layar_piksel(batas_x, i, "garis_v", "cyan")
+        i = i + 1
+    putus
+    
+    ^^ Cetak Rintangan Acak
+    takdir.soft b = 1
+    siklus selama b <= jumlah_batu maka
+        layar_piksel(batu_x[b], batu_y[b], "penuh", "kuning")
+        b = b + 1
+    putus
+
+    ^^ Cetak Makanan
+    layar_piksel(makan_x, makan_y, "titik", "hijau")
+    
+    ^^ Cetak Ular
+    takdir.soft j = 1
+    siklus selama j <= panjang_ular maka
+        jika j == 1 maka
+            layar_piksel(ular_x[j], ular_y[j], "penuh", "putih")
+        lain maka
+            layar_piksel(ular_x[j], ular_y[j], "penuh", "merah")
+        putus
+        j = j + 1
+    putus
+    
+    ^^ Papan Skor Dinamis
+    layar_cetak(2, batas_y + 1, "Skor: " + skor + " | Kecepatan: " + kecepatan + "ms | HIGHSCORE: " + skor_tertinggi, "putih")
+    layar_cetak(2, batas_y + 2, "WASD/Panah: Gerak | ESC: Keluar", "cyan")
+    
+    ^^ Kontrol Keyboard
+    takdir.soft tombol = layar_baca_tombol()
+    
+    jika tombol == "w" atau tombol == "PANAH_ATAS" maka
+        jika arah_y == 0 maka arah_x = 0 arah_y = -1 putus
+    lain jika tombol == "s" atau tombol == "PANAH_BAWAH" maka
+        jika arah_y == 0 maka arah_x = 0 arah_y = 1 putus
+    lain jika tombol == "a" atau tombol == "PANAH_KIRI" maka
+        jika arah_x == 0 maka arah_x = -1 arah_y = 0 putus
+    lain jika tombol == "d" atau tombol == "PANAH_KANAN" maka
+        jika arah_x == 0 maka arah_x = 1 arah_y = 0 putus
+    lain jika tombol == "ESC" maka
+        game_hidup = 0
+    putus
+    
+    takdir.soft kepala_x = ular_x[1] + arah_x
+    takdir.soft kepala_y = ular_y[1] + arah_y
+    
+    ^^ Cek Nabrak Tembok Kematian
+    jika kepala_x <= 1 atau kepala_x >= batas_x atau kepala_y <= 1 atau kepala_y >= batas_y maka
+        game_hidup = 0
+    putus
+
+    ^^ Cek Nabrak Rintangan Acak
+    takdir.soft cek_batu = 1
+    siklus selama cek_batu <= jumlah_batu maka
+        jika kepala_x == batu_x[cek_batu] dan kepala_y == batu_y[cek_batu] maka
+            game_hidup = 0
+        putus
+        cek_batu = cek_batu + 1
+    putus
+
+    ^^ Cek Nabrak Badan Sendiri
+    takdir.soft cek_badan = 2
+    siklus selama cek_badan <= panjang_ular maka
+        jika kepala_x == ular_x[cek_badan] dan kepala_y == ular_y[cek_badan] maka
+            game_hidup = 0
+        putus
+        cek_badan = cek_badan + 1
+    putus
+    
+    ^^ Cek Makan
+    jika kepala_x == makan_x dan kepala_y == makan_y maka
+        skor = skor + 10
+        panjang_ular = panjang_ular + 1
+        tambah_array(ular_x, 0)
+        tambah_array(ular_y, 0)
+        
+        makan_x = acak(3, batas_x - 2)
+        makan_y = acak(3, batas_y - 2)
+
+        jika kecepatan > 30 maka kecepatan = kecepatan - 3 putus
+    putus
+    
+    ^^ Geser Badan Ular
+    takdir.soft k = panjang_ular
+    siklus selama k > 1 maka
+        ular_x[k] = ular_x[k - 1]
+        ular_y[k] = ular_y[k - 1]
+        k = k - 1
+    putus
+    
+    ^^ Letakkan Kepala Baru
+    ular_x[1] = kepala_x
+    ular_y[1] = kepala_y
+    
+    jeda(kecepatan)
+putus
+
+layar_alternatif_tutup()
+
+^^ ==========================================
+^^ 4. LOGIKA HIGH SCORE (PENYIMPANAN DATABASE)
+^^ ==========================================
+ketik("GAME OVER! Ular Anda Menabrak Sesuatu.")
+ketik("Skor Akhir Anda: " + skor)
+
+jika skor > skor_tertinggi maka
+    ketik("\n🌟 SELAMAT! ANDA MENCETAK REKOR BARU! 🌟")
+    takdir.soft simpan_db = { "tertinggi": skor }
+    ekspor(simpan_db, "skor_ular.imah")
+lain maka
+    ketik("\nRekor saat ini masih: " + skor_tertinggi)
+putus
+
+pergi

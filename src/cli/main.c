@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "../core/enki_memory.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,13 +13,15 @@
 #include "../core/enki_memory.h"
 #include "../core/enki_object.h"
 
-// --- 1. DEKLARASI PEMBANTU (Agar tidak implicit declaration) ---
+// --- 1. DEKLARASI PEMBANTU (Menggunakan Dewa Memori ENKI) ---
 
 char* baca_file_mentah(const char* path) {
     FILE* f = fopen(path, "rb");
     if (!f) return NULL;
     fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
-    char* buffer = malloc(sz + 1);
+    
+    // 🟢 MENGGUNAKAN ENKI_ALOKASI (Mode Dinamis = 1)
+    char* buffer = (char*)enki_alokasi(sz + 1, 1);
     if (buffer) {
         fread(buffer, 1, sz, f);
         buffer[sz] = '\0';
@@ -45,7 +46,10 @@ int apakah_ekstensi(const char* path, const char* ext) {
 }
 
 char* buat_nama_variabel(const char* path) {
-    char* nama = strdup(path);
+    // 🟢 MENGGUNAKAN ENKI_SALIN_TEKS (Pengganti strdup)
+    char* nama = enki_salin_teks(path, 1);
+    if (!nama) return NULL;
+    
     for (int i = 0; nama[i]; i++) {
         if (!isalnum(nama[i])) nama[i] = '_';
     }
@@ -58,14 +62,15 @@ void suntik_data_ke_ram(const char* path, EnkiRAM* ram) {
 
     char* nama_var = buat_nama_variabel(path);
     
-    // 🟢 SUNTIKAN JANTUNG: Bungkus teks mentah menjadi Objek Dewa!
+    // Bungkus teks mentah menjadi Objek Dewa!
     EnkiObject* obj_isi = ciptakan_teks(isi, ram->status_array_dinamis);
     
     // Simpan ke RAM menggunakan objek yang baru diciptakan
     simpan_ke_ram(ram, nama_var, obj_isi);
     
-    free(nama_var);
-    free(isi); // Aman dibebaskan karena ciptakan_teks sudah menduplikasi isinya
+    // 🟢 MENGGUNAKAN ENKI_BEBAS
+    enki_bebas(nama_var, 1);
+    enki_bebas(isi, 1); 
 }
 
 void muat_ingatan(EnkiRAM* ram) {
@@ -76,15 +81,16 @@ void muat_ingatan(EnkiRAM* ram) {
         path[strcspn(path, "\n")] = 0;
         if (apakah_ekstensi(path, ".unll")) {
             char* kode = baca_file_mentah(path);
-            if (kode) { jalankan_perintah(kode, ram, path); free(kode); }
+            if (kode) { 
+                jalankan_perintah(kode, ram, path); 
+                enki_bebas(kode, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
+            }
         } else {
             suntik_data_ke_ram(path, ram);
         }
     }
     fclose(f);
 }
-
-// --- 2. MAIN PROGRAM ---
 
 // --- 2. MAIN PROGRAM ---
 
@@ -99,7 +105,7 @@ int main(int argc, char* argv[]) {
             char* kode = baca_file_mentah(argv[2]);
             if (kode) { 
                 jalankan_perintah(kode, &ram, argv[2]); 
-                free(kode); 
+                enki_bebas(kode, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
             } else {
                 printf("\n🚨 KIAMAT SISTEM: Kitab '%s' tidak ditemukan di alam semesta!\n", argv[2]);
                 printf("💡 PANDUAN: Pastikan nama file dan jalur (path) sudah benar.\n\n");
@@ -117,7 +123,7 @@ int main(int argc, char* argv[]) {
                     char path[1024];
                     int count = 0;
                     while (fgets(path, sizeof(path), f)) {
-                        path[strcspn(path, "\n")] = 0; // Hapus enter
+                        path[strcspn(path, "\n")] = 0; 
                         printf(" - %s\n", path);
                         count++;
                     }
@@ -127,17 +133,14 @@ int main(int argc, char* argv[]) {
                     }
                 }
             } else {
-                // 🟢 CEK APAKAH FILE BENAR-BENAR ADA (ANTI-HALUSINASI)
                 FILE* cek_file = fopen(argv[2], "r");
                 if (cek_file) {
-                    fclose(cek_file); // Tutup lagi, kita cuma numpang cek
+                    fclose(cek_file); 
                     
-                    // Simpan ke ingatan karena filenya benar-benar nyata
                     FILE* f = fopen(".ingatan-unul", "a");
                     if (f) { fprintf(f, "%s\n", argv[2]); fclose(f); }
                     printf("💾 UNUL kenangan '%s' telah bersemayam dalam pikiran unul.\n", argv[2]);
                 } else {
-                    // Tolak dengan puitis jika filenya gaib
                     printf("💔 unul menolak mengingat ilusi! Berkas '%s' tidak wujud di dimensi ini.\n", argv[2]);
                 }
             } 
@@ -148,7 +151,6 @@ int main(int argc, char* argv[]) {
                 unlink(".ingatan-unul");
                 printf("🧠 Segala kenangan masa lalu unul telah dilupakan.\n");
             } else {
-                // Menghapus kenangan spesifik
                 FILE* f = fopen(".ingatan-unul", "r");
                 if (f) {
                     char temp_file[] = ".ingatan-unul.tmp";
@@ -162,7 +164,7 @@ int main(int argc, char* argv[]) {
                         clean_path[strcspn(clean_path, "\n")] = 0;
                         
                         if (strcmp(clean_path, argv[2]) == 0) {
-                            found = 1; // Jangan ditulis ulang (Lupakan)
+                            found = 1; 
                         } else {
                             fprintf(ft, "%s", path);
                         }
@@ -188,7 +190,7 @@ int main(int argc, char* argv[]) {
             char* kode = baca_file_mentah(argv[1]);
             if (kode) { 
                 jalankan_perintah(kode, &ram, argv[1]); 
-                free(kode); 
+                enki_bebas(kode, 1); // 🟢 MENGGUNAKAN ENKI_BEBAS
             } else {
                 printf("\n🚨 KIAMAT SISTEM: Kitab '%s' tidak ditemukan di alam semesta!\n", argv[1]);
                 printf("💡 PANDUAN: Pastikan nama file skrip Anda benar dan Anda berada di folder yang tepat.\n\n");
@@ -202,25 +204,28 @@ int main(int argc, char* argv[]) {
         printf("🦅 OS LinuxDNC - UNUL CLI Interaktif 🦅\n");
         muat_ingatan(&ram);
         while (1) {
+            // Readline dari OS menggunakan malloc bawaan, jadi biarkan saja karena harus free() biasa.
             char* input = readline("unul> ");
             if (!input) break;
             if (strlen(input) > 0) {
                 add_history(input);
-                // --- CEK PINTU KELUAR (Multi-Alias) ---
                 if (strcmp(input, "pergi") == 0 || 
                     strcmp(input, "exit") == 0 || 
                     strcmp(input, "keluar") == 0 || 
                     strcmp(input, "out") == 0 ||
                     strcmp(input, "quit") == 0) {
                     
-                    free(input);
+                    free(input); // Readline butuh free bawaan OS
                     printf("Sampai jumpa di dimensi lain, Arsitek! 🦅✨\n");
                     break;
                 }
                 jalankan_perintah(input, &ram, "<unul-cli>");
             }
-            free(input);
+            free(input); // Readline butuh free bawaan OS
         }
     }
+    
+    // Bersihkan RAM Utama sebelum mati
+    bebaskan_ram(&ram);
     return 0;
 }
