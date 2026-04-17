@@ -8,8 +8,9 @@ jika anjing == "lucu" maka
     anjing.lucu = "Mulai"
     jika anjing.lucu == tanya("Ketik 'Mulai' untuk memainkan game! : ") maka
     lain maka
-        tanya("Ketik 'Mulai' untuk memainkan game! : ")
-        terus
+        tanya("Penulisan salah, silahkan coba lagi. Tekan enter untuk menutup game.")
+        jeda(200)
+        pergi
     putus
 putus
 

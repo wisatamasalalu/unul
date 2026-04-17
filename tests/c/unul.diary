@@ -544,3 +544,16 @@ ketik("Halo {nama}")
    Saran: Pastikan Anda mengetik nama variabel dengan benar tanpa salah eja.
 =================================
 
+=== [WAKTU KIAMAT: 1776394556] ===
+🚨 [tes_biner.unul: Baris 7:25] KIAMAT SINTAKSIS: Fungsi gaib 'panjang_biner' tidak ditemukan!
+   Kode Penyebab: panjang_biner
+   Saran: Anda mencoba memanggil fungsi yang belum diciptakan.
+Pastikan Anda sudah mendeklarasikannya dengan 'ciptakan fungsi ...' atau periksa ejaan Anda!.
+=================================
+
+=== [WAKTU KIAMAT: 1776396724] ===
+🚨 [stegano.unul: Baris 10:28] KIAMAT SINTAKSIS: Gagal menembus dimensi biner!
+   Kode Penyebab: baca_biner
+   Saran: File biner tidak ditemukan atau akses ditolak OS.
+=================================
+

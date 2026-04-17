@@ -1,0 +1,40 @@
+@wadah_utama {
+    warna_latar: #F0F4F8FF;  ^^ Abu-abu kebiruan terang (Background App)
+    susunan: kolom;
+    lebar: 800;
+    tinggi: 600;
+}
+
+@wadah_kartu {
+    warna_latar: #FFFFFFFF;  ^^ Putih (Card)
+    susunan: kolom;
+    lebar: 400;
+    tinggi: 300;
+    bingkai: polos;
+}
+
+@wadah_baris {
+    warna_latar: #00000000; ^^ Transparan
+    susunan: baris;         ^^ INI KEKUATAN BARU ANDA! ELEMEN KE SAMPING!
+    lebar: 380;
+}
+
+@tombol {
+    warna_latar: #3498DBFF; ^^ Biru Terang
+    warna_teks: #FFFFFFFF;  ^^ Teks Putih
+    lebar: 150;
+    tinggi: 40;
+}
+
+@tombol:hover {
+    warna_latar: #2980B9FF; ^^ Biru Gelap saat disentuh Mouse
+    warna_teks: #FFFFFFFF;
+}
+
+@teks_judul {
+    warna_teks: #2C3E50FF;  ^^ Biru Dongker Gelap
+}
+
+@gambar {
+    ukuran: 200;  ^^ Kucing oren mengecil proporsional! (Lebar 200, tinggi mengikuti)
+}

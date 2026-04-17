@@ -1,0 +1,21 @@
+^^ UJI COBA ALAM BINER UNUL
+datang
+untuk array.dinamis
+
+ketik("1. UNUL akan membaca file dirinya sendiri sebagai Biner!")
+takdir.soft biner_asli = baca_biner("tes_biner.unul")
+ketik("Ukuran file: " + panjang_biner(biner_asli) + " Byte.")
+
+ketik("\n2. UNUL akan memotong 10 byte pertama dari file ini...")
+takdir.soft potongan_1 = potong_biner(biner_asli, 0, 10)
+ketik("Ukuran potongan pertama: " + panjang_biner(potongan_1) + " Byte.")
+
+ketik("\n3. UNUL akan menggandakan file ini dengan menyambungnya!")
+takdir.soft monster_biner = gabung_biner(biner_asli, biner_asli)
+ketik("Ukuran file monster: " + panjang_biner(monster_biner) + " Byte.")
+
+ketik("\n4. Memuntahkan hasil monster ke file baru...")
+tulis_biner("monster.unul", monster_biner)
+ketik("Berhasil! Silakan periksa file 'monster.unul' menggunakan perintah 'cat'!")
+
+pergi

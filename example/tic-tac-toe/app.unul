@@ -1,4 +1,4 @@
-^^ GAME TIC-TAC-TOE KANVAS MURNI (PvP)
+^^ GAME TIC-TAC-TOE KANVAS (PvP & BOT MANDIRI)
 datang
 untuk array.dinamis
 
@@ -7,95 +7,196 @@ takdir.soft aplikasi_hidup = 1
 
 siklus selama aplikasi_hidup == 1 maka
     takdir.soft papan = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
-    takdir.soft giliran = "X"
+    takdir.soft giliran = "X" ^^ Aturan Mutlak: X selalu jalan duluan!
     takdir.soft pemenang = "-"
     takdir.soft game_selesai = 0
-    takdir.soft kursor = 1 ^^ 1 sampai 9
+    takdir.soft kursor = 1
+    takdir.soft mode_bot = 1
+    takdir.soft pilih_mode = 1
     
+    ^^ Wadah peran
+    takdir.soft giliran_manusia = "X"
+    takdir.soft giliran_bot = "O"
+    
+    ^^ ==========================================
+    ^^ LAYAR PILIH MODE
+    ^^ ==========================================
+    siklus selama pilih_mode == 1 maka
+        layar_bersih()
+        layar_cetak(30, 8, "=== PILIH MODE GAME ===", "cyan")
+        layar_cetak(30, 10, "1. Lawan Komputer (Bot)", "kuning")
+        layar_cetak(30, 11, "2. Player vs Player", "putih")
+        layar_cetak(30, 13, "Tekan 1 atau 2...", "hijau")
+        
+        takdir.soft t = layar_baca_tombol()
+        jika t == "1" maka
+            mode_bot = 1
+            pilih_mode = 0
+            
+            ^^ 🎲 ACAK PERAN 100% ADIL
+            jika acak(1, 2) == 1 maka
+                giliran_manusia = "X"
+                giliran_bot = "O"
+            lain maka
+                giliran_manusia = "O"
+                giliran_bot = "X"
+            putus
+            ^^ (Tidak perlu memaksa Bot jalan di sini, karena Game Loop akan mengurusnya!)
+            
+        lain jika t == "2" maka
+            mode_bot = 0
+            pilih_mode = 0
+        lain jika t == "ESC" maka
+            pilih_mode = 0
+            game_selesai = 1
+            aplikasi_hidup = 0
+        putus
+        jeda(100)
+    putus
+    
+    ^^ ==========================================
+    ^^ ARENA PERTANDINGAN (GAME LOOP)
+    ^^ ==========================================
     siklus selama game_selesai == 0 maka
         layar_bersih()
         
-        ^^ Gambar Papan 3x3
-        layar_cetak(30, 4, "TIC-TAC-TOE UNUL", "cyan")
-        layar_cetak(30, 5, "================", "cyan")
+        layar_cetak(30, 3, "TIC-TAC-TOE UNUL", "cyan")
+        jika mode_bot == 1 maka 
+            layar_cetak(22, 4, "(Mode: Lawan Bot | Anda: " + giliran_manusia + " | Bot: " + giliran_bot + ")", "kuning")
+        lain maka 
+            layar_cetak(30, 4, "(Mode: PvP)", "kuning") 
+        putus
         
+        ^^ Gambar Grid (Kotak-kotak 3x3)
+        takdir.soft g = 28
+        siklus selama g <= 46 maka
+            layar_piksel(g, 9, "garis_h", "putih")
+            layar_piksel(g, 13, "garis_h", "putih")
+            g = g + 1
+        putus
+        takdir.soft v = 6
+        siklus selama v <= 16 maka
+            layar_piksel(34, v, "garis_v", "putih")
+            layar_piksel(40, v, "garis_v", "putih")
+            v = v + 1
+        putus
+        
+        ^^ Cetak Isi Papan
         takdir.soft i = 1
-        takdir.soft baris_y = 8
-        takdir.soft kolom_x = 32
+        takdir.soft baris_y = 7
+        takdir.soft kolom_x = 31
         
         siklus selama i <= 9 maka
             takdir.soft warna_teks = "putih"
             jika papan[i] == "X" maka warna_teks = "merah" putus
             jika papan[i] == "O" maka warna_teks = "biru" putus
             
-            takdir.soft teks_sel = " " + papan[i] + " "
-            jika i == kursor maka teks_sel = "[" + papan[i] + "]" putus
+            takdir.soft teks_sel = papan[i]
+            jika papan[i] == "-" maka teks_sel = " " putus
             
-            layar_cetak(kolom_x, baris_y, teks_sel, warna_teks)
-            
-            kolom_x = kolom_x + 5
-            jika i == 3 atau i == 6 maka
-                baris_y = baris_y + 2
-                kolom_x = 32
+            ^^ Kursor hanya muncul saat giliran manusia
+            jika i == kursor dan giliran == giliran_manusia maka
+                teks_sel = "[" + teks_sel + "]"
+                layar_cetak(kolom_x - 1, baris_y, teks_sel, "hijau")
+            lain maka
+                layar_cetak(kolom_x, baris_y, teks_sel, warna_teks)
             putus
             
+            kolom_x = kolom_x + 6
+            jika i == 3 atau i == 6 maka
+                baris_y = baris_y + 4
+                kolom_x = 31
+            putus
             i = i + 1
         putus
         
-        layar_cetak(32, 14, "Giliran: " + giliran, "kuning")
-        layar_cetak(20, 16, "Panah: Gerak | Spasi: Pilih | ESC: Keluar", "putih")
+        layar_cetak(32, 18, "Giliran: " + giliran, "kuning")
+        layar_cetak(20, 20, "Panah: Gerak | Spasi: Pilih | ESC: Keluar", "putih")
         
-        ^^ Kontrol Keyboard
-        takdir.soft t = layar_baca_tombol()
-        jika t == "ESC" maka
-            game_selesai = 1
-            aplikasi_hidup = 0
-        lain jika t == "PANAH_KANAN" maka
-            jika kursor % 3 != 0 maka kursor = kursor + 1 putus
-        lain jika t == "PANAH_KIRI" maka
-            jika kursor % 3 != 1 maka kursor = kursor - 1 putus
-        lain jika t == "PANAH_BAWAH" maka
-            jika kursor <= 6 maka kursor = kursor + 3 putus
-        lain jika t == "PANAH_ATAS" maka
-            jika kursor >= 4 maka kursor = kursor - 3 putus
-        lain jika t == " " atau t == "ENTER" atau t == "\n" maka
-            jika papan[kursor] == "-" maka
-                papan[kursor] = giliran
-                
-                ^^ Cek Menang
-                takdir.soft m = "-"
-                jika papan[1] != "-" dan papan[1] == papan[2] dan papan[2] == papan[3] maka m = papan[1] putus
-                jika papan[4] != "-" dan papan[4] == papan[5] dan papan[5] == papan[6] maka m = papan[4] putus
-                jika papan[7] != "-" dan papan[7] == papan[8] dan papan[8] == papan[9] maka m = papan[7] putus
-                jika papan[1] != "-" dan papan[1] == papan[4] dan papan[4] == papan[7] maka m = papan[1] putus
-                jika papan[2] != "-" dan papan[2] == papan[5] dan papan[5] == papan[8] maka m = papan[2] putus
-                jika papan[3] != "-" dan papan[3] == papan[6] dan papan[6] == papan[9] maka m = papan[3] putus
-                jika papan[1] != "-" dan papan[1] == papan[5] dan papan[5] == papan[9] maka m = papan[1] putus
-                jika papan[3] != "-" dan papan[3] == papan[5] dan papan[5] == papan[7] maka m = papan[3] putus
-                
-                ^^ Cek Seri
-                takdir.soft ada_kosong = 0
-                takdir.soft c = 1
-                siklus selama c <= 9 maka
-                    jika papan[c] == "-" maka ada_kosong = 1 putus
-                    c = c + 1
+        takdir.soft perlu_cek = 0
+        
+        ^^ ==========================================
+        ^^ MESIN KENDALI (BOT vs MANUSIA)
+        ^^ ==========================================
+        jika mode_bot == 1 dan giliran == giliran_bot maka
+            ^^ 🤖 GILIRAN BOT: Berpikir Sejenak agar terlihat natural
+            jeda(400)
+            takdir.soft bot_jalan = 0
+            takdir.soft iterasi = 0
+            siklus selama bot_jalan == 0 dan iterasi < 50 maka
+                takdir.soft r = acak(1, 9)
+                jika papan[r] == "-" maka
+                    papan[r] = giliran_bot
+                    bot_jalan = 1
                 putus
-                
-                jika m != "-" maka
-                    pemenang = m
-                    game_selesai = 1
-                lain jika ada_kosong == 0 maka
-                    pemenang = "SERI"
-                    game_selesai = 1
-                lain maka
+                iterasi = iterasi + 1
+            putus
+            
+            giliran = giliran_manusia ^^ Pindah ke manusia
+            perlu_cek = 1
+            
+        lain maka
+            ^^ 🧑 GILIRAN MANUSIA: Menunggu Input Keyboard
+            takdir.soft t = layar_baca_tombol()
+            jika t == "ESC" maka
+                game_selesai = 1
+                aplikasi_hidup = 0
+            lain jika t == "PANAH_KANAN" maka
+                jika kursor % 3 != 0 maka kursor = kursor + 1 putus
+            lain jika t == "PANAH_KIRI" maka
+                jika kursor % 3 != 1 maka kursor = kursor - 1 putus
+            lain jika t == "PANAH_BAWAH" maka
+                jika kursor <= 6 maka kursor = kursor + 3 putus
+            lain jika t == "PANAH_ATAS" maka
+                jika kursor >= 4 maka kursor = kursor - 3 putus
+            lain jika t == " " atau t == "ENTER" atau t == "\n" maka
+                ^^ Hanya jalan jika kotak kosong
+                jika papan[kursor] == "-" maka
+                    papan[kursor] = giliran
+                    
+                    ^^ Pindah Giliran!
                     jika giliran == "X" maka giliran = "O" lain maka giliran = "X" putus
+                    perlu_cek = 1
                 putus
             putus
         putus
+        
+        ^^ ==========================================
+        ^^ MESIN PENGECEK KEMENANGAN
+        ^^ ==========================================
+        jika perlu_cek == 1 maka
+            takdir.soft m = "-"
+            jika papan[1] != "-" dan papan[1] == papan[2] dan papan[2] == papan[3] maka m = papan[1] putus
+            jika papan[4] != "-" dan papan[4] == papan[5] dan papan[5] == papan[6] maka m = papan[4] putus
+            jika papan[7] != "-" dan papan[7] == papan[8] dan papan[8] == papan[9] maka m = papan[7] putus
+            jika papan[1] != "-" dan papan[1] == papan[4] dan papan[4] == papan[7] maka m = papan[1] putus
+            jika papan[2] != "-" dan papan[2] == papan[5] dan papan[5] == papan[8] maka m = papan[2] putus
+            jika papan[3] != "-" dan papan[3] == papan[6] dan papan[6] == papan[9] maka m = papan[3] putus
+            jika papan[1] != "-" dan papan[1] == papan[5] dan papan[5] == papan[9] maka m = papan[1] putus
+            jika papan[3] != "-" dan papan[3] == papan[5] dan papan[5] == papan[7] maka m = papan[3] putus
+            
+            takdir.soft ada_kosong = 0
+            takdir.soft c = 1
+            siklus selama c <= 9 maka
+                jika papan[c] == "-" maka ada_kosong = 1 putus
+                c = c + 1
+            putus
+            
+            jika m != "-" maka
+                pemenang = m
+                game_selesai = 1
+            lain jika ada_kosong == 0 maka
+                pemenang = "SERI"
+                game_selesai = 1
+            putus
+        putus
+        
         jeda(50)
     putus
     
-    ^^ Layar Kemenangan di Dalam Game
+    ^^ ==========================================
+    ^^ LAYAR KEMENANGAN (Restart Loop)
+    ^^ ==========================================
     jika aplikasi_hidup == 1 maka
         layar_bersih()
         jika pemenang == "SERI" maka
@@ -112,7 +213,7 @@ siklus selama aplikasi_hidup == 1 maka
                 nunggu = 0
                 aplikasi_hidup = 0
             lain jika tk == " " atau tk == "\n" maka
-                nunggu = 0 ^^ Loop luar akan mereset papan!
+                nunggu = 0 ^^ Loop luar akan mereset variabel papan dan kembali ke Menu!
             putus
             jeda(100)
         putus
@@ -120,4 +221,7 @@ siklus selama aplikasi_hidup == 1 maka
 putus
 
 layar_alternatif_tutup()
+jeda(200)
+ketik("\nTerima kasih telah menguji Game Engine UNUL!")
+jeda(2000)
 pergi

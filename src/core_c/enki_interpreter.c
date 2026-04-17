@@ -2748,6 +2748,8 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             return ciptakan_kosong(ram->status_array_dinamis); 
         }
 
+
+
         // =======================================================
         // 🔮 SIHIR ALAM BINER & BASE64 (BLOB DATA)
         // =======================================================
@@ -2857,7 +2859,67 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
              return ciptakan_kosong(ram->status_array_dinamis);
         }
 
-        // 🕋 SEMAYAMKAN: Mengunci data ke dalam Griya (.imah)
+        // 3. PANJANG_BINER: Mengetahui berat/ukuran file (dalam Byte)
+        if (strcmp(node->nilai_teks, "panjang_biner") == 0) {
+            if (node->jumlah_anak < 1) return ciptakan_kosong(ram->status_array_dinamis);
+            EnkiObject* arg_blob = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ciptakan_angka(0, ram->status_array_dinamis);
+            if (arg_blob && arg_blob->tipe == ENKI_BLOB) {
+                hasil->nilai.angka = (double)arg_blob->nilai.blob.ukuran;
+            }
+            if (arg_blob) hancurkan_objek(arg_blob, ram->status_array_dinamis);
+            return hasil;
+        }
+
+        // 4. POTONG_BINER: Membedah file (Offset, Length)
+        if (strcmp(node->nilai_teks, "potong_biner") == 0) {
+            if (node->jumlah_anak < 3) return ciptakan_kosong(ram->status_array_dinamis);
+            EnkiObject* arg_blob = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* arg_mulai = evaluasi_ekspresi(node->anak_anak[1], ram);
+            EnkiObject* arg_panjang = evaluasi_ekspresi(node->anak_anak[2], ram);
+            
+            EnkiObject* hasil = ciptakan_kosong(ram->status_array_dinamis);
+            if (arg_blob && arg_blob->tipe == ENKI_BLOB && arg_mulai && arg_mulai->tipe == ENKI_ANGKA && arg_panjang && arg_panjang->tipe == ENKI_ANGKA) {
+                size_t mulai = (size_t)arg_mulai->nilai.angka;
+                size_t panjang = (size_t)arg_panjang->nilai.angka;
+                size_t ukuran_asli = arg_blob->nilai.blob.ukuran;
+                
+                if (mulai < ukuran_asli) {
+                    if (mulai + panjang > ukuran_asli) panjang = ukuran_asli - mulai; // Pengaman agar tidak Segfault!
+                    hasil = ciptakan_blob(arg_blob->nilai.blob.data + mulai, panjang, ram->status_array_dinamis);
+                }
+            }
+            if (arg_blob) hancurkan_objek(arg_blob, ram->status_array_dinamis);
+            if (arg_mulai) hancurkan_objek(arg_mulai, ram->status_array_dinamis);
+            if (arg_panjang) hancurkan_objek(arg_panjang, ram->status_array_dinamis);
+            return hasil;
+        }
+
+        // 5. GABUNG_BINER: Menyatukan 2 File Biner seperti Monster Frankenstein!
+        if (strcmp(node->nilai_teks, "gabung_biner") == 0) {
+            if (node->jumlah_anak < 2) return ciptakan_kosong(ram->status_array_dinamis);
+            EnkiObject* arg_1 = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* arg_2 = evaluasi_ekspresi(node->anak_anak[1], ram);
+            
+            EnkiObject* hasil = ciptakan_kosong(ram->status_array_dinamis);
+            if (arg_1 && arg_1->tipe == ENKI_BLOB && arg_2 && arg_2->tipe == ENKI_BLOB) {
+                size_t uk_1 = arg_1->nilai.blob.ukuran;
+                size_t uk_2 = arg_2->nilai.blob.ukuran;
+                size_t uk_total = uk_1 + uk_2;
+                
+                unsigned char* buffer = (unsigned char*)enki_alokasi(uk_total, ram->status_array_dinamis);
+                memcpy(buffer, arg_1->nilai.blob.data, uk_1);
+                memcpy(buffer + uk_1, arg_2->nilai.blob.data, uk_2);
+                
+                hasil = ciptakan_blob(buffer, uk_total, ram->status_array_dinamis);
+                enki_bebas(buffer, ram->status_array_dinamis);
+            }
+            if (arg_1) hancurkan_objek(arg_1, ram->status_array_dinamis);
+            if (arg_2) hancurkan_objek(arg_2, ram->status_array_dinamis);
+            return hasil;
+        }
+
+        // 🕋 SEMAYAMKAN: Mengunci data ke dalam database (.imah)
         if (strcmp(node->nilai_teks, "ekspor") == 0) {
             if (node->jumlah_anak < 2) {
                 pemicu_kiamat_presisi(node, ram, "Penanaman Data Gagal: Butuh objek dan nama Database!", "Contoh: ekspor(dewa, \"surga.imah\")");

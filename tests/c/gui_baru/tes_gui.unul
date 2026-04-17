@@ -1,0 +1,20 @@
+^^ UJI COBA GUI MODERN UNUL (OTIM + SNUL BARU)
+datang
+untuk array.dinamis
+
+takdir.soft ui_utama = muat_otim("utama.otim")
+takdir.soft gaya_modern = muat_snul("modern.snul")
+
+takdir.soft hidup = 1
+
+siklus selama hidup == 1 maka
+    takdir.soft respon = tampilkan_gui(ui_utama, gaya_modern)
+    
+    jika respon.aksi == "TUTUP_PAKSA" atau respon.aksi == "btn_keluar" maka
+        hidup = 0
+    lain jika respon.aksi == "btn_masuk" maka
+        ketik("Tombol Masuk Ditekan!")
+    putus
+putus
+
+pergi

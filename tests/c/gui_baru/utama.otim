@@ -1,0 +1,22 @@
+#!datang
+<wadah id="app" @wadah_utama>
+    
+    ^^ Kita buat sebuah Kartu (Card) di tengah layar
+    <wadah id="kartu_login" @wadah_kartu>
+        <judul id="j1" @teks_judul> PORTAL URANTIA </judul>
+        
+        ^^ Logo Biner yang Anda buat tadi!
+        <gambar id="logo" sumber="logo.jpg"> </gambar>
+        
+        <teks id="t1" @teks_judul> Masukkan Kredensial Anda: </teks>
+        
+        ^^ Ini Flex-Row (Menyamping)
+        <wadah id="baris_tombol" @wadah_baris>
+            <tombol id="btn_masuk" @tombol> MASUK </tombol>
+            <tombol id="btn_keluar" @tombol> KELUAR </tombol>
+        </wadah>
+        
+    </wadah>
+    
+</wadah>
+pergi!#

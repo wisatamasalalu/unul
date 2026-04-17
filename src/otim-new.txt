@@ -1,0 +1,320 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include "otim_lexer.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+void tambah_otim_token(OtimTokenArray* array, OtimToken token) {
+    if (array->jumlah >= array->kapasitas) {
+        array->kapasitas = (array->kapasitas == 0) ? 16 : array->kapasitas * 2;
+        array->data = (OtimToken*)enki_realokasi(array->data, (array->kapasitas/2) * sizeof(OtimToken), array->kapasitas * sizeof(OtimToken), 1);
+    }
+    array->data[array->jumlah++] = token;
+}
+
+static void trim_string(char* str) {
+    if (!str) return;
+    char* start = str;
+    while(isspace(*start)) start++;
+    char* end = start + strlen(start) - 1;
+    while(end >= start && isspace(*end)) *end-- = '\0';
+    if (start != str) memmove(str, start, strlen(start) + 1);
+}
+
+OtimTokenArray otim_lexer(const char* kode_sumber) {
+    OtimTokenArray tokens = {NULL, 0, 0};
+    int i = 0; int baris = 1, kolom = 1;
+
+    while (kode_sumber[i] != '\0') {
+        if (isspace(kode_sumber[i])) {
+            if (kode_sumber[i] == '\n') { baris++; kolom = 0; }
+            i++; kolom++; continue;
+        }
+
+        if (kode_sumber[i] == '^' && kode_sumber[i+1] == '^') {
+            while (kode_sumber[i] != '\n' && kode_sumber[i] != '\0') i++;
+            continue;
+        }
+
+        if (strncmp(&kode_sumber[i], "#!datang", 8) == 0) {
+            OtimToken t = {TOKEN_OTIM_HEADER, NULL, NULL, NULL, NULL, baris, kolom};
+            tambah_otim_token(&tokens, t);
+            i += 8; kolom += 8; continue;
+        }
+
+        if (strncmp(&kode_sumber[i], "pergi!#", 7) == 0) {
+            OtimToken t = {TOKEN_OTIM_FOOTER, NULL, NULL, NULL, NULL, baris, kolom};
+            tambah_otim_token(&tokens, t);
+            i += 7; kolom += 7; continue;
+        }
+
+        // 🟢 TANGKAP TAG & ATRIBUT (Format Kunci="Nilai")
+        if (kode_sumber[i] == '<') {
+            int awal_tag = ++i; kolom++;
+            int is_tutup = 0;
+            
+            if (kode_sumber[i] == '/') { is_tutup = 1; i++; awal_tag++; kolom++; }
+            while (kode_sumber[i] != '>' && kode_sumber[i] != '\0') { i++; kolom++; }
+            
+            int panjang_tag = i - awal_tag;
+            
+            // 🟢 BERSIH: enki_alokasi
+            char* isi_tag_mentah = (char*)enki_alokasi(panjang_tag + 1, 1);
+            strncpy(isi_tag_mentah, &kode_sumber[awal_tag], panjang_tag);
+            isi_tag_mentah[panjang_tag] = '\0';
+            
+            OtimToken t = {0};
+            t.baris = baris; t.kolom = kolom;
+            
+            if (is_tutup) {
+                t.jenis = TOKEN_OTIM_TAG_TUTUP;
+                trim_string(isi_tag_mentah);
+                t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
+            } else {
+                t.jenis = TOKEN_OTIM_TAG_BUKA;
+                
+                // Pisahkan Nama Tag dari Atributnya
+                char* spasi_pertama = strchr(isi_tag_mentah, ' ');
+                if (spasi_pertama) {
+                    *spasi_pertama = '\0';
+                    t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
+                    
+                    char* sisa_atribut = spasi_pertama + 1;
+                    trim_string(sisa_atribut);
+                    
+                    char* temukan_id = strstr(sisa_atribut, "id=\"");
+                    if (!temukan_id) temukan_id = strstr(sisa_atribut, "id='"); 
+                    
+                    if (temukan_id) {
+                        char kutip = temukan_id[3];
+                        char* awal_id = temukan_id + 4;
+                        char* akhir_id = strchr(awal_id, kutip);
+                        if (akhir_id) {
+                            *akhir_id = '\0';
+                            t.tag_id = enki_salin_teks(awal_id, 1); 
+                            *akhir_id = kutip; 
+                        }
+                    }
+                    
+                    if (strlen(sisa_atribut) > 0) {
+                        t.atribut = enki_salin_teks(sisa_atribut, 1);
+                    }
+                } else {
+                    t.tag_nama = enki_salin_teks(isi_tag_mentah, 1);
+                }
+            }
+            // 🟢 BERSIH: enki_bebas
+            enki_bebas(isi_tag_mentah, 1);
+            
+            tambah_otim_token(&tokens, t);
+            if (kode_sumber[i] == '>') { i++; kolom++; }
+            continue;
+        }
+
+        // 🟢 TANGKAP TEKS BEBAS
+        if (kode_sumber[i] != '<' && kode_sumber[i] != '#' && kode_sumber[i] != '^') {
+            int awal = i;
+            while (kode_sumber[i] != '<' && kode_sumber[i] != '\0') {
+                if (kode_sumber[i] == '\n') { baris++; kolom = 0; }
+                i++; kolom++;
+            }
+            
+            int panjang = i - awal;
+            
+            // 🟢 BERSIH: enki_alokasi
+            char* teks_mentah = (char*)enki_alokasi(panjang + 1, 1);
+            strncpy(teks_mentah, &kode_sumber[awal], panjang);
+            teks_mentah[panjang] = '\0';
+            
+            if (teks_mentah[0] == '"') teks_mentah[0] = ' ';
+            if (teks_mentah[panjang-1] == '"') teks_mentah[panjang-1] = ' ';
+            
+            trim_string(teks_mentah);
+            
+            if (strlen(teks_mentah) > 0) {
+                OtimToken t = {TOKEN_OTIM_TEKS, NULL, NULL, NULL, enki_salin_teks(teks_mentah, 1), baris, kolom};
+                tambah_otim_token(&tokens, t);
+            }
+            
+            // 🟢 BERSIH: enki_bebas
+            enki_bebas(teks_mentah, 1);
+            continue;
+        }
+        i++; kolom++;
+    }
+
+    OtimToken t_eof = {TOKEN_OTIM_EOF, NULL, NULL, NULL, NULL, baris, kolom};
+    tambah_otim_token(&tokens, t_eof);
+    return tokens;
+}
+
+void bebaskan_otim_token(OtimTokenArray* array) {
+    for (int i = 0; i < array->jumlah; i++) {
+        if (array->data[i].tag_nama) enki_bebas(array->data[i].tag_nama, 1);
+        if (array->data[i].tag_id) enki_bebas(array->data[i].tag_id, 1);
+        if (array->data[i].atribut) enki_bebas(array->data[i].atribut, 1);
+        if (array->data[i].isi_teks) enki_bebas(array->data[i].isi_teks, 1);
+    }
+    enki_bebas(array->data, 1);
+    array->data = NULL;
+    array->jumlah = 0;
+    array->kapasitas = 0;
+}#ifndef OTIM_LEXER_H
+#define OTIM_LEXER_H
+
+#include <stddef.h>
+
+typedef enum {
+    TOKEN_OTIM_HEADER,      // #!datang
+    TOKEN_OTIM_FOOTER,      // pergi!#
+    TOKEN_OTIM_TAG_BUKA,    // <wadah: utama> atau <tebal>
+    TOKEN_OTIM_TAG_TUTUP,   // </wadah>
+    TOKEN_OTIM_TEKS,        // "Teks yang akan tampil di layar"
+    TOKEN_OTIM_EOF          // Batas Akhir Dimensi
+} OtimTokenJenis;
+
+typedef struct {
+    OtimTokenJenis jenis;
+    char* tag_nama;         // Contoh: "wadah", "butir", "masukan"
+    char* tag_id;           // Contoh: "utama", "sandi_user" (bisa NULL)
+    char* atribut;          // Contoh: "tipe='rahasia'" (bisa NULL)
+    char* isi_teks;         // Isi dari "..." 
+    int baris;
+    int kolom;
+} OtimToken;
+
+typedef struct {
+    OtimToken* data;
+    int jumlah;
+    int kapasitas;
+} OtimTokenArray;
+
+OtimTokenArray otim_lexer(const char* kode_sumber);
+void bebaskan_otim_token(OtimTokenArray* array);
+
+#endif#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "otim_parser.h"
+#include "../core/enki_memory.h" // 🟢 MEMANGGIL DEWA MEMORI
+
+typedef struct {
+    OtimTokenArray tokens;
+    int kursor;
+} OtimParser;
+
+static OtimToken t_sekarang(OtimParser* p) {
+    if (p->kursor >= p->tokens.jumlah) return p->tokens.data[p->tokens.jumlah - 1];
+    return p->tokens.data[p->kursor];
+}
+
+static void t_maju(OtimParser* p) {
+    if (p->kursor < p->tokens.jumlah) p->kursor++;
+}
+
+static void o_tambah_elemen_array(EnkiObject* arr, EnkiObject* elemen) {
+    if (!arr || arr->tipe != ENKI_ARRAY) return;
+    arr->panjang++;
+    arr->nilai.array_elemen = (EnkiObject**)enki_realokasi(arr->nilai.array_elemen, (arr->panjang - 1) * sizeof(EnkiObject*), arr->panjang * sizeof(EnkiObject*), 1);
+    arr->nilai.array_elemen[arr->panjang - 1] = elemen;
+}
+
+static void o_simpan_ke_objek(EnkiObject* obj, const char* kunci, EnkiObject* nilai) {
+    if (!obj || obj->tipe != ENKI_OBJEK) return;
+    obj->panjang++;
+    obj->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.kunci, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
+    obj->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(obj->nilai.objek_peta.konten, (obj->panjang - 1) * sizeof(EnkiObject*), obj->panjang * sizeof(EnkiObject*), 1);
+    obj->nilai.objek_peta.kunci[obj->panjang - 1] = ciptakan_teks(kunci, 1);
+    obj->nilai.objek_peta.konten[obj->panjang - 1] = nilai;
+}
+
+static EnkiObject* parse_otim_elemen(OtimParser* p);
+
+EnkiObject* parse_otim(OtimTokenArray tokens) {
+    OtimParser p = {tokens, 0};
+    
+    if (t_sekarang(&p).jenis == TOKEN_OTIM_HEADER) { t_maju(&p); } 
+    else { printf("🚨 KIAMAT VISUAL: Dokumen harus diawali '#!datang'!\n"); return NULL; }
+
+    EnkiObject* root_ui = ciptakan_objek_peta(0, 1); 
+    EnkiObject* array_anak = ciptakan_array(0, 1); 
+    
+    while (t_sekarang(&p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(&p).jenis != TOKEN_OTIM_EOF) {
+        EnkiObject* elemen = parse_otim_elemen(&p);
+        if (elemen) o_tambah_elemen_array(array_anak, elemen);
+        else t_maju(&p);
+    }
+
+    if (t_sekarang(&p).jenis == TOKEN_OTIM_FOOTER) t_maju(&p);
+
+    o_simpan_ke_objek(root_ui, "jenis", ciptakan_teks("akar_dokumen", 1));
+    o_simpan_ke_objek(root_ui, "anak_anak", array_anak);
+    return root_ui;
+}
+
+static EnkiObject* parse_otim_elemen(OtimParser* p) {
+    OtimToken t = t_sekarang(p);
+
+    if (t.jenis == TOKEN_OTIM_TEKS) {
+        EnkiObject* node_teks = ciptakan_objek_peta(0, 1);
+        o_simpan_ke_objek(node_teks, "jenis", ciptakan_teks("teks", 1));
+        o_simpan_ke_objek(node_teks, "isi", ciptakan_teks(t.isi_teks, 1));
+        t_maju(p);
+        return node_teks;
+    }
+
+    if (t.jenis == TOKEN_OTIM_TAG_BUKA) {
+        EnkiObject* node_elemen = ciptakan_objek_peta(0, 1);
+        o_simpan_ke_objek(node_elemen, "jenis", ciptakan_teks("tag", 1));
+        o_simpan_ke_objek(node_elemen, "tag", ciptakan_teks(t.tag_nama, 1));
+        
+        if (t.tag_id) o_simpan_ke_objek(node_elemen, "id", ciptakan_teks(t.tag_id, 1));
+        
+        // Simpan Seluruh Teks Atribut ke dalam Objek (Siap diurai oleh Renderer!)
+        if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, 1));
+
+        EnkiObject* array_anak = ciptakan_array(0, 1); 
+        char* nama_tag_buka = enki_salin_teks(t.tag_nama, 1);
+        t_maju(p);
+
+        while (t_sekarang(p).jenis != TOKEN_OTIM_FOOTER && t_sekarang(p).jenis != TOKEN_OTIM_EOF) {
+            if (t_sekarang(p).jenis == TOKEN_OTIM_TAG_TUTUP) {
+                if (strcmp(t_sekarang(p).tag_nama, nama_tag_buka) == 0) {
+                    t_maju(p); break; 
+                } else {
+                    printf("🚨 KIAMAT VISUAL: <%s> ditutup dengan </%s>!\n", nama_tag_buka, t_sekarang(p).tag_nama);
+                    enki_bebas(nama_tag_buka, 1);
+                    return NULL;
+                }
+            }
+            EnkiObject* anak = parse_otim_elemen(p);
+            if (anak) o_tambah_elemen_array(array_anak, anak);
+        }
+
+        o_simpan_ke_objek(node_elemen, "anak_anak", array_anak);
+
+        if (array_anak->panjang > 0) {
+            EnkiObject* anak_pertama = array_anak->nilai.array_elemen[0];
+            for (int j = 0; j < anak_pertama->panjang; j++) {
+                if (strcmp(anak_pertama->nilai.objek_peta.kunci[j]->nilai.teks, "isi") == 0) {
+                    o_simpan_ke_objek(node_elemen, "teks_dalam", ciptakan_teks(anak_pertama->nilai.objek_peta.konten[j]->nilai.teks, 1));
+                    break;
+                }
+            }
+        }
+
+        enki_bebas(nama_tag_buka, 1);
+        return node_elemen;
+    }
+    return NULL;
+}#ifndef OTIM_PARSER_H
+#define OTIM_PARSER_H
+
+#include "otim_lexer.h"
+#include "../core/enki_object.h"
+
+// Menyulap token OTIM menjadi Pohon Objek bersarang (UI Tree)
+EnkiObject* parse_otim(OtimTokenArray tokens);
+
+#endif

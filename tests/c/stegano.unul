@@ -1,0 +1,42 @@
+^^ SIHIR STEGANOGRAFI UNUL (MENYEMBUNYIKAN PESAN DI GAMBAR)
+datang
+untuk array.dinamis
+
+ketik("=== MESIN PENYEMBUNYI RAHASIA UNUL ===")
+
+^^ 1. BACA GAMBAR ASLI
+takdir.soft nama_gambar = "logo.jpg"
+ketik("Membaca dimensi: " + nama_gambar)
+takdir.soft biner_gambar = baca_biner(nama_gambar)
+
+jika panjang_biner(biner_gambar) == 0 maka
+    ketik("🚨 GAGAL! File " + nama_gambar + " tidak ditemukan!")
+    pergi
+putus
+ketik("Ukuran asli gambar: " + panjang_biner(biner_gambar) + " Byte")
+
+^^ 2. SIAPKAN PESAN RAHASIA
+takdir.soft pesan_rahasia = "\n\n[RAHASIA_UNUL] -> Ini adalah pesan rahasia dari The UNUL Engine! Jika Anda melihat ini, berarti Biner berhasil ditembus!\n"
+ketik("Menyiapkan pesan rahasia: " + panjang(pesan_rahasia) + " Byte")
+
+^^ Mengubah teks pesan rahasia menjadi Blob (menggunakan fungsi ke_base64 lalu dari_base64 untuk trik bypass)
+^^ Tapi karena Biner UNUL cerdas, kita bisa langsung menulis teks ke Biner dengan trik sederhana:
+^^ Kita tulis pesan teks itu ke file sementara, lalu baca sebagai biner!
+tulis("temp_pesan.txt", pesan_rahasia)
+takdir.soft biner_pesan = baca_biner("temp_pesan.txt")
+
+^^ 3. GABUNGKAN GAMBAR DENGAN PESAN
+takdir.soft gambar_mutasi = gabung_biner(biner_gambar, biner_pesan)
+ketik("Ukuran gambar setelah dimutasi: " + panjang_biner(gambar_mutasi) + " Byte")
+
+^^ 4. SIMPAN HASILNYA
+takdir.soft gambar_hasil = "logo_rahasia.jpg"
+tulis_biner(gambar_hasil, gambar_mutasi)
+ketik("\n✅ BERHASIL! Gambar rahasia tersimpan sebagai: " + gambar_hasil)
+ketik("💡 Coba buka " + gambar_hasil + " dengan aplikasi penampil foto biasa. Gambarnya pasti masih normal!")
+ketik("💡 Lalu, coba buka " + gambar_hasil + " menggunakan Notepad, Text Editor, atau jalankan perintah 'tail -n 3 " + gambar_hasil + "'. Anda akan melihat pesannya di bagian paling bawah!")
+
+^^ Bersihkan jejak file sementara
+eksekusi("rm temp_pesan.txt")
+
+pergi
