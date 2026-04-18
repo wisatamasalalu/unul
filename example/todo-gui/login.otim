@@ -1,13 +1,11 @@
 #!datang
 <wadah id="layar_login" @layar.utama>
-    ^^ 1. Hapus @teks.peringatan dari sini agar kembali hijau!
-    <teks:t1> === PORTAL TODO URANTIA === </teks>
+    <judul id="t1"> === PORTAL TODO URANTIA === </judul>
     
     <masukan id="id_nama"> Nama Pengguna : </masukan>
     <masukan_sandi id="id_sandi"> Kata Sandi : </masukan_sandi>
     
-    ^^ 2. 🟢 TAMBAHKAN WADAH KOSONG INI UNTUK NOTIFIKASI ERROR!
-    <teks:id_notif, @teks.peringatan> </teks>
+    <teks id="id_notif" @teks.peringatan> </teks>
     
     <tombol id="btn_masuk" @tombol> Masuk Sistem </tombol>
     <tombol id="pindah_register" @tombol> Belum punya akun? Daftar sekarang </tombol>

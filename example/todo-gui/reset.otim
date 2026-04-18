@@ -1,6 +1,6 @@
 #!datang
-<wadah id="layar_reset", @layar.utama>
-    <teks:t1> === UBAH SANDI ANDA === </teks>
+<wadah id="layar_reset" @layar.utama>
+    <judul id="t1"> === UBAH SANDI ANDA === </judul>
     <masukan id="id_nama"> Nama Pengguna : </masukan>
     <masukan_sandi id="id_sandi_lama"> Sandi Lama : </masukan_sandi>
     <masukan_sandi id="id_sandi_baru"> Sandi Baru : </masukan_sandi>

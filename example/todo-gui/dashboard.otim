@@ -1,12 +1,16 @@
 #!datang
-<wadah id="layar_dashboard" @layar.utama>
-    <teks id="t2", === CATATAN RAHASIA ===></teks>
+<wadah_dinamis id="layar_dashboard" @layar.utama>
+    <judul id="t2"> === CATATAN RAHASIA === </judul>
     <teks id="id_nama_user"> Pengguna Aktif: </teks>
-    <masukan id="id_todo" Tugas Baru: ></masukan>
-    <tombol id="btn_tambah" Tambah Tugas></tombol>
-    <teks id="t3" Daftar Tugas Anda:></teks>
-    <teks id="id_daftar_todo" - Belum ada tugas -></teks>
-    ^^ 🟢 TAMBAHAN TOMBOL KELUAR:
-    <tombol id="btn_keluar" Keluar Akun></tombol>
-</wadah>
+    
+    <masukan id="id_todo"> Tugas Baru: </masukan>
+    <tombol id="btn_tambah" @tombol> Tambah Tugas </tombol>
+    
+    <teks id="t3"> Daftar Tugas Anda: </teks>
+    
+    ^^ Di sinilah daftar tugas (yang mengandung \n) akan dimuntahkan oleh Jembatan DOM
+    <teks id="id_daftar_todo"> - Belum ada tugas - </teks>
+    
+    <tombol id="btn_keluar" @tombol> Keluar Akun </tombol>
+</wadah_dinamis>
 pergi!#

@@ -1,25 +1,34 @@
 @layar.utama {
-    warna_latar: #000000;
-    warna_teks: #00FF00;
-    bingkai: ganda;
+    warna_latar: #1E1E1EFF; ^^ Mode Gelap Modern
+    warna_teks: #00FF00FF;  ^^ Hijau Hacker
+    susunan: kolom;
     lebar: penuh;
 }
 
 @tombol {
-    warna_latar: #0000FF;
-    warna_teks: #FFFFFF;
+    warna_latar: #2C3E50FF; 
+    warna_teks: #FFFFFFFF;
+    lebar: 300;             ^^ Buat tombol lebih lebar agar mudah diklik!
+    tinggi: 40;
 }
 
-^^ 🟢 KEKUATAN BARU: Tombol akan berubah warna saat disentuh mouse!
 @tombol:hover {
-    warna_latar: #FF0000; ^^ Berubah jadi merah!
-    warna_teks: #FFFF00; ^^ Teks berubah jadi kuning!
+    warna_latar: #E74C3CFF; ^^ Merah saat di-hover
+    warna_teks: #FFFFFFFF;
+}
+
+@masukan {
+    warna_latar: #ECF0F1FF;
+    warna_teks: #2C3E50FF;
+    lebar: 300;             ^^ Samakan lebarnya dengan tombol
+}
+
+@masukan_sandi {
+    warna_latar: #ECF0F1FF;
+    warna_teks: #2C3E50FF;
+    lebar: 300;
 }
 
 @teks.peringatan {
-    warna_teks: #FF0000;
-}
-
-@teks {
-    warna_teks: #FFFFFF;
+    warna_teks: #E74C3CFF; ^^ Merah untuk Error
 }
