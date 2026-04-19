@@ -297,11 +297,11 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             indeks_saya = total_input_terdaftar;
             strcpy(daftar_id[indeks_saya], id_bersih);
             
-            // 🟢 SIMPAN LABEL ASLI KE CACHE C SEBELUM DOM DIRETAS!
+            // 🟢 SIMPAN LABEL ASLI KE CACHE C (Agar teks_dalam aman diretas)
             if (strlen(teks_dalam) > 0) strcpy(daftar_label[indeks_saya], teks_dalam);
             else strcpy(daftar_label[indeks_saya], atribut);
             
-            // 🟢 TARIK NILAI DARI DOM KE DALAM C (Jika halaman dimuat ulang)
+            // 🟢 TARIK NILAI DARI DOM KE DALAM C
             for (int j = 0; j < elemen->panjang; j++) {
                 if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
                     strncpy(daftar_nilai[indeks_saya], elemen->nilai.objek_peta.konten[j]->nilai.teks, 65000);
@@ -392,7 +392,10 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             int ada_isi = 0;
             for (int j = 0; j < elemen->panjang; j++) {
                 if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
-                    elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                    EnkiObject* v = elemen->nilai.objek_peta.konten[j];
+                    if (strcmp(v->nilai.teks, daftar_nilai[indeks_saya]) != 0) {
+                        elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                    }
                     ada_isi = 1; break;
                 }
             }
@@ -562,7 +565,10 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             int ada_isi = 0;
             for (int j = 0; j < elemen->panjang; j++) {
                 if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
-                    elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                    EnkiObject* v = elemen->nilai.objek_peta.konten[j];
+                    if (strcmp(v->nilai.teks, daftar_nilai[indeks_saya]) != 0) {
+                        elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                    }
                     ada_isi = 1; break;
                 }
             }
