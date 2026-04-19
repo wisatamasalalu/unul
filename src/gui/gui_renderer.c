@@ -706,23 +706,47 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
         CloseWindow(); 
     } 
     
-    // 🟢 SUNTIKAN 3: THE FORCE FLUSH!
-    // Memaksa sinkronisasi data terakhir ke DOM sebelum kembali ke UNUL
+    // ====================================================================
+    // 🟢 THE FORCE FLUSH: SINKRONISASI PAKSA TERAKHIR SEBELUM KELUAR!
+    // Ini menjamin arg_ui berisi data ketikan 100% utuh tanpa tertinggal 1 frame pun!
+    // ====================================================================
     for (int k = 0; k < total_input_terdaftar; k++) {
         EnkiObject* target = ambil_elemen_berdasarkan_id(ui_root, daftar_id[k]);
         if (target && target->tipe == ENKI_OBJEK) {
+            int ketemu = 0;
             for (int j = 0; j < target->panjang; j++) {
                 if (strcmp(target->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
+                    // Hancurkan objek lama terlebih dahulu untuk mencegah kebocoran memori!
+                    hancurkan_objek(target->nilai.objek_peta.konten[j], 1);
                     target->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[k], 1);
+                    ketemu = 1;
                     break;
                 }
             }
+            // 🟢 JIKA PARSER GAGAL MELAHIRKANNYA, C KITA AKAN MELAHIRKANNYA SECARA PAKSA!
+            if (!ketemu) {
+                target->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
+                    target->nilai.objek_peta.kunci,
+                    target->panjang * sizeof(EnkiObject*),
+                    (target->panjang + 1) * sizeof(EnkiObject*), 1);
+                
+                target->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(
+                    target->nilai.objek_peta.konten,
+                    target->panjang * sizeof(EnkiObject*),
+                    (target->panjang + 1) * sizeof(EnkiObject*), 1);
+                
+                target->nilai.objek_peta.kunci[target->panjang] = ciptakan_teks("teks_input", 1);
+                target->nilai.objek_peta.konten[target->panjang] = ciptakan_teks(daftar_nilai[k], 1);
+                target->panjang++;
+            }
         }
-    } // <-- Ini adalah kurung tutup dari The Force Flush
+    }
+    // ====================================================================
 
     // 🟢 SUNTIKAN BARU: HAPUS INGATAN C SETELAH DOM AMAN!
     total_input_terdaftar = 0; 
     for(int k = 0; k < MAKSIMAL_INPUT; k++) {
+        daftar_id[k][0] = '\0'; // Pastikan ID dibersihkan agar saat kembali login bisa didaftarkan lagi!
         daftar_fokus[k] = false;
         memset(daftar_nilai[k], 0, sizeof(daftar_nilai[k])); 
         memset(daftar_label[k], 0, sizeof(daftar_label[k])); 
