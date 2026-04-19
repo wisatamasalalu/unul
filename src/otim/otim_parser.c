@@ -79,6 +79,11 @@ static EnkiObject* parse_otim_elemen(OtimParser* p) {
         // Simpan Seluruh Teks Atribut ke dalam Objek (Siap diurai oleh Renderer!)
         if (t.atribut) o_simpan_ke_objek(node_elemen, "atribut", ciptakan_teks(t.atribut, 1));
 
+        // 🟢 DNA KEMURNIAN: Lahirkan teks_input secara resmi agar Bridge UNUL menemukannya!
+        if (strcmp(t.tag_nama, "masukan") == 0 || strcmp(t.tag_nama, "masukan_sandi") == 0 || strcmp(t.tag_nama, "areanulis") == 0) {
+            o_simpan_ke_objek(node_elemen, "teks_input", ciptakan_teks("", 1));
+        }
+
         EnkiObject* array_anak = ciptakan_array(0, 1); 
         char* nama_tag_buka = enki_salin_teks(t.tag_nama, 1);
         t_maju(p);

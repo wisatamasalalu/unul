@@ -564,11 +564,33 @@ void pulihkan_jejak_mesin_waktu(KavlingMemori* kavling) {
         JejakMasaLalu* jejak_terakhir = &kavling->riwayat[--kavling->jumlah_riwayat];
         kavling->tipe = jejak_terakhir->tipe;
         
-        // 🟢 TIDAK ADA RAM DI SINI, PAKSA PAKAI 1
+        // 1. Hancurkan Raga Masa Kini
         if (kavling->objek) hancurkan_objek(kavling->objek, 1);
         
-        kavling->objek = jejak_terakhir->objek; 
+        // 2. Hancurkan Ingatan Masa Kini (Mini RAM)
+        if (kavling->anak_anak) {
+            bebaskan_ram(kavling->anak_anak);
+            enki_bebas(kavling->anak_anak, 1);
+            kavling->anak_anak = NULL;
+        }
+        
+        // 3. Reinkarnasi Raga & Jiwa dari Masa Lalu
+        kavling->objek = jejak_terakhir->objek; // (Poiternya sudah disalin saat simpan_jejak)
         kavling->anak_anak = jejak_terakhir->anak_anak;
+        
+        // 🟢 SUNTIKAN ANTI-PARADOKS: BANGKITKAN DIMENSI BARU!
+        // Karena jejak_terakhir->anak_anak mungkin sudah rusak/dihapus saat kita menimpa objek di masa depan,
+        // kita HARUS membangun ulang Mini RAM dari Wujud Fisik masa lalu!
+        if (kavling->objek && kavling->objek->tipe == ENKI_OBJEK) {
+            if (kavling->anak_anak) {
+                bebaskan_ram(kavling->anak_anak);
+                enki_bebas(kavling->anak_anak, 1);
+                kavling->anak_anak = NULL;
+            }
+            // Karena kita butuh ram_pusat untuk saklar dinamis, kita pakai dummy yang saklarnya aktif
+            EnkiRAM ram_dummy; ram_dummy.status_array_dinamis = 1; ram_dummy.induk = NULL;
+            sihir_bangun_dimensi(kavling, kavling->objek, &ram_dummy);
+        }
     }
 }
 
@@ -1416,7 +1438,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 return ciptakan_kosong(ram->status_array_dinamis); 
             }
 
-            // 1. Simpan jejak Mesin Waktu (jika ada)
+            // 1. Simpan jejak Mesin Waktu (jika ada) dan Amankan Akar!
             KavlingMemori* induk = cari_induk_utama(node->kiri, ram); 
             if (induk) simpan_jejak_mesin_waktu(induk);
 
@@ -1426,7 +1448,10 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             if (alamat_target) {
                 // ALAMAT DITEMUKAN! Bakar data lama, masukkan data baru!
                 if (*alamat_target) hancurkan_objek(*alamat_target, ram->status_array_dinamis); 
-                *alamat_target = hasil_masa_depan;                   
+                *alamat_target = hasil_masa_depan;                    
+                
+                // ❌ OMNI-REBUILD TELAH DIHAPUS DARI SINI! KITA PERCAYAKAN PADA KEMURNIAN L-VALUE!
+                
             } else {
                 // ALAMAT GAGAL DITEMUKAN: Coba buat variabel baru
                 KavlingMemori* target_kavling = temukan_atau_ciptakan_kavling(node->kiri, ram);
@@ -1438,6 +1463,16 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     if (target_kavling->objek) hancurkan_objek(target_kavling->objek, ram->status_array_dinamis);
                     target_kavling->tipe = TIPE_VARIABEL_SOFT;
                     target_kavling->objek = hasil_masa_depan;
+                    
+                    // 🟢 KITA HANYA MEMBANGUN DIMENSI JIKA VARIABEL INI BENAR-BENAR BARU DIBUAT (BUKAN MUTASI PROPERTI)
+                    if (target_kavling->anak_anak) {
+                        bebaskan_ram(target_kavling->anak_anak);
+                        enki_bebas(target_kavling->anak_anak, 1);
+                        target_kavling->anak_anak = NULL;
+                    }
+                    if (hasil_masa_depan && hasil_masa_depan->tipe == ENKI_OBJEK) {
+                        sihir_bangun_dimensi(target_kavling, hasil_masa_depan, ram);
+                    }
                 } else {
                     // JIKA BENAR-BENAR GAGAL MUTASI!
                     pemicu_kiamat_presisi(node, ram, "Gagal memutasi memori. Variabel belum diciptakan atau jalur salah!",

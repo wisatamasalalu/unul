@@ -3,19 +3,12 @@
 #include <string.h>
 #include <raylib.h>
 
-// =======================================================
-// 🟢 SIHIR MEMBUNGKAM GCC: Hentikan cerewetnya untuk Raygui!
-// =======================================================
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
+#pragma GCC diagnostic pop 
 
-#pragma GCC diagnostic pop // Kembalikan aturan GCC seperti semula!
-// =======================================================
-
-// 🟢 URUTAN INCLUDE MUTLAK
 #include "../core/enki_object.h"  
 #include "../core/enki_memory.h"  
 #include "../snul/snul_lexer.h"   
@@ -24,15 +17,13 @@
 #include "../otim/otim_parser.h"  
 #include "gui_renderer.h"
 
-// 🟢 UPGRADE STANDAR 64KB UNTUK KOTAK MASUKAN
 #define MAKSIMAL_INPUT 20
 static char daftar_id[MAKSIMAL_INPUT][64] = {0};
 static char daftar_nilai[MAKSIMAL_INPUT][65536] = {0}; 
-static char daftar_label[MAKSIMAL_INPUT][256] = {0}; // 🟢 CACHE LABEL AMAN!
+static char daftar_label[MAKSIMAL_INPUT][256] = {0}; 
 static bool daftar_fokus[MAKSIMAL_INPUT] = {false}; 
 static int total_input_terdaftar = 0;
 
-// Peta Tekstur untuk Cache Gambar agar memori GUI tidak bocor
 #define MAKSIMAL_GAMBAR 10
 static Texture2D cache_gambar[MAKSIMAL_GAMBAR];
 static char cache_jalur_gambar[MAKSIMAL_GAMBAR][256] = {0};
@@ -68,7 +59,6 @@ Color heks_ke_warna(const char* hex, Color warna_bawaan) {
     return warna_bawaan;
 }
 
-// 🟢 ASISTEN TATA LETAK: Mengambil properti SNUL
 static void terapkan_aturan_snul(EnkiObject* gaya, const char* target, Color* bg, Color* fg, int* bingkai, int* lebar, int* tinggi, int* ukuran_skala, char* susunan, int* ukuran_teks, int* padding_x, int* padding_y, int* gap_elemen) {
     if (!gaya || gaya->tipe != ENKI_OBJEK || !target) return;
     size_t target_len = strlen(target);
@@ -107,7 +97,34 @@ static void terapkan_aturan_snul(EnkiObject* gaya, const char* target, Color* bg
     }
 }
 
-// 🟢 ENGINE RENDER DOM UTAMA 
+// 🟢 FUNGSI ASISTEN: Penjelajah Dimensi DOM (Mencari elemen berdasarkan ID)
+static EnkiObject* ambil_elemen_berdasarkan_id(EnkiObject* elemen, const char* target_id) {
+    if (!elemen || elemen->tipe != ENKI_OBJEK) return NULL;
+    
+    // Cek ID elemen saat ini
+    for (int i = 0; i < elemen->panjang; i++) {
+        if (strcmp(elemen->nilai.objek_peta.kunci[i]->nilai.teks, "id") == 0) {
+            if (strcmp(elemen->nilai.objek_peta.konten[i]->nilai.teks, target_id) == 0) {
+                return elemen; 
+            }
+        }
+    }
+    
+    // Cek anak-anaknya (Rekursi)
+    for (int i = 0; i < elemen->panjang; i++) {
+        if (strcmp(elemen->nilai.objek_peta.kunci[i]->nilai.teks, "anak_anak") == 0) {
+            EnkiObject* anak_array = elemen->nilai.objek_peta.konten[i];
+            if (anak_array && anak_array->tipe == ENKI_ARRAY) {
+                for (int j = 0; j < anak_array->panjang; j++) {
+                    EnkiObject* hasil = ambil_elemen_berdasarkan_id(anak_array->nilai.array_elemen[j], target_id);
+                    if (hasil) return hasil;
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
 void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject* gaya_dev, int* x_kursor, int* y_kursor, int* tinggi_baris_maks, Vector2 mouse, bool klik_kiri, char* aksi_kembalian, Color warna_teks_turunan) {
     if (!elemen || elemen->tipe != ENKI_OBJEK) return;
     char* jenis = NULL; char* tag_nama = ""; char* tag_id = "";
@@ -279,7 +296,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
     }
 
     // =================================================================
-    // 🟢 OVERRIDE MUTLAK: KITA BUAT TEXTBOX KITA SENDIRI!
+    // 🟢 MASUKAN TEKS SINGLE-LINE
     // =================================================================
     else if (strcmp(tag_nama, "masukan") == 0 || strcmp(tag_nama, "masukan_sandi") == 0) {
         int tinggi_kotak = (tinggi_dinamis == -1) ? (font_size + 20) : tinggi_dinamis; 
@@ -297,11 +314,9 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             indeks_saya = total_input_terdaftar;
             strcpy(daftar_id[indeks_saya], id_bersih);
             
-            // 🟢 SIMPAN LABEL ASLI KE CACHE C (Agar teks_dalam aman diretas)
             if (strlen(teks_dalam) > 0) strcpy(daftar_label[indeks_saya], teks_dalam);
             else strcpy(daftar_label[indeks_saya], atribut);
             
-            // 🟢 TARIK NILAI DARI DOM KE DALAM C
             for (int j = 0; j < elemen->panjang; j++) {
                 if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
                     strncpy(daftar_nilai[indeks_saya], elemen->nilai.objek_peta.konten[j]->nilai.teks, 65000);
@@ -311,7 +326,6 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             total_input_terdaftar++;
         }
 
-        // 🟢 GAMBAR LABEL DARI CACHE, BUKAN DARI DOM
         DrawText(daftar_label[indeks_saya], *x_kursor, *y_kursor + (font_size/2), font_size, warna_teks_turunan); 
 
         if (indeks_saya != -1) {
@@ -347,9 +361,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                 }
 
                 bool ctrl_ditekan = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
-                if (ctrl_ditekan && IsKeyPressed(KEY_C)) {
-                    SetClipboardText(daftar_nilai[indeks_saya]);
-                }
+                if (ctrl_ditekan && IsKeyPressed(KEY_C)) SetClipboardText(daftar_nilai[indeks_saya]);
                 if (ctrl_ditekan && IsKeyPressed(KEY_V)) {
                     const char* teks_paste = GetClipboardText();
                     if (teks_paste != NULL) {
@@ -385,44 +397,6 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                     DrawRectangle(area.x + 12 + text_width, area.y + (area.height/2) - (font_size/2), 2, font_size, RED);
                 }
             }
-
-            // =====================================================================
-            // 🟢 SINKRONISASI DOM UNUL (ANTI GC SWEEP - THE SHIELD HACK)
-            // =====================================================================
-            int ada_isi = 0;
-            for (int j = 0; j < elemen->panjang; j++) {
-                if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
-                    EnkiObject* v = elemen->nilai.objek_peta.konten[j];
-                    if (strcmp(v->nilai.teks, daftar_nilai[indeks_saya]) != 0) {
-                        elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
-                    }
-                    ada_isi = 1; break;
-                }
-            }
-            
-            if (ada_isi == 0) {
-                EnkiObject** kunci_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                EnkiObject** konten_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                
-                for(int j = 0; j < elemen->panjang; j++) {
-                    kunci_baru[j] = elemen->nilai.objek_peta.kunci[j];
-                    konten_baru[j] = elemen->nilai.objek_peta.konten[j];
-                }
-                
-                // 🟢 PASANG PERISAI GC: Isi slot kosong dengan objek [0] yang sudah aman!
-                kunci_baru[elemen->panjang] = elemen->nilai.objek_peta.kunci[0];
-                konten_baru[elemen->panjang] = elemen->nilai.objek_peta.konten[0];
-                
-                // Pasang array ke DOM SEKARANG!
-                elemen->nilai.objek_peta.kunci = kunci_baru;
-                elemen->nilai.objek_peta.konten = konten_baru;
-                elemen->panjang++; // DOM resmi bertambah!
-                
-                // 🟢 SEKARANG AMAN! Meskipun ciptakan_teks memicu GC, GC hanya akan melihat perisai kita!
-                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input", 1);
-                elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
-            }
-            // =====================================================================
         }
 
         kotak_w = 250 + area.width; 
@@ -559,43 +533,6 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             
             EndScissorMode();
 
-            // =====================================================================
-            // 🟢 SINKRONISASI DOM UNUL (ANTI GC SWEEP - THE SHIELD HACK)
-            // =====================================================================
-            int ada_isi = 0;
-            for (int j = 0; j < elemen->panjang; j++) {
-                if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
-                    EnkiObject* v = elemen->nilai.objek_peta.konten[j];
-                    if (strcmp(v->nilai.teks, daftar_nilai[indeks_saya]) != 0) {
-                        elemen->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
-                    }
-                    ada_isi = 1; break;
-                }
-            }
-            
-            if (ada_isi == 0) {
-                EnkiObject** kunci_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                EnkiObject** konten_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                
-                for(int j = 0; j < elemen->panjang; j++) {
-                    kunci_baru[j] = elemen->nilai.objek_peta.kunci[j];
-                    konten_baru[j] = elemen->nilai.objek_peta.konten[j];
-                }
-                
-                // 🟢 PASANG PERISAI GC: Isi slot kosong dengan objek [0] yang sudah aman!
-                kunci_baru[elemen->panjang] = elemen->nilai.objek_peta.kunci[0];
-                konten_baru[elemen->panjang] = elemen->nilai.objek_peta.konten[0];
-                
-                // Pasang array ke DOM SEKARANG!
-                elemen->nilai.objek_peta.kunci = kunci_baru;
-                elemen->nilai.objek_peta.konten = konten_baru;
-                elemen->panjang++; // DOM resmi bertambah!
-                
-                // 🟢 SEKARANG AMAN! Meskipun ciptakan_teks memicu GC, GC hanya akan melihat perisai kita!
-                elemen->nilai.objek_peta.kunci[elemen->panjang - 1] = ciptakan_teks("teks_input", 1);
-                elemen->nilai.objek_peta.konten[elemen->panjang - 1] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
-            }
-            // =====================================================================
         }
 
         kotak_w = area.width; 
@@ -632,14 +569,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
         if (GuiButton(area, label_tombol)) {
             char id_bersih[256]; sscanf(tag_id, " %s", id_bersih); 
             strcpy(aksi_kembalian, id_bersih);
-            
-            // 🟢 SIHIR PERBAIKAN MUTLAK: Bersihkan semua jejak input lama lintas dimensi!
-            total_input_terdaftar = 0; 
-            for(int k = 0; k < MAKSIMAL_INPUT; k++) {
-                daftar_fokus[k] = false;
-                memset(daftar_nilai[k], 0, sizeof(daftar_nilai[k])); 
-                memset(daftar_label[k], 0, sizeof(daftar_label[k])); 
-            }
+            // KITA BIARKAN KOSONG! Jangan hapus memori di sini!
         }
     }
     
@@ -671,13 +601,15 @@ const char* SNUL_BAWAAN_MESIN =
 "}\n";
 
 char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
-    // 🟢 BERSIHKAN INGATAN JASAD C SETIAP KALI HALAMAN BARU DIMUAT!
+    // 🟢 DEEP CLEANSE: Pastikan memori C benar-benar nol sebelum halaman baru di-render!
     total_input_terdaftar = 0;
-    for(int k=0; k < MAKSIMAL_INPUT; k++) {
+    for(int k = 0; k < MAKSIMAL_INPUT; k++) {
+        daftar_id[k][0] = '\0'; // 🟢 TAMBAHAN: Bersihkan juga ID-nya!
         daftar_fokus[k] = false;
         daftar_nilai[k][0] = '\0'; 
         daftar_label[k][0] = '\0'; 
     }
+
     if (!IsWindowReady()) { 
         SetConfigFlags(FLAG_WINDOW_RESIZABLE); 
         InitWindow(800, 600, "OS Urantia - Dimensi Native GUI");
@@ -774,6 +706,28 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
         CloseWindow(); 
     } 
     
+    // 🟢 SUNTIKAN 3: THE FORCE FLUSH!
+    // Memaksa sinkronisasi data terakhir ke DOM sebelum kembali ke UNUL
+    for (int k = 0; k < total_input_terdaftar; k++) {
+        EnkiObject* target = ambil_elemen_berdasarkan_id(ui_root, daftar_id[k]);
+        if (target && target->tipe == ENKI_OBJEK) {
+            for (int j = 0; j < target->panjang; j++) {
+                if (strcmp(target->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
+                    target->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[k], 1);
+                    break;
+                }
+            }
+        }
+    } // <-- Ini adalah kurung tutup dari The Force Flush
+
+    // 🟢 SUNTIKAN BARU: HAPUS INGATAN C SETELAH DOM AMAN!
+    total_input_terdaftar = 0; 
+    for(int k = 0; k < MAKSIMAL_INPUT; k++) {
+        daftar_fokus[k] = false;
+        memset(daftar_nilai[k], 0, sizeof(daftar_nilai[k])); 
+        memset(daftar_label[k], 0, sizeof(daftar_label[k])); 
+    }
+
     if (gaya_bawaan_ast) hancurkan_objek(gaya_bawaan_ast, 1);
     bebaskan_snul_token(&tokens_bawaan);
 

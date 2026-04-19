@@ -176,6 +176,9 @@ siklus selama aplikasi_hidup == 1 maka
     jika respon.aksi == "btn_tambah" maka
         takdir.soft teks_baru = ambil_nilai_ui(layar_sekarang, "id_todo")
         
+        ^^ 🟢 TAMBAHKAN BARIS INI UNTUK DEBUGGING!
+       ketik("Nilai teks_baru yang ditangkap: [" + teks_baru + "]")
+
         jika teks_baru != "" maka
             tambah_todo(user_aktif, teks_baru)
             
