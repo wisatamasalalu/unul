@@ -4,7 +4,7 @@
     <teks id="id_nama_user"> Pengguna Aktif: </teks>
     
     <teks id="label_tugas"> Tulis Tugas Panjang Di Sini: </teks>
-    <areanulis id="id_todo" atribut="lebar: 400; tinggi: 150;"> </areanulis>
+    <masukan id="id_todo"> Ketik tugas Anda di sini... </masukan>
     
     <tombol id="btn_tambah" @tombol> Tambah Tugas </tombol>
     
