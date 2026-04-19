@@ -3,12 +3,14 @@
     <judul id="t2"> === CATATAN RAHASIA === </judul>
     <teks id="id_nama_user"> Pengguna Aktif: </teks>
     
-    <masukan id="id_todo"> Tugas Baru: </masukan>
+    <teks id="label_tugas"> Tulis Tugas Panjang Di Sini: </teks>
+    <areanulis id="id_todo" atribut="lebar: 400; tinggi: 150;"> </areanulis>
+    
     <tombol id="btn_tambah" @tombol> Tambah Tugas </tombol>
     
     <teks id="t3"> Daftar Tugas Anda: </teks>
     
-    ^^ Di sinilah daftar tugas (yang mengandung \n) akan dimuntahkan oleh Jembatan DOM
+    ^^ Di sinilah daftar tugas akan dimuntahkan
     <teks id="id_daftar_todo"> - Belum ada tugas - </teks>
     
     <tombol id="btn_keluar" @tombol> Keluar Akun </tombol>

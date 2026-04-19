@@ -1,0 +1,6 @@
+#!datang
+<wadah id="layar_tes" @layar.utama>
+    <judul id="judul_tes"> === UJI COBA AREANULIS === </judul>
+    <areanulis id="id_catatan" atribut="lebar: 400; tinggi: 200;"> </areanulis>
+</wadah>
+pergi!#

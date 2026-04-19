@@ -66,7 +66,7 @@ Color heks_ke_warna(const char* hex, Color warna_bawaan) {
 }
 
 // 🟢 ASISTEN TATA LETAK: Mengambil properti SNUL
-static void terapkan_aturan_snul(EnkiObject* gaya, const char* target, Color* bg, Color* fg, int* bingkai, int* lebar, int* tinggi, int* ukuran_skala, char* susunan, int* ukuran_teks, int* padding_x, int* padding_y) {
+static void terapkan_aturan_snul(EnkiObject* gaya, const char* target, Color* bg, Color* fg, int* bingkai, int* lebar, int* tinggi, int* ukuran_skala, char* susunan, int* ukuran_teks, int* padding_x, int* padding_y, int* gap_elemen) {
     if (!gaya || gaya->tipe != ENKI_OBJEK || !target) return;
     size_t target_len = strlen(target);
     
@@ -96,6 +96,7 @@ static void terapkan_aturan_snul(EnkiObject* gaya, const char* target, Color* bg
                     else if (strcmp(prop_bersih, "ukuran_teks") == 0) *ukuran_teks = atoi(val); 
                     else if (strcmp(prop_bersih, "padding_x") == 0) { if (padding_x) *padding_x = atoi(val); } // 🟢 Tangkap padding_x
                     else if (strcmp(prop_bersih, "padding_y") == 0) { if (padding_y) *padding_y = atoi(val); } // 🟢 Tangkap padding_y
+                    else if (strcmp(prop_bersih, "gap") == 0) { if (gap_elemen) *gap_elemen = atoi(val); }
                 }
                 break;
             }
@@ -128,6 +129,8 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
         for (int i = 0; i < anak_anak->panjang; i++) {
             gambar_elemen_otim(anak_anak->nilai.array_elemen[i], gaya_bawaan, gaya_dev, x_kursor, y_kursor, &t_maks, mouse, klik_kiri, aksi_kembalian, warna_teks_turunan);
         }
+        // 🟢 KEMBALIKAN TINGGI KE AKAR AGAR SCROLL BISA BERNAFAS!
+        if (tinggi_baris_maks) *tinggi_baris_maks = t_maks; 
         return;
     }
 
@@ -142,17 +145,18 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
     int ukuran_skala = -1;
     char susunan_elemen[32] = "kolom"; 
     int font_size = 20; // 🟢 DEFAULT FONT SIZE
+    int jarak_gap = 0; // 🟢 Gap default sekarang adalah 0 (Menempel Rapat!)
 
     char nama_tag_snul[64];
     snprintf(nama_tag_snul, sizeof(nama_tag_snul), "@%s", tag_nama); 
 
-    terapkan_aturan_snul(gaya_bawaan, "@*", &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
-    terapkan_aturan_snul(gaya_bawaan, nama_tag_snul, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
-    if (selektor[0] == '@') terapkan_aturan_snul(gaya_bawaan, selektor, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
+    terapkan_aturan_snul(gaya_bawaan, "@*", &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
+    terapkan_aturan_snul(gaya_bawaan, nama_tag_snul, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
+    if (selektor[0] == '@') terapkan_aturan_snul(gaya_bawaan, selektor, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
     
-    terapkan_aturan_snul(gaya_dev, "@*", &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
-    terapkan_aturan_snul(gaya_dev, nama_tag_snul, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
-    if (selektor[0] == '@') terapkan_aturan_snul(gaya_dev, selektor, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL);
+    terapkan_aturan_snul(gaya_dev, "@*", &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
+    terapkan_aturan_snul(gaya_dev, nama_tag_snul, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
+    if (selektor[0] == '@') terapkan_aturan_snul(gaya_dev, selektor, &warna_latar, &warna_teks, &bingkai_ganda, &lebar_dinamis, &tinggi_dinamis, &ukuran_skala, susunan_elemen, &font_size, NULL, NULL, &jarak_gap);
 
     int kotak_w = 0, kotak_h = 0;
 
@@ -321,11 +325,12 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                 }
             }
 
-            // 🟢 2. RESEPTOR KEYBOARD MURNI (Bypass Raygui Sepenuhnya!)
+            // 🟢 2. RESEPTOR KEYBOARD MURNI & CLIPBOARD (Bypass Raygui!)
             if (daftar_fokus[indeks_saya]) {
+                // A. Ilmu Mengetik Standar
                 int key = GetCharPressed();
                 while (key > 0) {
-                    if ((key >= 32) && (key <= 125)) { // Tangkap huruf, angka, dan simbol
+                    if ((key >= 32) && (key <= 125)) { 
                         int len = strlen(daftar_nilai[indeks_saya]);
                         if (len < 65000) {
                             daftar_nilai[indeks_saya][len] = (char)key;
@@ -335,10 +340,29 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                     key = GetCharPressed();
                 }
                 
-                // Senjata Penghancur (Backspace)
+                // B. Senjata Penghancur (Backspace)
                 if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
                     int len = strlen(daftar_nilai[indeks_saya]);
                     if (len > 0) daftar_nilai[indeks_saya][len-1] = '\0';
+                }
+
+                // C. SIHIR COPY (CTRL + C) - Menyalin seluruh isi kotak ke OS!
+                bool ctrl_ditekan = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+                if (ctrl_ditekan && IsKeyPressed(KEY_C)) {
+                    SetClipboardText(daftar_nilai[indeks_saya]);
+                }
+
+                // D. SIHIR PASTE (CTRL + V) - Menarik teks dari OS ke dalam kotak!
+                if (ctrl_ditekan && IsKeyPressed(KEY_V)) {
+                    const char* teks_paste = GetClipboardText();
+                    if (teks_paste != NULL) {
+                        int len_sekarang = strlen(daftar_nilai[indeks_saya]);
+                        int len_paste = strlen(teks_paste);
+                        // Cegah Overflow (Batas kita 65KB)
+                        if (len_sekarang + len_paste < 65000) {
+                            strcat(daftar_nilai[indeks_saya], teks_paste);
+                        }
+                    }
                 }
             }
 
@@ -383,15 +407,213 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                 }
             }
             if (ada_isi == 0) {
-                elemen->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.kunci, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                elemen->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(elemen->nilai.objek_peta.konten, elemen->panjang * sizeof(EnkiObject*), (elemen->panjang + 1) * sizeof(EnkiObject*), 1);
-                elemen->nilai.objek_peta.kunci[elemen->panjang] = ciptakan_teks("teks_input", 1);
-                elemen->nilai.objek_peta.konten[elemen->panjang] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                // 🟢 ALOKASI AMAN: Buat array baru dan salin isinya agar tidak merusak pointer asli UNUL!
+                EnkiObject** kunci_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+                EnkiObject** konten_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+                
+                for(int j = 0; j < elemen->panjang; j++) {
+                    kunci_baru[j] = elemen->nilai.objek_peta.kunci[j];
+                    konten_baru[j] = elemen->nilai.objek_peta.konten[j];
+                }
+                
+                kunci_baru[elemen->panjang] = ciptakan_teks("teks_input", 1);
+                konten_baru[elemen->panjang] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                
+                // Timpa array lama (biarkan GC UNUL yang membuang sampah array lamanya)
+                elemen->nilai.objek_peta.kunci = kunci_baru;
+                elemen->nilai.objek_peta.konten = konten_baru;
                 elemen->panjang++;
             }
         }
 
         kotak_w = 250 + area.width; 
+        kotak_h = area.height; 
+    }
+
+    // =================================================================
+    // 🟢 REVOLUSI AREA NULIS (MULTI-LINE TEXTAREA DENGAN AUTO WRAP!)
+    // =================================================================
+    else if (strcmp(tag_nama, "areanulis") == 0) {
+        // 1. Dimensi Kotak
+        int tinggi_kotak = (tinggi_dinamis == -1) ? 150 : tinggi_dinamis; // Default lebih tinggi dari masukan biasa
+        int lebar_kotak = (lebar_dinamis == -1) ? 400 : lebar_dinamis; 
+        Rectangle area = { (float)*x_kursor, (float)*y_kursor, (float)lebar_kotak, (float)tinggi_kotak };
+        
+        // 2. Sistem Pendaftaran & State (Mirip dengan <masukan>)
+        char id_bersih[64] = {0}; 
+        sscanf(tag_id, " %s", id_bersih);
+        int indeks_saya = -1;
+        
+        for (int i = 0; i < total_input_terdaftar; i++) {
+            if (strcmp(daftar_id[i], id_bersih) == 0) { indeks_saya = i; break; }
+        }
+        if (indeks_saya == -1 && total_input_terdaftar < MAKSIMAL_INPUT) {
+            indeks_saya = total_input_terdaftar;
+            strcpy(daftar_id[indeks_saya], id_bersih);
+            total_input_terdaftar++;
+        }
+
+        if (indeks_saya != -1) {
+            // 3. Deteksi Fokus (Klik)
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (CheckCollisionPointRec(mouse, area)) {
+                    daftar_fokus[indeks_saya] = true; 
+                    for (int j = 0; j < MAKSIMAL_INPUT; j++) {
+                        if (j != indeks_saya) daftar_fokus[j] = false;
+                    }
+                } else {
+                    daftar_fokus[indeks_saya] = false; 
+                }
+            }
+
+            // 4. Reseptor Keyboard Abjad & Enter
+            if (daftar_fokus[indeks_saya]) {
+                int key = GetCharPressed();
+                while (key > 0) {
+                    if ((key >= 32) && (key <= 125)) { 
+                        int len = strlen(daftar_nilai[indeks_saya]);
+                        if (len < 65000) {
+                            daftar_nilai[indeks_saya][len] = (char)key;
+                            daftar_nilai[indeks_saya][len+1] = '\0';
+                        }
+                    }
+                    key = GetCharPressed();
+                }
+                
+                // Backspace
+                if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+                    int len = strlen(daftar_nilai[indeks_saya]);
+                    if (len > 0) daftar_nilai[indeks_saya][len-1] = '\0';
+                }
+
+                // ENTER (Sihir Baris Baru!)
+                if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) {
+                    int len = strlen(daftar_nilai[indeks_saya]);
+                    if (len < 65000) {
+                        strcat(daftar_nilai[indeks_saya], "\n");
+                    }
+                }
+                
+                // Copy & Paste (Sihir Clipboard)
+                bool ctrl_ditekan = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+                if (ctrl_ditekan && IsKeyPressed(KEY_C)) SetClipboardText(daftar_nilai[indeks_saya]);
+                if (ctrl_ditekan && IsKeyPressed(KEY_V)) {
+                    const char* teks_paste = GetClipboardText();
+                    if (teks_paste != NULL) {
+                        int len_sekarang = strlen(daftar_nilai[indeks_saya]);
+                        int len_paste = strlen(teks_paste);
+                        if (len_sekarang + len_paste < 65000) strcat(daftar_nilai[indeks_saya], teks_paste);
+                    }
+                }
+            }
+
+            // 5. Gambar Bingkai Background
+            DrawRectangleRec(area, warna_latar.a == 0 ? RAYWHITE : warna_latar);
+            DrawRectangleLinesEx(area, 2, daftar_fokus[indeks_saya] ? RED : warna_teks);
+
+            // 6. SIHIR AUTO WRAP & RENDER TEKS
+            // Kita potong visualnya agar tidak bocor ke bawah jika teks terlalu panjang
+            BeginScissorMode(area.x, area.y, area.width, area.height);
+            
+            float teks_x = area.x + 5;
+            float teks_y = area.y + 5;
+            
+            // Kita ukur lebar spasi
+            float spasi_w = MeasureText(" ", font_size);
+            
+            // Kita pecah teks yang diketik menjadi kata-kata
+            char* teks_salinan = enki_salin_teks(daftar_nilai[indeks_saya], 1);
+            int panjang_teks = strlen(teks_salinan);
+            
+            char kata_sementara[256] = {0};
+            int indeks_kata = 0;
+            
+            for (int i = 0; i <= panjang_teks; i++) {
+                char c = teks_salinan[i];
+                
+                // Jika bertemu spasi, enter, atau akhir teks, kita harus menggambar kata yang tersimpan!
+                if (c == ' ' || c == '\n' || c == '\0') {
+                    kata_sementara[indeks_kata] = '\0';
+                    
+                    float lebar_kata = MeasureText(kata_sementara, font_size);
+                    
+                    // CEK AUTO WRAP: Jika X + lebar kata menabrak batas kanan, turun baris!
+                    if (teks_x + lebar_kata > area.x + area.width - 10) {
+                        teks_x = area.x + 5;           // Kembali ke kiri
+                        teks_y += (font_size + 5);     // Turun 1 baris
+                    }
+                    
+                    // Gambar Kata
+                    DrawText(kata_sementara, teks_x, teks_y, font_size, BLACK);
+                    
+                    // Geser X sejauh lebar kata + spasi
+                    teks_x += lebar_kata;
+                    if (c == ' ') teks_x += spasi_w;
+                    
+                    // Jika huruf aslinya adalah ENTER, paksa turun baris!
+                    if (c == '\n') {
+                        teks_x = area.x + 5;
+                        teks_y += (font_size + 5);
+                    }
+                    
+                    // Reset kata sementara untuk huruf berikutnya
+                    indeks_kata = 0;
+                    kata_sementara[0] = '\0';
+                } else {
+                    // Masukkan huruf ke dalam kata sementara
+                    if (indeks_kata < 250) {
+                        kata_sementara[indeks_kata++] = c;
+                    }
+                }
+            }
+            
+            enki_bebas(teks_salinan, 1);
+
+            // 7. Render Kursor di posisi karakter terakhir
+            if (daftar_fokus[indeks_saya]) {
+                static int kedip = 0;
+                kedip++;
+                if ((kedip / 30) % 2 == 0) {
+                    DrawLine(teks_x, teks_y, teks_x, teks_y + font_size, RED);
+                }
+            }
+            
+            EndScissorMode();
+
+            // 8. SINKRONISASI DOM UNUL
+            // (Sama persis seperti <masukan> biasa)
+            int ada_isi = 0;
+            for (int j = 0; j < elemen->panjang; j++) {
+                if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
+                    EnkiObject* v = elemen->nilai.objek_peta.konten[j];
+                    if (strcmp(v->nilai.teks, daftar_nilai[indeks_saya]) != 0) {
+                        v->nilai.teks = enki_salin_teks(daftar_nilai[indeks_saya], 1); 
+                        v->panjang = strlen(v->nilai.teks);
+                    }
+                    ada_isi = 1; break;
+                }
+            }
+            if (ada_isi == 0) {
+                // 🟢 ALOKASI AMAN: Buat array baru dan salin isinya agar tidak merusak pointer asli UNUL!
+                EnkiObject** kunci_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+                EnkiObject** konten_baru = (EnkiObject**)enki_alokasi((elemen->panjang + 1) * sizeof(EnkiObject*), 1);
+                
+                for(int j = 0; j < elemen->panjang; j++) {
+                    kunci_baru[j] = elemen->nilai.objek_peta.kunci[j];
+                    konten_baru[j] = elemen->nilai.objek_peta.konten[j];
+                }
+                
+                kunci_baru[elemen->panjang] = ciptakan_teks("teks_input", 1);
+                konten_baru[elemen->panjang] = ciptakan_teks(daftar_nilai[indeks_saya], 1);
+                
+                // Timpa array lama (biarkan GC UNUL yang membuang sampah array lamanya)
+                elemen->nilai.objek_peta.kunci = kunci_baru;
+                elemen->nilai.objek_peta.konten = konten_baru;
+                elemen->panjang++;
+            }
+        }
+
+        kotak_w = area.width; 
         kotak_h = area.height; 
     }
     
@@ -415,9 +637,9 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             
             int d_fs; // 🟢 Variabel Font Size sementara
             char selektor_hover[128]; snprintf(selektor_hover, sizeof(selektor_hover), "%s:hover", selektor);
-            terapkan_aturan_snul(gaya_dev, selektor_hover, &h_bg, &h_fg, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, NULL, NULL); 
+            terapkan_aturan_snul(gaya_dev, selektor_hover, &h_bg, &h_fg, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, NULL, NULL, NULL); 
             char tag_hover[128]; snprintf(tag_hover, sizeof(tag_hover), "@%s:hover", tag_nama);
-            terapkan_aturan_snul(gaya_dev, tag_hover, &h_bg, &h_fg, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, NULL, NULL);
+            terapkan_aturan_snul(gaya_dev, tag_hover, &h_bg, &h_fg, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, NULL, NULL, NULL);
             
             GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(h_bg));
             GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, ColorToInt(h_fg));
@@ -436,10 +658,11 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
     
     if (kotak_h > *tinggi_baris_maks) *tinggi_baris_maks = kotak_h;
     
+    // 🟢 MENGGUNAKAN 'jarak_gap' DARI SNUL (Bukan 15 mutlak lagi!)
     if (strcmp(tag_nama, "wadah") != 0 && strcmp(tag_nama, "wadah_dinamis") != 0) {
-        *y_kursor += kotak_h + 15;
+        *y_kursor += kotak_h + jarak_gap; 
     } else {
-        *x_kursor += kotak_w + 15;
+        *x_kursor += kotak_w + jarak_gap; 
     }
 }
 
@@ -466,50 +689,47 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
         SetConfigFlags(FLAG_WINDOW_RESIZABLE); 
         InitWindow(800, 600, "OS Urantia - Dimensi Native GUI");
         SetTargetFPS(60); 
-        GuiLoadStyleDefault(); // Muat gaya bawaan Raygui
+        GuiLoadStyleDefault(); 
     }
     
     char aksi_kembalian[256] = "";
-
-    // Ambil input mouse TERBARU di setiap frame
-    Vector2 mouse = GetMousePosition();
-    bool klik_kiri = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-    
-    // 🟢 SUNTIKAN ANTI-BUG KURSOR!
-        // Paksa kursor jadi panah biasa di setiap awal frame. 
-        // Jika menabrak tombol di bawah nanti, dia akan otomatis berubah jadi tangan lagi.
-        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-
-    SetMouseCursor(MOUSE_CURSOR_DEFAULT);
-    
     SnulTokenArray tokens_bawaan = snul_lexer(SNUL_BAWAAN_MESIN);
     EnkiObject* gaya_bawaan_ast = parse_snul(tokens_bawaan);
 
     static float scroll_y = 0;
-    scroll_y += GetMouseWheelMove() * 40.0f;
-    if (scroll_y > 0) scroll_y = 0;          
+    static int tinggi_konten_terakhir = 600; // 🟢 Pengingat memori tinggi konten!
 
-    // 🟢 KITA KUNCI GAME LOOP DI DALAM C AGAR RAYGUI BISA BERNAFAS!
+    // 🟢 LOOP INTERNAL C AGAR GAME TIDAK MATI
     while (!WindowShouldClose()) {
-        // Ambil input mouse TERBARU di setiap frame
-        mouse = GetMousePosition();
-        klik_kiri = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+        Vector2 mouse = GetMousePosition();
+        bool klik_kiri = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
         
-        // 🟢 SUNTIKAN ANTI-BUG KURSOR!
-        // Paksa kursor jadi panah biasa di setiap awal frame. 
-        // Nanti jika menabrak tombol, dia akan otomatis berubah jadi tangan lagi.
-        SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+        SetMouseCursor(MOUSE_CURSOR_DEFAULT); 
+        
+        // 🟢 LOGIKA SCROLLING YANG DISEMPURNAKAN
+        scroll_y += GetMouseWheelMove() * 40.0f; // Mouse wheel / Touchpad
+        
+        // Cadangan Militer: Gunakan panah keyboard jika touchpad Linux bermasalah!
+        if (IsKeyDown(KEY_UP)) scroll_y += 15.0f;
+        if (IsKeyDown(KEY_DOWN)) scroll_y -= 15.0f;
 
-        // 🟢 KANVAS BEBAS DENGAN DEFAULT 0
-        int pad_x = 0; // Default 0
-        int pad_y = 0; // Default 0
+        // Batasi Scroll Atas (Tidak boleh ditarik lebih dari atap)
+        if (scroll_y > 0) scroll_y = 0;          
+
+        // Batasi Scroll Bawah (Mentok di dasar konten)
+        int max_scroll = GetScreenHeight() - tinggi_konten_terakhir - 50;
+        if (max_scroll > 0) max_scroll = 0; // Jika konten muat di layar, kunci di 0
+        if (scroll_y < max_scroll) scroll_y = max_scroll;
+
+        int pad_x = 0; 
+        int pad_y = 0; 
 
         BeginDrawing();
         Color bgColor = RAYWHITE;
         int d_b, d_l, d_t, d_u, d_fs; char d_s[32]; Color d_f;
         
         // 🟢 Mancing nilai padding dari SNUL!
-        terapkan_aturan_snul(gaya_root, "@wadah_utama", &bgColor, &d_f, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, &pad_x, &pad_y);
+        terapkan_aturan_snul(gaya_root, "@wadah_utama", &bgColor, &d_f, &d_b, &d_l, &d_t, &d_u, d_s, &d_fs, &pad_x, &pad_y, NULL);
         ClearBackground(bgColor);
 
         // Atur posisi awal render berdasarkan hasil pancingan SNUL!
@@ -521,12 +741,59 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
             gambar_elemen_otim(ui_root, gaya_bawaan_ast, gaya_root, &x_mulai, &y_mulai, &tinggi_maks_akar, mouse, klik_kiri, aksi_kembalian, BLACK);
         }
         
+        // 🟢 PERBAIKAN BUG SCROLL: Ambil dari variabel tinggi_maks_akar!
+        // Karena variabel ini menyimpan tinggi asli (kotak_h) dari wadah_dinamis!
+        tinggi_konten_terakhir = tinggi_maks_akar + pad_y;
+
+        // 🟢 GAMBAR SCROLLBAR VISUAL ELEGAN DI KANAN LAYAR
+        if (tinggi_konten_terakhir > GetScreenHeight()) {
+            int s_height = (GetScreenHeight() * GetScreenHeight()) / tinggi_konten_terakhir;
+            if (s_height < 30) s_height = 30; 
+            
+            float proporsi = scroll_y / (float)max_scroll;
+            int s_y = (int)(proporsi * (GetScreenHeight() - s_height));
+            
+            Rectangle scroll_rect = { GetScreenWidth() - 15, s_y, 10, s_height };
+            
+            // 🟢 SIHIR SCROLLBAR BISA DITARIK (DRAGGABLE)
+            static bool sedang_ditarik = false;
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(mouse, scroll_rect)) {
+                sedang_ditarik = true; // Kunci kursor ke scrollbar
+            }
+            if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+                sedang_ditarik = false; // Lepaskan kunci
+            }
+            
+            if (sedang_ditarik) {
+                // Hitung proporsi berdasarkan posisi Y mouse
+                float drag_proporsi = (mouse.y - (s_height / 2.0f)) / (GetScreenHeight() - s_height);
+                
+                // Cegah bablas ke atas atau ke bawah
+                if (drag_proporsi < 0.0f) drag_proporsi = 0.0f;
+                if (drag_proporsi > 1.0f) drag_proporsi = 1.0f;
+                
+                // max_scroll bernilai negatif, jadi rumus ini akan menurunkan layar dengan benar!
+                scroll_y = drag_proporsi * max_scroll; 
+                
+                // Perbarui posisi Y visual agar langsung mengikuti mouse
+                s_y = (int)(drag_proporsi * (GetScreenHeight() - s_height));
+                scroll_rect.y = s_y;
+            }
+
+            // Render Scrollbar (Hitam pekat saat ditarik, Abu-abu transparan saat diam)
+            DrawRectangleRounded(scroll_rect, 0.5f, 10, sedang_ditarik ? BLACK : Fade(DARKGRAY, 0.5f));
+            
+            if (!sedang_ditarik && CheckCollisionPointRec(mouse, scroll_rect)) {
+                DrawRectangleRounded(scroll_rect, 0.5f, 10, Fade(BLACK, 0.8f));
+            }
+        }
+        
         EndDrawing();
 
-        // 🟢 JIKA TOMBOL DIKLIK (aksi_kembalian terisi), HENTIKAN LOOP!
+        // JIKA ADA AKSI (Tombol diklik), PECAHKAN LOOP
         if (strlen(aksi_kembalian) > 0) {
-            scroll_y = 0; 
-            break; // Keluar dari while loop, kembali ke skrip UNUL
+            scroll_y = 0; // Kembalikan scroll ke pucuk saat ganti halaman!
+            break; 
         }
     }
 

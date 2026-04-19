@@ -3,9 +3,9 @@
 ^^ ==========================================
 
 untuk array.statis
-^^ untuk array.dinamis
+untuk array.dinamis
 butuh .anu
-sowan bridge  
+sowan gui  
 
 ^^ 1. MUAT SEMUA TAMPILAN
 takdir.soft ui_login = muat_otim("login.otim")
