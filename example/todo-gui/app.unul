@@ -23,17 +23,20 @@ takdir.soft db_file = "database.imah"
 ciptakan fungsi login(nama_user, sandi_mentah) maka
     takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    jika sandi_tersimpan != "" maka
-        jika sandi_aman == sandi_tersimpan maka pulang 1
-        lain maka pulang 0 putus
-    lain maka pulang 0 putus
+    
+    ^^ Langsung to the point! Jika tidak hampa dan sandi cocok!
+    jika sandi_tersimpan != hampa dan sandi_aman == sandi_tersimpan maka
+        pulang 1
+    lain maka 
+        pulang 0 
+    putus
 putus
 
 ciptakan fungsi ganti_sandi(nama_user, sandi_lama_mentah, sandi_baru_mentah) maka
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
     
-    ^^ 1. Pastikan user-nya ada
-    jika sandi_tersimpan == "" atau sandi_tersimpan == "TIDAK_DITEMUKAN" maka 
+    ^^ 1. Pastikan user-nya ada di database
+    jika sandi_tersimpan == hampa maka 
         pulang 0 
     putus
     
@@ -51,11 +54,14 @@ putus
 
 ciptakan fungsi register(nama_user, sandi_mentah) maka
     takdir.soft sandi_tersimpan = tarik_imah(db_file, "pengguna." + nama_user)
-    jika sandi_tersimpan != "" maka pulang 0
-    lain maka
+    
+    ^^ 🟢 KEBENARAN MUTLAK: Gunakan hampa (NULL)!
+    jika sandi_tersimpan == hampa maka 
         takdir.soft sandi_aman = hash(sandi_mentah, GARAM)
         tanam_imah(db_file, "pengguna." + nama_user, sandi_aman)
         pulang 1
+    lain maka
+        pulang 0 ^^ User sudah ada!
     putus
 putus
 

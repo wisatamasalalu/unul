@@ -80,4 +80,24 @@ char* ekspansi_jalur(const char* jalur_mentah);
 // Fungsi Eksekusi Perintah Lintas OS
 char* os_eksekusi_perintah(const char* perintah);
 
+// ====================================================================
+// 🧬 JEMBATAN KUANTUM (CROSS-PLATFORM THREADING & SYNCHRONIZATION)
+// ====================================================================
+
+// 1. Sihir Utas (Thread)
+void* os_utas_ciptakan(void* (*fungsi)(void*), void* argumen);
+void  os_utas_lepas(void* utas); // Membiarkan utas berjalan mandiri (Detach)
+
+// 2. Sihir Gembok (Mutex / Critical Section)
+void* os_gembok_ciptakan(int mode_dinamis);
+void  os_gembok_kunci(void* gembok);
+void  os_gembok_buka(void* gembok);
+void  os_gembok_hancurkan(void* gembok, int mode_dinamis);
+
+// 3. Sihir Sinyal Waktu (Condition Variable)
+void* os_sinyal_ciptakan(int mode_dinamis);
+void  os_sinyal_tunggu(void* sinyal, void* gembok);
+void  os_sinyal_bangunkan(void* sinyal);
+void  os_sinyal_hancurkan(void* sinyal, int mode_dinamis);
+
 #endif // ENKI_OS_H

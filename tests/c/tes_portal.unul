@@ -1,0 +1,35 @@
+datang
+untuk array.dinamis
+
+ketik("==== UJI COBA PORTAL DIMENSI (CROSS-PLATFORM GOROUTINES) ====")
+
+^^ Buka portal dengan kapasitas 1 (Synchronous)
+takdir.soft portal_sakti = buka_portal(1)
+
+ciptakan fungsi pekerja_gaib() maka
+    ketik("[Utas Gaib] Saya sedang bekerja keras di dimensi lain...")
+    jeda(2000) ^^ Simulasi tidur 2 detik
+    
+    takdir.soft data = {}
+    data.pesan = "Halo dari dimensi paralel! Kami membawa teknologi LLVM!"
+    data.kode = 200
+    
+    ketik("[Utas Gaib] Melempar data ke dalam portal...")
+    lempar(portal_sakti, data)
+putus
+
+ketik("[Utas Utama] Memanggil utas gaib...")
+utas pekerja_gaib()
+
+ketik("[Utas Utama] Utas utama bisa melakukan tugas lain sambil menunggu...")
+jeda(500)
+ketik("[Utas Utama] Bersiap menangkap objek dari portal...")
+
+^^ Di sini Utas Utama akan diam membeku (blocking) sampai portal memuntahkan data!
+takdir.soft paket = tangkap(portal_sakti)
+
+ketik("\n[Utas Utama] ⚡ BERHASIL MENANGKAP OBJEK!")
+ketik("Isi pesan : " + paket.pesan)
+ketik("Kode Status : " + paket.kode)
+
+pergi

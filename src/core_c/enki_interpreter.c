@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <regex.h>
-#include <pthread.h>
 #include <stdint.h>
 #include "enki_interpreter.h"
 #include "enki_scheduler.h"
@@ -441,17 +440,22 @@ void bebaskan_ram(EnkiRAM* ram) {
         if (ram->kavling[i].nama) enki_bebas(ram->kavling[i].nama, 1);
         
         // 🟢 HANCURKAN OBJEK UTAMA
-        if (ram->kavling[i].objek) hancurkan_objek(ram->kavling[i].objek, ram->status_array_dinamis);
+        // PERISAI DIMENSI: Pipa/Portal (ENKI_PORTAL) adalah properti abadi lintas utas.
+        // Jangan dihancurkan secara otomatis oleh pembersih RAM lokal, 
+        // biarkan ia dihancurkan manual oleh pemrogram via 'pasrah'.
+        if (ram->kavling[i].objek && ram->kavling[i].objek->tipe != ENKI_PORTAL) {
+            hancurkan_objek(ram->kavling[i].objek, ram->status_array_dinamis);
+        }
         
         if (ram->kavling[i].anak_anak) {
             bebaskan_ram(ram->kavling[i].anak_anak);
             enki_bebas(ram->kavling[i].anak_anak, 1);
         }
         
-        // 🟢 Bersihkan riwayat mesin waktu (SUNTIKAN DITAMBAHKAN DI SINI)
+        // 🟢 Bersihkan riwayat mesin waktu
         if (ram->kavling[i].riwayat) {
             for (int j = 0; j < ram->kavling[i].jumlah_riwayat; j++) {
-                if (ram->kavling[i].riwayat[j].objek) {
+                if (ram->kavling[i].riwayat[j].objek && ram->kavling[i].riwayat[j].objek->tipe != ENKI_PORTAL) {
                     hancurkan_objek(ram->kavling[i].riwayat[j].objek, ram->status_array_dinamis);
                 }
             }
@@ -964,6 +968,11 @@ int sihir_cek_kesetaraan(EnkiObject* a, EnkiObject* b) {
                 if (!ketemu) return 0; // Kunci A tidak ditemukan di B
             }
             return 1;
+
+        // 🟢 SUNTIKAN: BUNGKAM WARNING GCC UNTUK ENKI_PORTAL
+        case ENKI_PORTAL:
+            // Dua portal dianggap sama jika mereka menunjuk ke gembok (mutex) yang persis sama
+            return (a->nilai.portal.gembok == b->nilai.portal.gembok);
     }
     return 0;
 }
@@ -1450,7 +1459,25 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 if (*alamat_target) hancurkan_objek(*alamat_target, ram->status_array_dinamis); 
                 *alamat_target = hasil_masa_depan;                    
                 
-                // ❌ OMNI-REBUILD TELAH DIHAPUS DARI SINI! KITA PERCAYAKAN PADA KEMURNIAN L-VALUE!
+                // =======================================================
+                // 🟢 SINKRONISASI CERDAS (HYBRID RESOLUTION)
+                // Jika yang ditimpa adalah variabel utuh (AST_IDENTITAS),
+                // maka kita HARUS membakar Mini RAM lama dan merakit ulang agar GUI tidak amnesia!
+                // Tapi jika ini adalah Mutasi Bersarang (AST_AKSES_DOMAIN), Mini RAM dibiarkan hidup!
+                // =======================================================
+                if (node->kiri->jenis == AST_IDENTITAS) {
+                    if (induk) {
+                        if (induk->anak_anak) {
+                            bebaskan_ram(induk->anak_anak);
+                            enki_bebas(induk->anak_anak, 1);
+                            induk->anak_anak = NULL;
+                        }
+                        if (hasil_masa_depan && hasil_masa_depan->tipe == ENKI_OBJEK) {
+                            sihir_bangun_dimensi(induk, hasil_masa_depan, ram);
+                        }
+                    }
+                }
+                // =======================================================
                 
             } else {
                 // ALAMAT GAGAL DITEMUKAN: Coba buat variabel baru
@@ -1464,7 +1491,7 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                     target_kavling->tipe = TIPE_VARIABEL_SOFT;
                     target_kavling->objek = hasil_masa_depan;
                     
-                    // 🟢 KITA HANYA MEMBANGUN DIMENSI JIKA VARIABEL INI BENAR-BENAR BARU DIBUAT (BUKAN MUTASI PROPERTI)
+                    // 🟢 KITA HANYA MEMBANGUN DIMENSI JIKA VARIABEL INI BENAR-BENAR BARU DIBUAT
                     if (target_kavling->anak_anak) {
                         bebaskan_ram(target_kavling->anak_anak);
                         enki_bebas(target_kavling->anak_anak, 1);
@@ -3095,12 +3122,8 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             
             hancurkan_objek(obj_path, ram->status_array_dinamis); hancurkan_objek(obj_kunci, ram->status_array_dinamis); hancurkan_objek(obj_nilai, ram->status_array_dinamis);
             
-            // 👇 TAMBAHAN: Jika gagal ketemu, kembalikan teks agar mudah di-If-Else di UNUL
-            if (hasil_pencarian->tipe == ENKI_KOSONG) {
-                hancurkan_objek(hasil_pencarian, ram->status_array_dinamis);
-                hasil_pencarian = ciptakan_teks("TIDAK_DITEMUKAN", ram->status_array_dinamis);
-            }
-
+            // 🟢 Roda bantuan "TIDAK_DITEMUKAN" telah dimusnahkan.
+            // Biarkan Jasad C mengembalikan wujud hampa yang sejati!
             return hasil_pencarian; // Kembalikan HANYA 1 data yang dicari!
         }
 
@@ -3549,9 +3572,15 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
                 // Jangan pakai printf agar layar tidak berkedip (flicker)
                 sihir_suntik_dom(*pointer_asli, obj_id->nilai.teks, obj_teks->nilai.teks);
                 
-                // 🟢 SINKRONISASI ALAM GAIB: Update Mini RAM agar wujud TUI tidak kembali ke masa lalu!
+                // 🟢 PEMUSNAH AMNESIA: BAKAR MINI RAM!
+                // Hancurkan ingatan lama agar UI membaca DOM yang baru saja diretas!
                 for (int i = 0; i < ram->jumlah; i++) {
                     if (strcmp(ram->kavling[i].nama, nama_var) == 0) {
+                        if (ram->kavling[i].anak_anak) {
+                            bebaskan_ram(ram->kavling[i].anak_anak);
+                            enki_bebas(ram->kavling[i].anak_anak, 1);
+                            ram->kavling[i].anak_anak = NULL;
+                        }
                         sihir_bangun_dimensi(&(ram->kavling[i]), *pointer_asli, ram);
                         break;
                     }
@@ -3562,6 +3591,82 @@ EnkiObject* evaluasi_ekspresi(ASTNode* node, EnkiRAM* ram) {
             if (obj_teks) hancurkan_objek(obj_teks, ram->status_array_dinamis);
             
             return ciptakan_kosong(ram->status_array_dinamis); 
+        }
+
+        // =======================================================
+        // 🌀 PORTAL DIMENSI (CHANNELS GOROUTINES CROSS-PLATFORM)
+        // =======================================================
+        
+        // A. BUKA PORTAL: takdir.soft dimensi_lain = buka_portal(10)
+        if (strcmp(node->nilai_teks, "buka_portal") == 0) {
+            int kapasitas = 1; 
+            if (node->jumlah_anak > 0) {
+                EnkiObject* arg_kap = evaluasi_ekspresi(node->anak_anak[0], ram);
+                if (arg_kap && arg_kap->tipe == ENKI_ANGKA) kapasitas = (int)arg_kap->nilai.angka;
+                if (arg_kap) hancurkan_objek(arg_kap, ram->status_array_dinamis);
+            }
+            return ciptakan_portal(kapasitas, ram->status_array_dinamis);
+        }
+        
+        // B. MELEMPAR: lempar(dimensi_lain, data)
+        if (strcmp(node->nilai_teks, "lempar") == 0) {
+            if (node->jumlah_anak < 2) {
+                pemicu_kiamat_presisi(node, ram, "Gagal Melempar!", "Butuh portal dan data. Contoh: lempar(portal, \"Pesan\")");
+                return ciptakan_kosong(ram->status_array_dinamis);
+            }
+            EnkiObject* obj_portal = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* obj_data = evaluasi_ekspresi(node->anak_anak[1], ram);
+            
+            if (obj_portal && obj_portal->tipe == ENKI_PORTAL) {
+                void* mtx = obj_portal->nilai.portal.gembok;
+                void* cnd = obj_portal->nilai.portal.sinyal;
+                
+                os_gembok_kunci(mtx);
+                while (obj_portal->nilai.portal.jumlah >= obj_portal->nilai.portal.kapasitas) {
+                    os_sinyal_tunggu(cnd, mtx); 
+                }
+                
+                EnkiObject* data_aman = ciptakan_salinan_objek(obj_data, ram->status_array_dinamis);
+                obj_portal->nilai.portal.antrian[obj_portal->nilai.portal.ekor] = data_aman;
+                obj_portal->nilai.portal.ekor = (obj_portal->nilai.portal.ekor + 1) % obj_portal->nilai.portal.kapasitas;
+                obj_portal->nilai.portal.jumlah++;
+                
+                os_sinyal_bangunkan(cnd); 
+                os_gembok_buka(mtx);
+            } else {
+                pemicu_kiamat_presisi(node, ram, "Bukan Portal!", "Argumen pertama harus berupa Portal Dimensi (buka_portal).");
+            }
+            
+            if (obj_data) hancurkan_objek(obj_data, ram->status_array_dinamis);
+            return ciptakan_kosong(ram->status_array_dinamis);
+        }
+        
+        // C. MENANGKAP: takdir.soft pesan = tangkap(dimensi_lain)
+        if (strcmp(node->nilai_teks, "tangkap") == 0) {
+            if (node->jumlah_anak < 1) return ciptakan_kosong(ram->status_array_dinamis);
+            
+            EnkiObject* obj_portal = evaluasi_ekspresi(node->anak_anak[0], ram);
+            EnkiObject* hasil = ciptakan_kosong(ram->status_array_dinamis);
+            
+            if (obj_portal && obj_portal->tipe == ENKI_PORTAL) {
+                void* mtx = obj_portal->nilai.portal.gembok;
+                void* cnd = obj_portal->nilai.portal.sinyal;
+                
+                os_gembok_kunci(mtx);
+                while (obj_portal->nilai.portal.jumlah == 0) {
+                    os_sinyal_tunggu(cnd, mtx); 
+                }
+                
+                hasil = obj_portal->nilai.portal.antrian[obj_portal->nilai.portal.kepala];
+                obj_portal->nilai.portal.antrian[obj_portal->nilai.portal.kepala] = NULL;
+                obj_portal->nilai.portal.kepala = (obj_portal->nilai.portal.kepala + 1) % obj_portal->nilai.portal.kapasitas;
+                obj_portal->nilai.portal.jumlah--;
+                
+                os_sinyal_bangunkan(cnd); 
+                os_gembok_buka(mtx);
+            }
+            
+            return hasil; 
         }
 
         // =======================================================
@@ -3723,7 +3828,21 @@ EnkiRAM* salin_ram_untuk_utas(EnkiRAM* sumber) {
     baru->status_array_statis = sumber->status_array_statis;
 
     for (int i = 0; i < sumber->jumlah; i++) {
-        EnkiObject* obj_aman = sumber->kavling[i].objek ? sumber->kavling[i].objek : ciptakan_kosong(sumber->status_array_dinamis);
+        EnkiObject* obj_aman = NULL;
+        
+        if (sumber->kavling[i].objek) {
+            // 🟢 PERISAI ANTI DOUBLE-FREE!
+            // Jika itu portal, bagikan pointernya (Reference). 
+            // Jika bukan, buat salinan fisiknya (Deep Copy) agar tidak bertabrakan saat dihancurkan!
+            if (sumber->kavling[i].objek->tipe == ENKI_PORTAL) {
+                obj_aman = sumber->kavling[i].objek; 
+            } else {
+                obj_aman = ciptakan_salinan_objek(sumber->kavling[i].objek, sumber->status_array_dinamis);
+            }
+        } else {
+            obj_aman = ciptakan_kosong(sumber->status_array_dinamis);
+        }
+        
         simpan_ke_ram(baru, sumber->kavling[i].nama, obj_aman);
         baru->kavling[baru->jumlah - 1].simpul_fungsi = sumber->kavling[i].simpul_fungsi;
         baru->kavling[baru->jumlah - 1].tipe = sumber->kavling[i].tipe;
@@ -3969,13 +4088,13 @@ void eksekusi_node(ASTNode* node, EnkiRAM* ram) {
     // --- EKSEKUSI UTAS GAIB (PARALEL) ---
     else if (node->jenis == AST_UTAS) {
         if (node->kiri && node->kiri->jenis == AST_PANGGILAN_FUNGSI) {
-            pthread_t id_utas;
             KapsulUtas* kapsul = (KapsulUtas*)enki_alokasi(sizeof(KapsulUtas), 1);
             kapsul->simpul_panggilan = node->kiri;
             kapsul->ram_paralel = salin_ram_untuk_utas(ram); 
             
-            pthread_create(&id_utas, NULL, pelari_utas_gaib, kapsul);
-            pthread_detach(id_utas); 
+            // 🟢 GUNAKAN WRAPPER LINTAS OS TANPA CASTING PAKSA!
+            void* utas = os_utas_ciptakan(pelari_utas_gaib, kapsul);
+            os_utas_lepas(utas); 
         } else {
             pemicu_kiamat_presisi(node, ram, "Sihir utas cacat!", "Sihir 'utas' atau 'gaib' hanya bisa digunakan untuk memanggil fungsi.");
         }

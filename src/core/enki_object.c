@@ -1,5 +1,29 @@
 #include "enki_object.h"
 #include "enki_memory.h" // HUBUNGKAN DENGAN ARENA
+#include "../core_c/enki_os.h" // 🟢 WAJIB ADA UNTUK GEMBOK!
+
+// 🟢 PABRIK PORTAL
+EnkiObject* ciptakan_portal(int kapasitas_buffer, int mode_dinamis) {
+    EnkiObject* obj = (EnkiObject*)enki_alokasi(sizeof(EnkiObject), mode_dinamis);
+    obj->tipe = ENKI_PORTAL;
+    obj->panjang = 0;
+    
+    int kap = (kapasitas_buffer > 0) ? kapasitas_buffer : 1; 
+    
+    obj->nilai.portal.kapasitas = kap;
+    obj->nilai.portal.kepala = 0;
+    obj->nilai.portal.ekor = 0;
+    obj->nilai.portal.jumlah = 0;
+    
+    obj->nilai.portal.antrian = (EnkiObject**)enki_alokasi(kap * sizeof(EnkiObject*), mode_dinamis);
+    if (mode_dinamis == 1) memset(obj->nilai.portal.antrian, 0, kap * sizeof(EnkiObject*));
+    
+    // Gunakan Wrapper OS! Bersih dan murni!
+    obj->nilai.portal.gembok = os_gembok_ciptakan(mode_dinamis);
+    obj->nilai.portal.sinyal = os_sinyal_ciptakan(mode_dinamis);
+    
+    return obj;
+}
 
 // ==========================================
 // 🏭 PABRIK PENCIPTAAN (CONSTRUCTORS)
@@ -110,6 +134,10 @@ EnkiObject* ciptakan_salinan_objek(EnkiObject* sumber, int mode_dinamis) {
         }
         return salinan;
     }
+    // 🟢 SUNTIKAN: PORTAL ADALAH PASS-BY-REFERENCE MUTLAK!
+    else if (sumber->tipe == ENKI_PORTAL) {
+        return sumber; // Kembalikan pointer asli!
+    } // SATU-SATUNYA PASS BY REFERENCE YANG SAH UNTUK BAHASA PASS BY VALUE
     return ciptakan_kosong(mode_dinamis);
 }
 
@@ -139,6 +167,19 @@ void hancurkan_objek(EnkiObject* obj, int mode_dinamis) {
     }
     else if (obj->tipe == ENKI_BLOB && obj->nilai.blob.data != NULL) {
         enki_bebas(obj->nilai.blob.data, mode_dinamis);
+    }
+    // 🟢 SUNTIKAN PENGHANCUR PORTAL
+    else if (obj->tipe == ENKI_PORTAL) {
+        for (int i = 0; i < obj->nilai.portal.jumlah; i++) {
+            int idx = (obj->nilai.portal.kepala + i) % obj->nilai.portal.kapasitas;
+            if (obj->nilai.portal.antrian[idx]) {
+                hancurkan_objek(obj->nilai.portal.antrian[idx], mode_dinamis);
+            }
+        }
+        enki_bebas(obj->nilai.portal.antrian, mode_dinamis);
+        
+        if (obj->nilai.portal.gembok) os_gembok_hancurkan(obj->nilai.portal.gembok, mode_dinamis);
+        if (obj->nilai.portal.sinyal) os_sinyal_hancurkan(obj->nilai.portal.sinyal, mode_dinamis);
     }
 
     enki_bebas(obj, mode_dinamis);

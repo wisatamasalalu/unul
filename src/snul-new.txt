@@ -1,80 +1,16 @@
-// =======================================================
-        // 🎨 SIHIR KANVAS MUTLAK (TUI & GUI ROUTER)
-        // =======================================================
-        if (strcmp(node->nilai_teks, "layar_bersih") == 0) {
-            tui_layar_bersih();
-            return ciptakan_kosong(ram->status_array_dinamis);
-        }
+yang ini:
 
-        if (strcmp(node->nilai_teks, "layar_kursor") == 0) {
-            if (node->jumlah_anak < 2) return ciptakan_kosong(ram->status_array_dinamis);
-            EnkiObject* obj_x = evaluasi_ekspresi(node->anak_anak[0], ram);
-            EnkiObject* obj_y = evaluasi_ekspresi(node->anak_anak[1], ram);
+// --- EKSEKUSI UTAS GAIB (PARALEL) ---
+    else if (node->jenis == AST_UTAS) {
+        if (node->kiri && node->kiri->jenis == AST_PANGGILAN_FUNGSI) {
+            pthread_t id_utas;
+            KapsulUtas* kapsul = (KapsulUtas*)enki_alokasi(sizeof(KapsulUtas), 1);
+            kapsul->simpul_panggilan = node->kiri;
+            kapsul->ram_paralel = salin_ram_untuk_utas(ram); 
             
-            if (obj_x && obj_y && obj_x->tipe == ENKI_ANGKA && obj_y->tipe == ENKI_ANGKA) {
-                tui_layar_kursor((int)obj_x->nilai.angka, (int)obj_y->nilai.angka);
-            }
-            if(obj_x) hancurkan_objek(obj_x, ram->status_array_dinamis);
-            if(obj_y) hancurkan_objek(obj_y, ram->status_array_dinamis);
-            return ciptakan_kosong(ram->status_array_dinamis);
+            pthread_create(&id_utas, NULL, pelari_utas_gaib, kapsul);
+            pthread_detach(id_utas); 
+        } else {
+            pemicu_kiamat_presisi(node, ram, "Sihir utas cacat!", "Sihir 'utas' atau 'gaib' hanya bisa digunakan untuk memanggil fungsi.");
         }
-
-        if (strcmp(node->nilai_teks, "layar_cetak") == 0) {
-            if (node->jumlah_anak < 4) return ciptakan_kosong(ram->status_array_dinamis);
-            EnkiObject* obj_x = evaluasi_ekspresi(node->anak_anak[0], ram);
-            EnkiObject* obj_y = evaluasi_ekspresi(node->anak_anak[1], ram);
-            EnkiObject* obj_teks = evaluasi_ekspresi(node->anak_anak[2], ram);
-            EnkiObject* obj_warna = evaluasi_ekspresi(node->anak_anak[3], ram);
-            
-            if (obj_x && obj_y && obj_teks && obj_warna && obj_x->tipe == ENKI_ANGKA && obj_y->tipe == ENKI_ANGKA && obj_teks->tipe == ENKI_TEKS && obj_warna->tipe == ENKI_TEKS) {
-                tui_layar_cetak((int)obj_x->nilai.angka, (int)obj_y->nilai.angka, obj_teks->nilai.teks, obj_warna->nilai.teks);
-            }
-            
-            if(obj_x) hancurkan_objek(obj_x, ram->status_array_dinamis);
-            if(obj_y) hancurkan_objek(obj_y, ram->status_array_dinamis);
-            if(obj_teks) hancurkan_objek(obj_teks, ram->status_array_dinamis);
-            if(obj_warna) hancurkan_objek(obj_warna, ram->status_array_dinamis);
-            return ciptakan_kosong(ram->status_array_dinamis);
-        }
-
-        if (strcmp(node->nilai_teks, "layar_piksel") == 0) {
-            if (node->jumlah_anak < 4) return ciptakan_kosong(ram->status_array_dinamis);
-            EnkiObject* obj_x = evaluasi_ekspresi(node->anak_anak[0], ram);
-            EnkiObject* obj_y = evaluasi_ekspresi(node->anak_anak[1], ram);
-            EnkiObject* obj_wujud = evaluasi_ekspresi(node->anak_anak[2], ram);
-            EnkiObject* obj_warna = evaluasi_ekspresi(node->anak_anak[3], ram);
-            
-            if (obj_x && obj_y && obj_wujud && obj_wujud->tipe == ENKI_TEKS && obj_warna && obj_warna->tipe == ENKI_TEKS) {
-                tui_layar_piksel((int)obj_x->nilai.angka, (int)obj_y->nilai.angka, obj_wujud->nilai.teks, obj_warna->nilai.teks);
-            }
-            
-            if(obj_x) hancurkan_objek(obj_x, ram->status_array_dinamis);
-            if(obj_y) hancurkan_objek(obj_y, ram->status_array_dinamis);
-            if(obj_wujud) hancurkan_objek(obj_wujud, ram->status_array_dinamis);
-            if(obj_warna) hancurkan_objek(obj_warna, ram->status_array_dinamis);
-            return ciptakan_kosong(ram->status_array_dinamis);
-        }
-
-        if (strcmp(node->nilai_teks, "layar_alternatif_buka") == 0) {
-            tui_layar_alternatif_buka();
-            return ciptakan_kosong(ram->status_array_dinamis);
-        }
-
-        if (strcmp(node->nilai_teks, "layar_alternatif_tutup") == 0) {
-            tui_layar_alternatif_tutup();
-            return ciptakan_kosong(ram->status_array_dinamis);
-        }
-
-        if (strcmp(node->nilai_teks, "layar_baca_tombol") == 0) {
-            char* hasil_mentah = tui_layar_baca_tombol();
-            EnkiObject* hasil = ciptakan_kosong(ram->status_array_dinamis);
-            
-            if (hasil_mentah != NULL) {
-                hasil = ciptakan_teks(hasil_mentah, ram->status_array_dinamis);
-                enki_bebas(hasil_mentah, 1); // 🟢 SUNTIKAN: GANTI free() MENJADI enki_bebas()
-            }
-            return hasil;
-        }
-
-
-ini selengkapnya cara kerja penampilan GUI & TUI di kode intrepeter  c
+    }

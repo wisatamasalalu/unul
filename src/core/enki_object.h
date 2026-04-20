@@ -12,7 +12,8 @@ typedef enum {
     ENKI_ARRAY,     
     ENKI_OBJEK,     
     ENKI_BLOB,      
-    ENKI_KOSONG     
+    ENKI_KOSONG,
+    ENKI_PORTAL    
 } TipeEnki;
 
 // 2. Struktur Anatomi Gabungan
@@ -30,11 +31,22 @@ typedef struct EnkiObject {
             unsigned char* data;
             size_t ukuran;
         } blob;
+        // 🟢 ANATOMI BARU: PORTAL ANTAR DIMENSI
+        struct {
+            struct EnkiObject** antrian; 
+            int kapasitas;
+            int kepala; 
+            int ekor;   
+            int jumlah; 
+            void* gembok; // OS Wrapper Mutex
+            void* sinyal; // OS Wrapper Condition Variable
+        } portal;
     } nilai;
     int panjang; 
 } EnkiObject;
 
-// 3. Mantra Penciptaan (HANYA INI YANG BOLEH ADA!)
+// 3. Mantra Penciptaan
+EnkiObject* ciptakan_portal(int kapasitas_buffer, int mode_dinamis);
 EnkiObject* ciptakan_angka(double nilai, int mode_dinamis);
 EnkiObject* ciptakan_teks(const char* nilai, int mode_dinamis);
 EnkiObject* ciptakan_array(int kapasitas, int mode_dinamis);

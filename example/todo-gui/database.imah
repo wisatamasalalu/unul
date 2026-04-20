@@ -5,7 +5,8 @@
     "anjing":     "e575e8883c0f89f8",
     "kelinci":     "e575e8883c0f89f8",
     "ayam":     "e575e8883c0f89f8",
-    "kucing":     "de9a6bc7d0e208df"
+    "kucing":     "de9a6bc7d0e208df",
+    "buaya":     "1be76e6663939341"
   },
   "tugas":   {
     "kambing":     [
@@ -35,7 +36,12 @@
       "PgcEThYGDTQ=",
       "NxcNB1QCFCQ=",
       "NxcNB1QEACoMDw9fEkNRWzIVBAMWCA0g",
-      "IRMMDBUBCiADQQhYRkZGFRInKA=="
+      "IRMMDBUBCiADQQhYRkZGFRInKA==",
+      "PhMPCREHQRQDFAI=",
+      "OhkEF1QLCDIMQQJeVVpaFTkTBgdUAQApDA==",
+      "PRMNAVQICjRNEQtfVVJTQDhSEw8cCBIoDE9A",
+      "PRMIThUCFGEABABSW11AVDwfFE4QCA0gAEEKWFNe",
+      "OR0GBxpJAyQfCQ9CW18URjAGBAIVAUE0DwAGEUFSWlE8"
     ],
     "anjing":     [
       "PxMGD1QbFCwMCQ==",
@@ -53,6 +59,14 @@
     "kucing":     [
       "NxcNB1QeCSgeCg9C",
       "OBMKDxpJESgDBQ9fVQ=="
+    ],
+    "buaya":     [
+      "PRMVB1QBADUEQQpYEllVWTQc",
+      "OxMJTh0HCGEMBQ8RdmZ1FTQcCw8NEBhhTEBPEhETb2gOCRoVDzQ8HDA8E0xPTklIclVDTE9SRh0xPVEOHRZH",
+      "PAYUTgAcDSgeAAARQVpaXHUcGA9UAgRhBg4aUFk=",
+      "aUxdUEhXX39TX1APDA8ICWlOXVIAHA0oHl9MEw4cQEA5GxJQ",
+      "PBwIThUNAGEIDAFFEkFbXjAGQZ7r8+Gx8vPV",
+      "NRIBQVtGGi8MDA8RCBNfWjsGDgIJST0dMR0S"
     ]
   }
 }

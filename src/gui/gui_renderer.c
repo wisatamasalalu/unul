@@ -23,6 +23,9 @@ static char daftar_nilai[MAKSIMAL_INPUT][65536] = {0};
 static char daftar_label[MAKSIMAL_INPUT][256] = {0}; 
 static bool daftar_fokus[MAKSIMAL_INPUT] = {false}; 
 static int total_input_terdaftar = 0;
+// 🟢 MEMORI GULUNGAN (SCROLL) UNTUK AREANULIS
+static float daftar_scroll_y[MAKSIMAL_INPUT] = {0};
+static float daftar_max_scroll[MAKSIMAL_INPUT] = {0};
 
 #define MAKSIMAL_GAMBAR 10
 static Texture2D cache_gambar[MAKSIMAL_GAMBAR];
@@ -296,12 +299,14 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
     }
 
     // =================================================================
-    // 🟢 MASUKAN TEKS SINGLE-LINE
+    // 🟢 MASUKAN TEKS SINGLE-LINE (REVOLUSI PLACEHOLDER & BEBAS HARDCODE)
     // =================================================================
     else if (strcmp(tag_nama, "masukan") == 0 || strcmp(tag_nama, "masukan_sandi") == 0) {
         int tinggi_kotak = (tinggi_dinamis == -1) ? (font_size + 20) : tinggi_dinamis; 
         int lebar_kotak = (lebar_dinamis == -1) ? 300 : lebar_dinamis; 
-        Rectangle area = { (float)(*x_kursor + 250), (float)*y_kursor, (float)lebar_kotak, (float)tinggi_kotak };
+        
+        // 🚀 HARDCODE 250px DIMUSNAHKAN! Posisi mutlak sesuai kursor!
+        Rectangle area = { (float)*x_kursor, (float)*y_kursor, (float)lebar_kotak, (float)tinggi_kotak };
         
         char id_bersih[64] = {0}; 
         sscanf(tag_id, " %s", id_bersih);
@@ -314,6 +319,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             indeks_saya = total_input_terdaftar;
             strcpy(daftar_id[indeks_saya], id_bersih);
             
+            // Teks dalam elemen sekarang menjadi PLACEHOLDER
             if (strlen(teks_dalam) > 0) strcpy(daftar_label[indeks_saya], teks_dalam);
             else strcpy(daftar_label[indeks_saya], atribut);
             
@@ -326,7 +332,7 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             total_input_terdaftar++;
         }
 
-        DrawText(daftar_label[indeks_saya], *x_kursor, *y_kursor + (font_size/2), font_size, warna_teks_turunan); 
+        // ❌ DrawText label paksa di kiri telah dibumihanguskan!
 
         if (indeks_saya != -1) {
             bool mode_sandi = (strcmp(tag_nama, "masukan_sandi") == 0);
@@ -378,37 +384,58 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             GuiSetStyle(TEXTBOX, BORDER_COLOR_NORMAL, daftar_fokus[indeks_saya] ? ColorToInt(RED) : ColorToInt(warna_teks));
             GuiTextBox(area, "", 65535, false);
 
-            char teks_tampil[2048] = {0};
-            if (mode_sandi) {
-                size_t panjang_sandi = strlen(daftar_nilai[indeks_saya]);
-                if (panjang_sandi > 120) panjang_sandi = 120; 
-                for(size_t b=0; b<panjang_sandi; b++) teks_tampil[b] = '*';
-                teks_tampil[panjang_sandi] = '\0';
-            } else {
-                strncpy(teks_tampil, daftar_nilai[indeks_saya], 2000);
-            }
-            DrawText(teks_tampil, area.x + 10, area.y + (area.height/2) - (font_size/2), font_size, BLACK);
+            BeginScissorMode(area.x, area.y, area.width - 5, area.height);
 
-            if (daftar_fokus[indeks_saya]) {
-                static int frame_kursor = 0;
-                frame_kursor++;
-                if ((frame_kursor / 30) % 2 == 0) { 
-                    int text_width = MeasureText(teks_tampil, font_size);
-                    DrawRectangle(area.x + 12 + text_width, area.y + (area.height/2) - (font_size/2), 2, font_size, RED);
+            bool is_empty = (strlen(daftar_nilai[indeks_saya]) == 0);
+
+            if (is_empty) {
+                // 🟢 SIHIR PLACEHOLDER: Teks abu-abu jika input kosong!
+                DrawText(daftar_label[indeks_saya], area.x + 10, area.y + (area.height/2) - (font_size/2), font_size, LIGHTGRAY);
+                
+                if (daftar_fokus[indeks_saya]) {
+                    static int frame_kursor = 0; frame_kursor++;
+                    if ((frame_kursor / 30) % 2 == 0) DrawRectangle(area.x + 12, area.y + (area.height/2) - (font_size/2), 2, font_size, RED);
+                }
+            } else {
+                char teks_tampil[2048] = {0};
+                if (mode_sandi) {
+                    size_t panjang_sandi = strlen(daftar_nilai[indeks_saya]);
+                    if (panjang_sandi > 120) panjang_sandi = 120; 
+                    for(size_t b=0; b<panjang_sandi; b++) teks_tampil[b] = '*';
+                    teks_tampil[panjang_sandi] = '\0';
+                } else {
+                    strncpy(teks_tampil, daftar_nilai[indeks_saya], 2000);
+                }
+
+                int text_width = MeasureText(teks_tampil, font_size);
+                int offset_x = 0;
+                if (text_width > area.width - 20) offset_x = text_width - (area.width - 30);
+
+                DrawText(teks_tampil, area.x + 10 - offset_x, area.y + (area.height/2) - (font_size/2), font_size, BLACK);
+
+                if (daftar_fokus[indeks_saya]) {
+                    static int frame_kursor = 0; frame_kursor++;
+                    if ((frame_kursor / 30) % 2 == 0) { 
+                        DrawRectangle(area.x + 12 + text_width - offset_x, area.y + (area.height/2) - (font_size/2), 2, font_size, RED);
+                    }
                 }
             }
+
+            EndScissorMode();
         }
 
-        kotak_w = 250 + area.width; 
+        kotak_w = area.width; 
         kotak_h = area.height; 
     }
 
     // =================================================================
-    // 🟢 REVOLUSI AREA NULIS (MULTI-LINE TEXTAREA DENGAN AUTO WRAP!)
+    // 🟢 REVOLUSI AREA NULIS (MULTI-LINE TEXTAREA BEBAS HARDCODE!)
     // =================================================================
     else if (strcmp(tag_nama, "areanulis") == 0) {
         int tinggi_kotak = (tinggi_dinamis == -1) ? 150 : tinggi_dinamis;
         int lebar_kotak = (lebar_dinamis == -1) ? 400 : lebar_dinamis; 
+        
+        // 🚀 HARDCODE 250px DIMUSNAHKAN! Posisi mutlak sesuai kursor!
         Rectangle area = { (float)*x_kursor, (float)*y_kursor, (float)lebar_kotak, (float)tinggi_kotak };
         
         char id_bersih[64] = {0}; 
@@ -422,6 +449,9 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             indeks_saya = total_input_terdaftar;
             strcpy(daftar_id[indeks_saya], id_bersih);
             
+            if (strlen(teks_dalam) > 0) strcpy(daftar_label[indeks_saya], teks_dalam);
+            else strcpy(daftar_label[indeks_saya], atribut);
+            
             for (int j = 0; j < elemen->panjang; j++) {
                 if (strcmp(elemen->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
                     strncpy(daftar_nilai[indeks_saya], elemen->nilai.objek_peta.konten[j]->nilai.teks, 65000);
@@ -431,9 +461,14 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
             total_input_terdaftar++;
         }
 
+        // ❌ DrawText label paksa di kiri telah dibumihanguskan!
+
         if (indeks_saya != -1) {
+            // 🟢 DETEKSI HOVER DAN SCROLL MOUSE
+            bool is_hovered = CheckCollisionPointRec(mouse, area);
+            
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-                if (CheckCollisionPointRec(mouse, area)) {
+                if (is_hovered) {
                     daftar_fokus[indeks_saya] = true; 
                     for (int j = 0; j < MAKSIMAL_INPUT; j++) {
                         if (j != indeks_saya) daftar_fokus[j] = false;
@@ -442,6 +477,21 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                     daftar_fokus[indeks_saya] = false; 
                 }
             }
+
+            // 🟢 LOGIKA GULUNGAN (SCROLLING) MURNI
+            if (is_hovered) {
+                float wheel = GetMouseWheelMove();
+                if (wheel != 0) {
+                    daftar_scroll_y[indeks_saya] += wheel * 25.0f; // Kecepatan scroll 25px
+                }
+            }
+
+            // Batasi gulungan (Clamp)
+            if (daftar_scroll_y[indeks_saya] > 0) daftar_scroll_y[indeks_saya] = 0; // Mentok atas
+            if (daftar_scroll_y[indeks_saya] < -daftar_max_scroll[indeks_saya]) {
+                daftar_scroll_y[indeks_saya] = -daftar_max_scroll[indeks_saya]; // Mentok bawah
+            }
+            if (daftar_max_scroll[indeks_saya] < 0) daftar_scroll_y[indeks_saya] = 0; // Jika teks lebih pendek dari kotak
 
             if (daftar_fokus[indeks_saya]) {
                 int key = GetCharPressed();
@@ -452,6 +502,8 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
                             daftar_nilai[indeks_saya][len] = (char)key;
                             daftar_nilai[indeks_saya][len+1] = '\0';
                         }
+                        // 🟢 OTOMATIS SCROLL KE BAWAH SAAT NGETIK JIKA SUDAH PENUH
+                        daftar_scroll_y[indeks_saya] = -daftar_max_scroll[indeks_saya]; 
                     }
                     key = GetCharPressed();
                 }
@@ -463,9 +515,9 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
 
                 if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) {
                     int len = strlen(daftar_nilai[indeks_saya]);
-                    if (len < 65000) {
-                        strcat(daftar_nilai[indeks_saya], "\n");
-                    }
+                    if (len < 65000) strcat(daftar_nilai[indeks_saya], "\n");
+                    // 🟢 OTOMATIS SCROLL KE BAWAH SAAT ENTER
+                    daftar_scroll_y[indeks_saya] = -daftar_max_scroll[indeks_saya];
                 }
                 
                 bool ctrl_ditekan = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
@@ -485,54 +537,68 @@ void gambar_elemen_otim(EnkiObject* elemen, EnkiObject* gaya_bawaan, EnkiObject*
 
             BeginScissorMode(area.x, area.y, area.width, area.height);
             
-            float teks_x = area.x + 5;
-            float teks_y = area.y + 5;
-            float spasi_w = MeasureText(" ", font_size);
-            
-            char* teks_salinan = enki_salin_teks(daftar_nilai[indeks_saya], 1);
-            int panjang_teks = strlen(teks_salinan);
-            char kata_sementara[256] = {0};
-            int indeks_kata = 0;
-            
-            for (int i = 0; i <= panjang_teks; i++) {
-                char c = teks_salinan[i];
-                if (c == ' ' || c == '\n' || c == '\0') {
-                    kata_sementara[indeks_kata] = '\0';
-                    float lebar_kata = MeasureText(kata_sementara, font_size);
-                    
-                    if (teks_x + lebar_kata > area.x + area.width - 10) {
-                        teks_x = area.x + 5;           
-                        teks_y += (font_size + 5);     
-                    }
-                    
-                    DrawText(kata_sementara, teks_x, teks_y, font_size, BLACK);
-                    
-                    teks_x += lebar_kata;
-                    if (c == ' ') teks_x += spasi_w;
-                    
-                    if (c == '\n') {
-                        teks_x = area.x + 5;
-                        teks_y += (font_size + 5);
-                    }
-                    
-                    indeks_kata = 0;
-                    kata_sementara[0] = '\0';
-                } else {
-                    if (indeks_kata < 250) kata_sementara[indeks_kata++] = c;
-                }
-            }
-            enki_bebas(teks_salinan, 1);
+            bool is_empty = (strlen(daftar_nilai[indeks_saya]) == 0);
 
-            if (daftar_fokus[indeks_saya]) {
-                static int kedip = 0;
-                kedip++;
-                if ((kedip / 30) % 2 == 0) {
-                    DrawLine(teks_x, teks_y, teks_x, teks_y + font_size, RED);
+            if (is_empty) {
+                // 🟢 SIHIR PLACEHOLDER
+                DrawText(daftar_label[indeks_saya], area.x + 5, area.y + 5, font_size, LIGHTGRAY);
+                
+                if (daftar_fokus[indeks_saya]) {
+                    static int kedip = 0; kedip++;
+                    if ((kedip / 30) % 2 == 0) DrawLine(area.x + 5, area.y + 5, area.x + 5, area.y + 5 + font_size, RED);
+                }
+            } else {
+                float teks_x = area.x + 5;
+                // 🟢 SUNTIKAN SCROLL OFFSET PADA KOORDINAT Y
+                float teks_y = area.y + 5 + daftar_scroll_y[indeks_saya]; 
+                float spasi_w = MeasureText(" ", font_size);
+                
+                char* teks_salinan = enki_salin_teks(daftar_nilai[indeks_saya], 1);
+                int panjang_teks = strlen(teks_salinan);
+                char kata_sementara[256] = {0};
+                int indeks_kata = 0;
+                
+                for (int i = 0; i <= panjang_teks; i++) {
+                    char c = teks_salinan[i];
+                    if (c == ' ' || c == '\n' || c == '\0') {
+                        kata_sementara[indeks_kata] = '\0';
+                        float lebar_kata = MeasureText(kata_sementara, font_size);
+                        
+                        if (teks_x + lebar_kata > area.x + area.width - 10) {
+                            teks_x = area.x + 5;            
+                            teks_y += (font_size + 5);      
+                        }
+                        
+                        DrawText(kata_sementara, teks_x, teks_y, font_size, BLACK);
+                        
+                        teks_x += lebar_kata;
+                        if (c == ' ') teks_x += spasi_w;
+                        
+                        if (c == '\n') {
+                            teks_x = area.x + 5;
+                            teks_y += (font_size + 5);
+                        }
+                        
+                        indeks_kata = 0;
+                        kata_sementara[0] = '\0';
+                    } else {
+                        if (indeks_kata < 250) kata_sementara[indeks_kata++] = c;
+                    }
+                }
+                enki_bebas(teks_salinan, 1);
+
+                // 🟢 KALKULASI BATAS MAKSIMAL SCROLL DARI TEKS TERAKHIR
+                float tinggi_total_teks = (teks_y - daftar_scroll_y[indeks_saya]) - area.y;
+                daftar_max_scroll[indeks_saya] = tinggi_total_teks - area.height + font_size + 10;
+                if (daftar_max_scroll[indeks_saya] < 0) daftar_max_scroll[indeks_saya] = 0;
+
+                if (daftar_fokus[indeks_saya]) {
+                    static int kedip = 0; kedip++;
+                    if ((kedip / 30) % 2 == 0) DrawLine(teks_x, teks_y, teks_x, teks_y + font_size, RED);
                 }
             }
             
             EndScissorMode();
-
         }
 
         kotak_w = area.width; 
@@ -706,47 +772,23 @@ char* tampilkan_gui_raylib(EnkiObject* ui_root, EnkiObject* gaya_root) {
         CloseWindow(); 
     } 
     
-    // ====================================================================
-    // 🟢 THE FORCE FLUSH: SINKRONISASI PAKSA TERAKHIR SEBELUM KELUAR!
-    // Ini menjamin arg_ui berisi data ketikan 100% utuh tanpa tertinggal 1 frame pun!
-    // ====================================================================
+    // 🟢 SUNTIKAN 3: THE FORCE FLUSH!
+    // Memaksa sinkronisasi data terakhir ke DOM sebelum kembali ke UNUL
     for (int k = 0; k < total_input_terdaftar; k++) {
         EnkiObject* target = ambil_elemen_berdasarkan_id(ui_root, daftar_id[k]);
         if (target && target->tipe == ENKI_OBJEK) {
-            int ketemu = 0;
             for (int j = 0; j < target->panjang; j++) {
                 if (strcmp(target->nilai.objek_peta.kunci[j]->nilai.teks, "teks_input") == 0) {
-                    // Hancurkan objek lama terlebih dahulu untuk mencegah kebocoran memori!
-                    hancurkan_objek(target->nilai.objek_peta.konten[j], 1);
                     target->nilai.objek_peta.konten[j] = ciptakan_teks(daftar_nilai[k], 1);
-                    ketemu = 1;
                     break;
                 }
             }
-            // 🟢 JIKA PARSER GAGAL MELAHIRKANNYA, C KITA AKAN MELAHIRKANNYA SECARA PAKSA!
-            if (!ketemu) {
-                target->nilai.objek_peta.kunci = (EnkiObject**)enki_realokasi(
-                    target->nilai.objek_peta.kunci,
-                    target->panjang * sizeof(EnkiObject*),
-                    (target->panjang + 1) * sizeof(EnkiObject*), 1);
-                
-                target->nilai.objek_peta.konten = (EnkiObject**)enki_realokasi(
-                    target->nilai.objek_peta.konten,
-                    target->panjang * sizeof(EnkiObject*),
-                    (target->panjang + 1) * sizeof(EnkiObject*), 1);
-                
-                target->nilai.objek_peta.kunci[target->panjang] = ciptakan_teks("teks_input", 1);
-                target->nilai.objek_peta.konten[target->panjang] = ciptakan_teks(daftar_nilai[k], 1);
-                target->panjang++;
-            }
         }
-    }
-    // ====================================================================
+    } // <-- Ini adalah kurung tutup dari The Force Flush
 
     // 🟢 SUNTIKAN BARU: HAPUS INGATAN C SETELAH DOM AMAN!
     total_input_terdaftar = 0; 
     for(int k = 0; k < MAKSIMAL_INPUT; k++) {
-        daftar_id[k][0] = '\0'; // Pastikan ID dibersihkan agar saat kembali login bisa didaftarkan lagi!
         daftar_fokus[k] = false;
         memset(daftar_nilai[k], 0, sizeof(daftar_nilai[k])); 
         memset(daftar_label[k], 0, sizeof(daftar_label[k])); 
